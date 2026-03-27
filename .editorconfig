@@ -1,0 +1,62 @@
+# 根配置，不继承父目录
+root = true
+
+[*.cs]
+# 基础格式
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# ── 命名规则 ─────────────────────────────
+
+# 类、结构体 → PascalCase
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.types.applicable_kinds = class,struct,enum,delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+
+# 接口 → IPascalCase
+dotnet_naming_rule.interface_should_start_with_i.severity = warning
+dotnet_naming_rule.interface_should_start_with_i.symbols = interfaces
+dotnet_naming_rule.interface_should_start_with_i.style = interface_style
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+# 私有字段 → _camelCase
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel_style
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private,protected
+
+# 公有字段单独一条规则（和方法、属性分开写）
+dotnet_naming_rule.public_fields_pascal.severity             = warning
+dotnet_naming_rule.public_fields_pascal.symbols              = public_fields
+dotnet_naming_rule.public_fields_pascal.style                = pascal_case_style
+
+dotnet_naming_symbols.public_fields.applicable_kinds         = field
+dotnet_naming_symbols.public_fields.applicable_accessibilities = public,internal
+
+# 局部变量 / 参数 → camelCase
+dotnet_naming_rule.locals_camel.severity = warning
+dotnet_naming_rule.locals_camel.symbols = locals
+dotnet_naming_rule.locals_camel.style = camel_case_style
+dotnet_naming_symbols.locals.applicable_kinds = local,parameter
+dotnet_naming_symbols.locals.applicable_accessibilities = *
+
+# ── 样式定义 ─────────────────────────────
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+dotnet_naming_style.underscore_camel_style.required_prefix = _
+dotnet_naming_style.underscore_camel_style.capitalization = camel_case
+dotnet_naming_style.interface_style.required_prefix = I
+dotnet_naming_style.interface_style.capitalization = pascal_case
+
+# 针对 Unity 消息函数禁用未使用成员的警告
+[*.cs]
+dotnet_analyzer_diagnostic.category-Style.severity = none
+dotnet_diagnostic.IDE0051.severity = none # 隐藏“未使用的私有成员”警告

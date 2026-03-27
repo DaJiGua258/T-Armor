@@ -1,0 +1,11 @@
+{
+    "editor.cursorSurroundingLines": 0,
+    "editor.cursorSurroundingLinesStyle": "default",
+
+    "editor.smoothScrolling": false,
+    "editor.cursorSmoothCaretAnimation": "off",
+
+    "files.autoSave": "off",
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false
+}

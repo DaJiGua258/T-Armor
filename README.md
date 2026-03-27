@@ -1,4 +1,4 @@
-# NT-Armor
+# T-Armor
 
 一个基于 Unity 的俯视角 2D 游戏原型，使用 **Sprite Stacking（精灵堆叠）** 技术实现伪 3D 渲染效果。
 

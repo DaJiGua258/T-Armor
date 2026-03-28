@@ -4,7 +4,7 @@ Shader "Custom/SpriteStacking"
     {
         _MainTex ("Sprite Sheet (Left to Right)", 2D) = "white" {}
         _LayerCount ("Layer Count", Int) = 16
-        _YOffset ("Layer Y Offset", Float) = 0.05
+        _YOffset ("Layer Y Offset", Float) = 0.02
         _StackDir ("Stack Direction (World Space)", Vector) = (0, 1, 0, 0)
     }
     SubShader

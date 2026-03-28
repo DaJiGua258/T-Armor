@@ -39,7 +39,7 @@ public class SpriteStacking : MonoBehaviour
     {
         if (!Application.isPlaying || transform.hasChanged)
         {
-            UpdateMaterial();
+            // UpdateMaterial();
             UpdateZSort();
             transform.hasChanged = false;  // 重置，防止自身修改 Z 触发下帧重复计算
         }
@@ -106,17 +106,13 @@ public class SpriteStacking : MonoBehaviour
 
         _cachedRenderer = GetComponent<Renderer>();
 
+        // 只从面板处指定材质
         if (_stackingMaterial == null)
         {
-            Shader shader = Shader.Find("Custom/SpriteStacking");
-            if (shader != null)
+            _stackingMaterial = _cachedRenderer.sharedMaterial;
+            if (_stackingMaterial == null)
             {
-                _stackingMaterial = new Material(shader);
-                _cachedRenderer.sharedMaterial = _stackingMaterial;
-            }
-            else
-            {
-                Debug.LogError("未找到 Shader 'Custom/SpriteStacking'！");
+                Debug.LogError(gameObject.name + "材质为空！");
                 return;
             }
         }

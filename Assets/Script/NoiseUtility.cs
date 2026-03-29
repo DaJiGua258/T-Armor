@@ -81,7 +81,7 @@ public static class NoiseUtility
                 float fx = x / (float)width  * 2f - 1f;
                 float fy = y / (float)height * 2f - 1f;
                 float v  = Mathf.Max(Mathf.Abs(fx), Mathf.Abs(fy));  // 计算距离中心点的距离
-                map[x, y] = curve.Evaluate(v);
+                map[x, y] = v * curve.Evaluate(v);
             }
         }
 

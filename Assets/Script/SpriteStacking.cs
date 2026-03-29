@@ -4,22 +4,27 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class SpriteStacking : MonoBehaviour
 {
+    [Header("障碍使用的参数")]
+    public bool IsObstacle;
+    public float SizeMultiplier = 1f;
+    public float SizeHieght = 1f;
+
     [Header("精灵堆叠设置")]
     // 包含从左到右所有切片的纹理
     public Texture2D SpriteSheet;
+    public int SpriteSize = 32;
     private int LayerCount
     {
         get
         {
             if(_layerCout == 0)
-                _layerCout = SpriteSheet.width / 32;
-            // Debug.Log(gameObject.name + "layerCount: " + _layerCout);
+                _layerCout = SpriteSheet.width / SpriteSize;
             return _layerCout;
         }
     }
     private int _layerCout;
 
-    public float YOffset = 0.02f;
+    private float _yOffset = 0.02f;
 
     [Header("渲染顺序（Z 轴深度）")]
     public Transform OrderParent;   // 指定排序父物体；设置后排序跟随父物体 Y 轴，而非自身
@@ -50,6 +55,7 @@ public class SpriteStacking : MonoBehaviour
         Init();
         UpdateZSort();
         UpdateMaterial();
+        UpdateScale();
     }
 
     void UpdateMaterial()
@@ -58,7 +64,7 @@ public class SpriteStacking : MonoBehaviour
         {
             _stackingMaterial.SetTexture("_MainTex", SpriteSheet);
             _stackingMaterial.SetInt("_LayerCount", LayerCount);
-            _stackingMaterial.SetFloat("_YOffset", YOffset);
+            _stackingMaterial.SetFloat("_YOffset", _yOffset);
         }
     }
 
@@ -119,5 +125,17 @@ public class SpriteStacking : MonoBehaviour
 
         UpdateMaterial();
         UpdateZSort();
+        UpdateScale();
     }
+
+    private void UpdateScale()
+    {
+        if(IsObstacle)
+        {
+            transform.localScale = new Vector3(SizeMultiplier, SizeMultiplier, 1);
+            _yOffset = SizeHieght * 0.02f;
+
+        }
+    }
+    
 }

@@ -468,6 +468,7 @@ public class MapGenerator : MonoBehaviour
 #if UNITY_EDITOR
         var obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
         obj.transform.position = pos;
+        o
         Undo.RegisterCreatedObjectUndo(obj, "MapGen Obstacle");
 #else
         Instantiate(prefab, pos, Quaternion.identity, parent);

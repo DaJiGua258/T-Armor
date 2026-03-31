@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4426425368390003582}
   m_Layer: 0
   m_Name: env_wall_3x3
-  m_TagString: Untagged
+  m_TagString: Env
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 126

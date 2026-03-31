@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -34,6 +35,16 @@ public class SpriteStacking : MonoBehaviour
     public float ZSortOffset = 0f;  // 在基础 Z 值上的额外偏移
     private float _yToZScale = 0.01f;  // Y → Z 的缩放系数（正值 = Y 越大越靠后渲染）
 
+    /// <summary>
+    /// 当前实际生效的层间距（世界单位），供子物体矫正脚本读取。
+    /// </summary>
+    public float ActiveYOffset => _yOffset;
+
+    /// <summary>
+    /// 当前精灵层数。
+    /// </summary>
+    public int ActiveLayerCount => LayerCount;
+
     private MeshFilter _meshFilter;
     private Material _stackingMaterial;
     private Renderer _cachedRenderer;
@@ -55,7 +66,14 @@ public class SpriteStacking : MonoBehaviour
 
     private void OnValidate()
     {
-        Init();
+        // 在编辑器中，延迟初始化，防止在对象创建时初始化
+#if UNITY_EDITOR
+        EditorApplication.delayCall += () =>
+        {
+            if(this == null) return;
+            Init();
+        };
+#endif
         UpdateZSort();
         UpdateMaterial();
         UpdateScale();

@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "T-Armor.sln"
+    "dotnet.defaultSolution": "T-Armor.sln",
+    "todo-tree.tree.scanMode": "current file"
 }

@@ -1,11 +1,13 @@
 using Unity.Mathematics;
 using UnityEngine;
+using QFramework.Model;
 
 namespace QFramework.ViewController.Player
 {
     public class PlayerController : MonoBehaviour, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+        private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
 
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
@@ -82,6 +84,7 @@ namespace QFramework.ViewController.Player
         /// </summary>
         private void ParamsInit()
         {
+            MoveSpeed = _playerModel.Speed.Value;
             // MoveSpeed = 3f;
             // AimZOffsetDeg = 180f;
         }

@@ -1,7 +1,13 @@
+using QFramework.Enum;
+using QFramework;
 using UnityEngine;
+using QFramework.Command;
+using QFramework.System;
 
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, IController
 {
+    public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+
     [Header("跟随目标")]
     [SerializeField] private Transform _target;
 
@@ -26,6 +32,8 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
+        PickUpItem();
+
         if (!_target) return;
 
         Vector3 targetPos = _target.position;
@@ -86,5 +94,28 @@ public class CameraController : MonoBehaviour
             return ray.GetPoint(d);
         }
         return referencePos;
+    }
+
+    private void PickUpItem()
+    {
+        Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
+
+        RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
+        if(hit.collider != null)
+        {
+            if(hit.collider.gameObject.CompareTag("PickUp") && Input.GetMouseButtonDown(0))
+            {
+                Debug.Log("PickUpItem");
+                PickUp pickUp = hit.collider.gameObject.GetComponent<PickUp>();
+                if(pickUp._type == TypeEnum.Weapon)
+                {
+                    this.SendCommand(new PickUpCommand.PickUpWeapon(
+                        this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId, 
+                        pickUp.GetInstanceId()));
+                }
+
+            }   
+        }
+
     }
 }

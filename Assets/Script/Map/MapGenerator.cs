@@ -47,6 +47,37 @@ public class LayerConfig
     public TileSet tileSet;
 }
 
+// ─── 格子数据 ────────────────────────────────────────────────────────────────
+
+/// <summary>
+/// 地图单个格子的完整信息。
+/// 使用 struct 减少堆分配开销（64×64 = 4096 个实例）。
+/// </summary>
+public struct CellData
+{
+    public const int LAYER_NONE     = -1;
+    public const int LAYER_OBSTACLE = -2;
+
+    public float noise;
+    public int layerIndex;
+    public bool occupied;
+    public CellFlags flags;
+
+    public static CellData Create(float noise = 0f, int layer = LAYER_NONE)
+    {
+        return new CellData { noise = noise, layerIndex = layer, occupied = false, flags = CellFlags.None };
+    }
+}
+
+[System.Flags]
+public enum CellFlags : byte
+{
+    None       = 0,
+    Walkable   = 1 << 0,
+    Dangerous  = 1 << 1,
+    Decorated  = 1 << 2,
+}
+
 // ─── MapGenerator ──────────────────────────────────────────────────────────────
 
 public class MapGenerator : MonoBehaviour
@@ -58,10 +89,10 @@ public class MapGenerator : MonoBehaviour
     public int mapSize = 64;
 
     [Header("噪声参数")]
-    [Min(0.01f)] public float noiseScale    = 30f;
-    [Range(1, 8)] public int  octaves       = 4;
+    [Min(0.01f)] public float noiseScale = 30f;
+    [Range(1, 8)] public int octaves = 4;
     [Range(0f, 1f)] public float persistence = 0.5f;
-    [Min(1f)] public float lacunarity       = 2f;
+    [Min(1f)] public float lacunarity = 2f;
     public int     seed       = 0;
     public Vector2 noiseOffset;
     public AnimationCurve curve;
@@ -100,9 +131,7 @@ public class MapGenerator : MonoBehaviour
 
     // ── 运行时数据 ──────────────────────────────────────────────────
 
-    private float[,] _noise;
-    private int[,]   _layerIndexInMap;
-    private bool[,]  _occupied;
+    private CellData[,] _grid;
 
     private struct ObstacleGizmo { public Vector3 center; public int size; }
     private List<ObstacleGizmo> _gizmoObstacles = new List<ObstacleGizmo>();
@@ -132,7 +161,7 @@ public class MapGenerator : MonoBehaviour
         BuildLayerMap();
 
         // 仅计算障碍物位置，不生成预制体
-        _occupied       = new bool[mapSize, mapSize];
+        ResetOccupied();
         _gizmoObstacles = new List<ObstacleGizmo>();
         PlaceObstacleSize(null, 3);
         PlaceObstacleSize(null, 2);
@@ -179,8 +208,7 @@ public class MapGenerator : MonoBehaviour
 #endif
         }
 
-        _noise           = null;
-        _layerIndexInMap        = null;
+        _grid           = null;
         _gizmoObstacles  = new List<ObstacleGizmo>();
     }
 
@@ -188,7 +216,7 @@ public class MapGenerator : MonoBehaviour
 
     private void BuildNoise()
     {
-        _noise = NoiseUtility.GenerateNoiseMap(
+        float[,] noise = NoiseUtility.GenerateNoiseMap(
             mapSize, mapSize,
             noiseScale, octaves, persistence, lacunarity,
             seed, noiseOffset);
@@ -196,26 +224,28 @@ public class MapGenerator : MonoBehaviour
         if (useFalloff)
         {
             float[,] falloff = NoiseUtility.GenerateFalloffMap(mapSize, mapSize, curve);
-            _noise = NoiseUtility.ApplyFalloff(_noise, falloff);
+            noise = NoiseUtility.ApplyFalloff(noise, falloff);
         }
+
+        _grid = new CellData[mapSize, mapSize];
+        for (int y = 0; y < mapSize; y++)
+            for (int x = 0; x < mapSize; x++)
+                _grid[x, y] = CellData.Create(noise[x, y]);
     }
 
     private void BuildLayerMap()
     {
-        _layerIndexInMap = new int[mapSize, mapSize];
-
         for (int y = 0; y < mapSize; y++)
         {
             for (int x = 0; x < mapSize; x++)
             {
-                _layerIndexInMap[x, y] = -1;
-                float n = _noise[x, y];
+                float n = _grid[x, y].noise;
 
                 for (int l = 0; l < layers.Length; l++)
                 {
                     if (n <= layers[l].threshold)
                     {
-                        _layerIndexInMap[x, y] = l;
+                        _grid[x, y].layerIndex = l;
                         break;
                     }
                 }
@@ -242,10 +272,9 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int x = 0; x < mapSize; x++)
                 {
-                    int l = _layerIndexInMap[x, y];
-                    if (l <= 0) continue; // 第 0 层和障碍层（-1）不处理
+                    int l = _grid[x, y].layerIndex;
+                    if (l <= 0) continue;
 
-                    // 与 SelectTile 保持一致：同层或更高层均视为有效邻居
                     bool top    = InLayerOrHigher(x, y + 1, l);
                     bool bottom = InLayerOrHigher(x, y - 1, l);
                     bool lft    = InLayerOrHigher(x - 1, y, l);
@@ -259,7 +288,7 @@ public class MapGenerator : MonoBehaviour
 
                     if (invalid)
                     {
-                        _layerIndexInMap[x, y] = l - 1;
+                        _grid[x, y].layerIndex = l - 1;
                         changed = true;
                     }
                 }
@@ -287,7 +316,7 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int x = 0; x < mapSize; x++)
                 {
-                    int cellLayer = _layerIndexInMap[x, y];
+                    int cellLayer = _grid[x, y].layerIndex;
 
                     if (l == 0)
                     {
@@ -372,13 +401,13 @@ public class MapGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 判断坐标 (x,y) 是否精确属于层级 layerIdx（后处理后以 _layerIndexInMap 为准）。
+    /// 判断坐标 (x,y) 是否精确属于层级 layerIdx（后处理后以 _grid 为准）。
     /// </summary>
     private bool InLayer(int x, int y, int layerIdx)
     {
-        if (_layerIndexInMap == null || layers == null) return false;
+        if (_grid == null || layers == null) return false;
         if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) return false;
-        return _layerIndexInMap[x, y] == layerIdx;
+        return _grid[x, y].layerIndex == layerIdx;
     }
 
     /// <summary>
@@ -387,10 +416,9 @@ public class MapGenerator : MonoBehaviour
     /// </summary>
     private bool InLayerOrHigher(int x, int y, int layerIdx)
     {
-        if (_layerIndexInMap == null || layers == null) return false;
+        if (_grid == null || layers == null) return false;
         if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) return false;
-        int cellLayer = _layerIndexInMap[x, y];
-        return cellLayer >= layerIdx;
+        return _grid[x, y].layerIndex >= layerIdx;
     }
 
     private TileBase Border(TileSet ts, int index)
@@ -415,12 +443,20 @@ public class MapGenerator : MonoBehaviour
 
     private void SpawnObstacles()
     {
-        _occupied       = new bool[mapSize, mapSize];
+        ResetOccupied();
         _gizmoObstacles = new List<ObstacleGizmo>();
 
         PlaceObstacleSize(prefab3x3, 3);
         PlaceObstacleSize(prefab2x2, 2);
         PlaceObstacleSize(prefab1x1, 1);
+    }
+
+    private void ResetOccupied()
+    {
+        if (_grid == null) return;
+        for (int y = 0; y < mapSize; y++)
+            for (int x = 0; x < mapSize; x++)
+                _grid[x, y].occupied = false;
     }
 
     private void PlaceObstacleSize(GameObject prefab, int size)
@@ -446,10 +482,10 @@ public class MapGenerator : MonoBehaviour
             for (int dx = 0; dx < size; dx++)
             {
                 int cx = ox + dx, cy = oy + dy;
-                if (cx >= mapSize || cy >= mapSize)    return false;
-                if (_layerIndexInMap[cx, cy] != -1)           return false; // 有地形层，不放障碍
-                if (_noise[cx, cy] > obstacleThreshold) return false; // 高于障碍阈值（阈值越大障碍越多）
-                if (_occupied[cx, cy])                 return false; // 已占用
+                if (cx >= mapSize || cy >= mapSize)       return false;
+                if (_grid[cx, cy].layerIndex != -1)         return false;
+                if (_grid[cx, cy].noise > obstacleThreshold) return false;
+                if (_grid[cx, cy].occupied)                 return false;
             }
         }
         return true;
@@ -459,7 +495,7 @@ public class MapGenerator : MonoBehaviour
     {
         for (int dy = 0; dy < size; dy++)
             for (int dx = 0; dx < size; dx++)
-                _occupied[ox + dx, oy + dy] = true;
+                _grid[ox + dx, oy + dy].occupied = true;
     }
 
     private void DoSpawn(GameObject prefab, Vector3 pos)
@@ -538,13 +574,13 @@ public class MapGenerator : MonoBehaviour
         Vector3 cubeSize = new Vector3(cs.x * 0.88f, cs.y * 0.88f, 0.01f);
 
         // 地形层格子
-        if (showTerrainGizmos && _layerIndexInMap != null && layers != null)
+        if (showTerrainGizmos && _grid != null && layers != null)
         {
             for (int y = 0; y < mapSize; y++)
             {
                 for (int x = 0; x < mapSize; x++)
                 {
-                    int l = _layerIndexInMap[x, y];
+                    int l = _grid[x, y].layerIndex;
                     Vector3 cellLocal = CellCenterLocal(x, y, 1, tm, cs);
 
                     if (l >= 0 && l < layers.Length)
@@ -555,7 +591,7 @@ public class MapGenerator : MonoBehaviour
                         Gizmos.DrawCube(cellLocal, cubeSize);
                     }
                     else if (showObstacleZoneGizmos && l == -1
-                             && _noise != null && _noise[x, y] <= obstacleThreshold)
+                             && _grid[x, y].noise <= obstacleThreshold)
                     {
                         Gizmos.color = new Color(0.65f, 0.15f, 0.85f, 1f);
                         Gizmos.DrawCube(cellLocal, cubeSize);

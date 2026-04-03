@@ -67,6 +67,8 @@ namespace QFramework.ViewController.Player
         {
             ParamsInit();
             InitLegPostion();
+
+            
         }
 
         private void Update()
@@ -114,9 +116,6 @@ namespace QFramework.ViewController.Player
                 _weapon.WeaponRight.Shoot();
             }
         }
-
-
-        
 
         /// <summary>
         /// 旋转躯干

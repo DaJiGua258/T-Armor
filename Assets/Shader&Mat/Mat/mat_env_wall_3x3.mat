@@ -41,7 +41,7 @@ Material:
     - _SliceHeight: 0.03
     - _SliceIndex: 0
     - _SliceOffset: 0.95
-    - _YOffset: 0.24
+    - _YOffset: 0.16
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _StackDir: {r: 0, g: 1, b: 0, a: 0}

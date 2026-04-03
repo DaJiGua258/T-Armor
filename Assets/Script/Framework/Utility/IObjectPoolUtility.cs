@@ -6,7 +6,7 @@ namespace QFramework.Utility
 {
     public interface IObjectPoolUtility : IUtility
     {
-        public GameObject GetObject(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent);
+        public GameObject GetObject(GameObject prefab, Vector3 position, Quaternion rotation);
         public void PushObject(GameObject prefab);
     }
 
@@ -15,14 +15,14 @@ namespace QFramework.Utility
         private Dictionary<string, Queue<GameObject>> objectPool = new();
         private GameObject _pool;
 
-        public GameObject GetObject(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+        public GameObject GetObject(GameObject prefab, Vector3 position, Quaternion rotation)
         {
             // Debug.Log("VAR");
             GameObject obj;
             // 如果当前出池的对象，不在存在字典对应的队列，或所对应的队列中的预制体个数为0...
             if (!objectPool.ContainsKey(prefab.name) || objectPool[prefab.name].Count == 0)
             {
-                obj = GameObject.Instantiate(prefab, position, rotation, parent);  // 则创建新的物体
+                obj = GameObject.Instantiate(prefab, position, rotation);  // 则创建新的物体
                 PushObject(obj);  // 将物体入池
 
                 if (_pool == null)  // 如果pool这个代表对象池的物体不存在，则创建一个新的
@@ -41,7 +41,12 @@ namespace QFramework.Utility
                 obj.transform.SetParent(childPool.transform);
                 
             }
-            obj = objectPool[prefab.name].Dequeue();  // 将刚刚入池的物体出队
+            obj = objectPool[prefab.name].Dequeue();  //
+
+            obj.transform.position = position;
+            obj.transform.rotation = rotation;
+            
+
             obj.SetActive(true);  // 设置为启用状态
 
             return obj;
@@ -60,7 +65,7 @@ namespace QFramework.Utility
             
             // 依据名字将对象从对应队列中入队
             objectPool[name].Enqueue(prefab);
-            prefab.SetActive(false);
+            prefab.SetActive(value: false);
         }
     }
 }

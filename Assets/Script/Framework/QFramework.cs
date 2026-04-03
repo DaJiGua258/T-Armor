@@ -691,6 +691,10 @@ namespace QFramework
         IUnRegister Register(Action<T> onValueChanged);
     }
 
+    /// <summary>
+    /// BindableProperty是QFramework中用于实现数据绑定的类，它是一个泛型类，可以用于绑定任何类型的数据。
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BindableProperty<T> : IBindableProperty<T>
     {
         public BindableProperty(T defaultValue = default) => mValue = defaultValue;

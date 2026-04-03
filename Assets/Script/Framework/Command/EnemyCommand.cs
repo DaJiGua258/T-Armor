@@ -1,24 +1,41 @@
 using JetBrains.Annotations;
-using QFramework.Enum;
 using QFramework.Model;
+using QFramework.System;
+using QFramework.Enum;
+using UnityEngine;
 
 namespace QFramework.Command
 {
     public class EnemyCommand
     {
+        /// <summary>
+        /// 添加敌人
+        /// </summary>
+        /// 
         public class Add : AbstractCommand<int>
         {
-            private IEnemeyDataModel _enemeyDataModel => this.GetModel<IEnemeyDataModel>();
+            private IEnemyInstanceSystem _enemeyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
+            private EnemyTypeEnum _enemyEnum;
+            private int _id;
 
+            public Add(EnemyTypeEnum enemyEnum, int id)
+            {
+                this._enemyEnum = enemyEnum;
+                this._id = id;
+            }
+        
             protected override int OnExecute()
             {
-                return _enemeyDataModel.AddEnemyToCache(EnemyEnum.Enemy1);
+                return _enemeyInstanceSystem.AddEnemy(_enemyEnum);
             }
         }
 
+        /// <summary>
+        /// 伤害敌人
+        /// </summary>
         public class Damage : AbstractCommand
         {
-            private IEnemeyDataModel _enemeyDataModel => this.GetModel<IEnemeyDataModel>();
+            private IEnemyInstanceSystem _enemeyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
             
             private int _id;
             private int _damage;
@@ -32,7 +49,8 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                _enemeyDataModel.DamageEnemy(_id, _damage);
+                _enemeyInstanceSystem.DamageEnemy(_id, _damage);
+                Debug.Log("敌人受到伤害：" + _damage);
             }
         }
 

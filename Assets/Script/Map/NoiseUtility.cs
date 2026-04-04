@@ -99,7 +99,7 @@ public static class NoiseUtility
 
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
-                result[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloffMap[x, y]);
+                result[x, y] = Mathf.Clamp01(noiseMap[x, y] + falloffMap[x, y]);
 
         return result;
     }

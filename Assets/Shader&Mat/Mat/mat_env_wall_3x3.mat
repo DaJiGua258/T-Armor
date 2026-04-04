@@ -24,14 +24,14 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: bfe2715ee25fd0a44aa61b81da8d7fb2, type: 3}
+        m_Texture: {fileID: 2800000, guid: b7b86c5cb72820547ad9e47a97ff629b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Angle: 0
     - _Blend: 1
-    - _LayerCount: 13
+    - _LayerCount: 12
     - _LayerOffset: 1
     - _NumSlices: 10
     - _OffsetX: 0

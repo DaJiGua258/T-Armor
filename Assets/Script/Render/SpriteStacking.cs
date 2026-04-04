@@ -6,7 +6,7 @@ using UnityEngine;
 public class SpriteStacking : MonoBehaviour
 {
     [Header("障碍使用的参数")]
-    public bool IsObstacle;
+    public bool CanSetScale;
     [Tooltip("障碍物大小缩放。注意：一个单位为32x32，SizeMultiplier会修改scale")]
     public float SizeMultiplier = 1f;
     
@@ -31,9 +31,11 @@ public class SpriteStacking : MonoBehaviour
     private float _yOffset = 0.02f;
 
     [Header("渲染顺序（Z 轴深度）")]
+    [Tooltip("是否在使用父物体Z轴的情况下，依然使用本地Z轴排序，默认开启")]
+    public bool UseLocalZSort = true;
     public Transform OrderParent;   // 指定排序父物体；设置后排序跟随父物体 Y 轴，而非自身
     public float ZSortOffset = 0f;  // 在基础 Z 值上的额外偏移
-    private float _yToZScale = 0.01f;  // Y → Z 的缩放系数（正值 = Y 越大越靠后渲染）
+    private float _yToZScale = 0.1f;  // Y → Z 的缩放系数（正值 = Y 越大越靠后渲染）
 
     /// <summary>
     /// 当前实际生效的层间距（世界单位），供子物体矫正脚本读取。
@@ -96,7 +98,12 @@ public class SpriteStacking : MonoBehaviour
     {
         float sourceY;
         if (OrderParent != null)
-            sourceY = OrderParent.position.y + transform.localPosition.y;
+        {
+            if(UseLocalZSort)  // 使用父物体Z轴的情况下，同时使用本地Z轴排序
+                sourceY = OrderParent.position.y + transform.localPosition.y;
+            else  // 只使用父物体Z轴排序
+                sourceY = transform.localPosition.y;
+        }
         else
             sourceY = transform.position.y;
 
@@ -153,7 +160,7 @@ public class SpriteStacking : MonoBehaviour
     {
         _yOffset = YOffset;
         
-        if(IsObstacle)
+        if(CanSetScale)
         {
             transform.localScale = new Vector3(SizeMultiplier, SizeMultiplier, 1);
             _yOffset = SizeHieght * 0.02f;

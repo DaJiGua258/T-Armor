@@ -33,7 +33,7 @@ public class LayerConfig
 {
     public string name;
 
-    [Tooltip("高于此噪声值的格子绘制本层 Tile")]
+    [Tooltip("低于此噪声值的格子绘制本层 Tile（layers 按阈值从低到高排列）")]
     [Range(0f, 1f)]
     public float threshold = 0.5f;
 
@@ -52,30 +52,52 @@ public class LayerConfig
 /// <summary>
 /// 地图单个格子的完整信息。
 /// 使用 struct 减少堆分配开销（64×64 = 4096 个实例）。
+/// tileIndex: TILE_FULL(-1) = FULL 变体, 0-11 = borderTiles 索引。
 /// </summary>
 public struct CellData
 {
     public const int LAYER_NONE     = -1;
     public const int LAYER_OBSTACLE = -2;
+    public const int TILE_FULL      = -1;
 
-    public float noise;
-    public int layerIndex;
-    public bool occupied;
-    public CellFlags flags;
+    public float noise;  // 噪声值
+    public int   layerIndex; // 层级索引
+    public int   tileIndex; // 瓦片索引
+    public bool  occupied; // 是否被占用
+    public CellFlags flags; // 标志位
 
+    /// <summary>
+    /// 创建单元格数据
+    /// </summary>
     public static CellData Create(float noise = 0f, int layer = LAYER_NONE)
     {
-        return new CellData { noise = noise, layerIndex = layer, occupied = false, flags = CellFlags.None };
+        return new CellData
+        {
+            noise      = noise,
+            layerIndex = layer,
+            tileIndex  = TILE_FULL,
+            occupied   = false,
+            flags      = CellFlags.None,
+        };
     }
 }
+
+// CellFlags 是用于标记地图格子属性的“位标志”枚举类型（flags enum），
+// 可以用按位运算组合多个属性。比如一个格子既可以被标记为可行走（Walkable），
+// 同时也可以是危险（Dangerous）或者带有装饰（Decorated）。
+// 这样做便于状态快速判断和高效存储。
+//
+// 具体属性含义：
+// None      ：没有任何标志。
+// Walkable  ：格子可被角色移动通过。
+// Dangerous ：格子带有危险性，如陷阱或危险地形。
+// Decorated ：格子上有装饰物（非功能性元素）。
 
 [System.Flags]
 public enum CellFlags : byte
 {
-    None       = 0,
-    Walkable   = 1 << 0,
-    Dangerous  = 1 << 1,
-    Decorated  = 1 << 2,
+    None,  // 无标志
+    Walkable  = 1 << 0, // 可行走
 }
 
 // ─── MapGenerator ──────────────────────────────────────────────────────────────
@@ -95,10 +117,11 @@ public class MapGenerator : MonoBehaviour
     [Min(1f)] public float lacunarity = 2f;
     public int     seed       = 0;
     public Vector2 noiseOffset;
-    public AnimationCurve curve;
+    
 
     [Header("边缘封闭（Falloff Map）")]
     public bool useFalloff = true;
+    public AnimationCurve curve;
 
     [Header("默认 Tile 集（所有层共享回退）")]
     public TileSet defaultTileSet;
@@ -126,8 +149,8 @@ public class MapGenerator : MonoBehaviour
     [Header("Gizmos")]
     public bool showGizmos             = true;
     public bool showTerrainGizmos      = true;
-    public bool showObstacleZoneGizmos = true; // 障碍区底色（紫色）
-    public bool showObstacleGizmos     = true; // 已放置障碍物线框
+    public bool showObstacleZoneGizmos = true;
+    public bool showObstacleGizmos     = true;
 
     // ── 运行时数据 ──────────────────────────────────────────────────
 
@@ -157,8 +180,8 @@ public class MapGenerator : MonoBehaviour
     {
         if (layers == null || layers.Length == 0 || mapSize < 1) return;
 
-        BuildNoise();
-        BuildLayerMap();
+        BuildNoiseMap();
+        BuildGridInfo();
 
         // 仅计算障碍物位置，不生成预制体
         ResetOccupied();
@@ -176,23 +199,22 @@ public class MapGenerator : MonoBehaviour
     [ContextMenu("生成地图")]
     public void Generate()
     {
+        // 清空地图
         ClearMap();
-        BuildNoise();
-        BuildLayerMap();
-        PaintTilemaps();
-        SpawnObstacles();
+        
+        BuildNoiseMap();  // 生成噪声图
+        BuildGridInfo();  // 写入网格信息
+        PaintTilemaps();  // 绘制 Tilemap
+        SpawnObstacles();  // 放置障碍预制体
     }
 
     [ContextMenu("清空地图")]
     public void ClearMap()
     {
-        // 清空地形层
         if (layers != null)
         {
             foreach (var cfg in layers)
-            {
                 cfg.tilemap?.ClearAllTiles();
-            }
         }
 
         Transform parent = obstacleParent != null ? obstacleParent : transform;
@@ -201,7 +223,6 @@ public class MapGenerator : MonoBehaviour
         {
             var child = parent.GetChild(i).gameObject;
 #if UNITY_EDITOR
-            // 编辑器模式下用 DestroyImmediate 避免延迟
             DestroyImmediate(child);
 #else
             Destroy(child);
@@ -209,37 +230,59 @@ public class MapGenerator : MonoBehaviour
         }
 
         _grid           = null;
-        _gizmoObstacles  = new List<ObstacleGizmo>();
+        _gizmoObstacles = new List<ObstacleGizmo>();
     }
 
-    // ── 噪声 & 层级图 ────────────────────────────────────────────────
+    // ── Phase 1: 绘制噪声图 ──────────────────────────────────────────
 
-    private void BuildNoise()
+    /// <summary>
+    /// 生成噪声图
+    /// </summary>
+    private void BuildNoiseMap()
     {
+        // 生成基础噪声值图
         float[,] noise = NoiseUtility.GenerateNoiseMap(
             mapSize, mapSize,
-            noiseScale, octaves, persistence, lacunarity,
+            noiseScale, 
+            octaves, 
+            persistence, 
+            lacunarity,
             seed, noiseOffset);
 
+        // 应用边缘封闭（Falloff Map）
         if (useFalloff)
         {
             float[,] falloff = NoiseUtility.GenerateFalloffMap(mapSize, mapSize, curve);
             noise = NoiseUtility.ApplyFalloff(noise, falloff);
         }
 
+        // 将噪声值图转换为 CellData 数组
         _grid = new CellData[mapSize, mapSize];
         for (int y = 0; y < mapSize; y++)
             for (int x = 0; x < mapSize; x++)
                 _grid[x, y] = CellData.Create(noise[x, y]);
     }
 
-    private void BuildLayerMap()
+    // ── Phase 2: 写入网格信息 ────────────────────────────────────────
+
+    private void BuildGridInfo()
+    {
+        AssignLayers();
+        PostProcessLayers();
+        ComputeTileIndices();
+    }
+
+    /// <summary>
+    /// 按 threshold 为每个格子指定所属层级，写入 layerIndex。
+    /// </summary>
+    private void AssignLayers()
     {
         for (int y = 0; y < mapSize; y++)
         {
             for (int x = 0; x < mapSize; x++)
             {
                 float n = _grid[x, y].noise;
+                _grid[x, y].layerIndex = CellData.LAYER_NONE;
 
                 for (int l = 0; l < layers.Length; l++)
                 {
@@ -251,19 +294,17 @@ public class MapGenerator : MonoBehaviour
                 }
             }
         }
-
-        if (enableShapePostProcess)
-            PostProcessLayerMap();
     }
 
     /// <summary>
-    /// 将无法用素材表达的地形格子形状降级为下一层，迭代直到稳定或达到最大次数。
-    /// 邻居判断用 InLayerOrHigher，与 SelectTile 一致：同层或更高层均视为有效邻居，
-    /// 最高层朝向空白区（-1）的边界不会被误判为无效形状。
-    /// 无效形状：上下同缺 / 左右同缺 / 三面以上缺失 → 降级为 l-1。
+    /// 将无法用素材表达的地形格子形状升级到下一包含层，迭代直到稳定或达到最大次数。
+    /// 邻居判断用 InLayerOrLower：同层或更低（更排他）的层均视为"同层内"邻居。
+    /// 无效形状：上下同缺 / 左右同缺 / 三面以上缺失 → 升级为 l+1，最外层升为空格。
     /// </summary>
-    private void PostProcessLayerMap()
+    private void PostProcessLayers()
     {
+        if (!enableShapePostProcess) return;
+
         for (int iter = 0; iter < postProcessIterations; iter++)
         {
             bool changed = false;
@@ -273,12 +314,12 @@ public class MapGenerator : MonoBehaviour
                 for (int x = 0; x < mapSize; x++)
                 {
                     int l = _grid[x, y].layerIndex;
-                    if (l <= 0) continue;
+                    if (l < 0) continue;
 
-                    bool top    = InLayerOrHigher(x, y + 1, l);
-                    bool bottom = InLayerOrHigher(x, y - 1, l);
-                    bool lft    = InLayerOrHigher(x - 1, y, l);
-                    bool rgt    = InLayerOrHigher(x + 1, y, l);
+                    bool top    = InLayerOrLower(x, y + 1, l);
+                    bool bottom = InLayerOrLower(x, y - 1, l);
+                    bool lft    = InLayerOrLower(x - 1, y, l);
+                    bool rgt    = InLayerOrLower(x + 1, y, l);
 
                     int missing = (top ? 0 : 1) + (bottom ? 0 : 1) + (lft ? 0 : 1) + (rgt ? 0 : 1);
 
@@ -288,7 +329,7 @@ public class MapGenerator : MonoBehaviour
 
                     if (invalid)
                     {
-                        _grid[x, y].layerIndex = l - 1;
+                        _grid[x, y].layerIndex = (l + 1 < layers.Length) ? l + 1 : CellData.LAYER_NONE;
                         changed = true;
                     }
                 }
@@ -298,8 +339,72 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    // ── Tilemap 绘制 ─────────────────────────────────────────────────
+    /// <summary>
+    /// 为每个有效格子预计算 tileIndex，写入 _grid。
+    /// 后续绘制阶段直接读取，不再做邻居查询。
+    /// </summary>
+    private void ComputeTileIndices()
+    {
+        for (int y = 0; y < mapSize; y++)
+        {
+            for (int x = 0; x < mapSize; x++)
+            {
+                int l = _grid[x, y].layerIndex;
+                _grid[x, y].tileIndex = l < 0 ? CellData.TILE_FULL : ResolveIndex(x, y, l);
+            }
+        }
+    }
 
+    /// <summary>
+    /// 根据 8 邻居关系返回 tileIndex（TILE_FULL = -1，或 borderTiles 的 0-11 索引）。
+    /// "同层内"邻居定义：layerIndex 在 [0, layerIdx] 之间（同层或更排他的低层）。
+    /// 优先级：INNER → FULL → EDGE → OUTER
+    /// </summary>
+    private int ResolveIndex(int x, int y, int layerIdx)
+    {
+        bool top    = InLayerOrLower(x, y + 1, layerIdx);
+        bool bottom = InLayerOrLower(x, y - 1, layerIdx);
+        bool left   = InLayerOrLower(x + 1, y, layerIdx);
+        bool right  = InLayerOrLower(x - 1, y, layerIdx);
+
+        if (top && bottom && left && right)
+        {
+            bool topLeft     = InLayerOrLower(x - 1, y + 1, layerIdx);
+            bool topRight    = InLayerOrLower(x + 1, y + 1, layerIdx);
+            bool bottomLeft  = InLayerOrLower(x - 1, y - 1, layerIdx);
+            bool bottomRight = InLayerOrLower(x + 1, y - 1, layerIdx);
+
+            if (!topLeft)     return 11; // INNER_BL
+            if (!topRight)    return 10; // INNER_BR
+            if (!bottomLeft)  return 9;  // INNER_TL
+            if (!bottomRight) return 8;  // INNER_TR
+
+            return CellData.TILE_FULL;
+        }
+
+        if (!top && bottom && left && right) return 0; // EDGE_T
+        if (top && !bottom && left && right) return 1; // EDGE_B
+        if (top && bottom && left && !right) return 2; // EDGE_L
+        if (top && bottom && !left && right) return 3; // EDGE_R
+
+        if (!top && !right && bottom && left)  return 4; // OUTER_TL
+        if (!top && !left  && bottom && right) return 5; // OUTER_TR
+        if (!bottom && !right && top && left)  return 6; // OUTER_BL
+        if (!bottom && !left  && top && right) return 7; // OUTER_BR
+
+        return CellData.TILE_FULL;
+    }
+
+    // ── Phase 3: 绘制 Tilemap ─────────────────────────────────────────
+
+    /// <summary>
+    /// 按层遍历顺序绘制 Tilemap，并在绘制前设置渲染深度（sortingOrder）。
+    /// 规则：
+    ///   - 每层绘制所有 noise ≤ threshold[l] 的格子（即 cellLayer ≤ l）
+    ///   - cellLayer == l：该格是本层的边界格，使用预计算的 tileIndex
+    ///   - cellLayer  < l：该格被更排他的层覆盖，本层在此填充 FULL（将被前层遮挡）
+    ///   - 渲染深度：层索引越小 sortingOrder 越大（越靠前显示）
+    /// </summary>
     private void PaintTilemaps()
     {
         if (layers == null) return;
@@ -312,97 +417,50 @@ public class MapGenerator : MonoBehaviour
             cfg.tilemap.color = cfg.tint;
             TileSet ts = ResolveTileSet(cfg);
 
+            // 层索引越小 = 阈值越低 = 覆盖面积越小 = 越靠前渲染
+            var tilemapRenderer = cfg.tilemap.GetComponent<TilemapRenderer>();
+            if (tilemapRenderer != null)
+                tilemapRenderer.sortingOrder = -l;
+
             for (int y = 0; y < mapSize; y++)
             {
                 for (int x = 0; x < mapSize; x++)
                 {
                     int cellLayer = _grid[x, y].layerIndex;
 
-                    if (l == 0)
+                    // 只绘制 noise <= threshold[l] 的格子（cellLayer <= l，且不是空格）
+                    if (cellLayer < 0 || cellLayer > l) continue;
+
+                    TileBase tile;
+                    if (cellLayer < l || cellLayer == layers.Length - 1)
                     {
-                        // 第 0 层：所有格子都绘制（作为底层背景）
-                        cfg.tilemap.SetTile(new Vector3Int(x, y, 0), SelectTile(ts, x, y, l));
+                        // 本格属于更排他的低层，本层在此填充 FULL（低层在前会遮盖）
+                        tile = PickFull(ts, x, y);
                     }
-                    else if (cellLayer == l)
+                    else
                     {
-                        // 本格属于当前层：正常选 Tile
-                        cfg.tilemap.SetTile(new Vector3Int(x, y, 0), SelectTile(ts, x, y, l));
+                        // cellLayer == l：本格是本层的边界格，读取预计算 tileIndex
+                        int ti = _grid[x, y].tileIndex;
+                        tile = ti == CellData.TILE_FULL ? PickFull(ts, x, y) : Border(ts, ti);
                     }
-                    else if (cellLayer > l)
-                    {
-                        // 本格属于更高层：在当前层 Tilemap 上全部填充 FULL（无论距离边界多远）
-                        cfg.tilemap.SetTile(new Vector3Int(x, y, 0), PickFull(ts, x, y));
-                    }
+
+                    if (tile != null)
+                        cfg.tilemap.SetTile(new Vector3Int(x, y, 0), tile);
                 }
             }
         }
     }
 
-    // ── Tile 选取 ────────────────────────────────────────────────────
+    // ── Tile 工具 ────────────────────────────────────────────────────
 
-    /// <summary>
-    /// 解析层级配置中的 TileSet
-    /// </summary>
-    /// <param name="cfg"></param>
-    /// <returns></returns>
     private TileSet ResolveTileSet(LayerConfig cfg)
     {
         var ts = cfg.tileSet;
         if (ts != null && ts.borderTiles != null && ts.borderTiles.Length == 12)
             return ts;
-        return defaultTileSet;  // 返回默认 tileSet
+        return defaultTileSet;
     }
 
-    /// <summary>
-    /// 根据 8 邻居 bitmask 选出正确的 TileBase。
-    /// 当某方向邻居属于更高层时，视为"有邻居"（使用 FULL 而非边缘）。
-    /// 优先级：INNER → FULL → EDGE → OUTER
-    /// </summary>
-    private TileBase SelectTile(TileSet ts, int x, int y, int layerIdx)
-    {
-        if (layerIdx == 0) return PickFull(ts, x, y);
-
-        // InLayerOrHigher：本层或更高层均视为"有邻居"，使边界不出现在高层接触面
-        bool top    = InLayerOrHigher(x, y + 1, layerIdx);
-        bool bottom = InLayerOrHigher(x, y - 1, layerIdx);
-        bool left   = InLayerOrHigher(x + 1, y, layerIdx);
-        bool right  = InLayerOrHigher(x - 1, y, layerIdx);
-
-        if (top && bottom && left && right)
-        {
-            // 四周均有邻居 → 检查对角线决定内转角 / FULL
-            bool topLeft     = InLayerOrHigher(x - 1, y + 1, layerIdx);
-            bool topRight    = InLayerOrHigher(x + 1, y + 1, layerIdx);
-            bool bottomLeft  = InLayerOrHigher(x - 1, y - 1, layerIdx);
-            bool bottomRight = InLayerOrHigher(x + 1, y - 1, layerIdx);
-
-            if (!topLeft)     return Border(ts, 11); // INNER_BL
-            if (!topRight)    return Border(ts, 10); // INNER_BR
-            if (!bottomLeft)  return Border(ts, 9);  // INNER_TL
-            if (!bottomRight) return Border(ts, 8);  // INNER_TR
-
-            return PickFull(ts, x, y);
-        }
-
-        // 单侧缺失 → 边缘
-        if (!top && bottom && left && right) return Border(ts, 0); // EDGE_T
-        if (top && !bottom && left && right) return Border(ts, 1); // EDGE_B
-        if (top && bottom && left && !right) return Border(ts, 2); // EDGE_L
-        if (top && bottom && !left && right) return Border(ts, 3); // EDGE_R
-
-        // 两相邻侧缺失 → 外转角
-        if (!top && !right && bottom && left) return Border(ts, 4); // OUTER_TL
-        if (!top && !left  && bottom && right) return Border(ts, 5); // OUTER_TR
-        if (!bottom && !right && top && left)  return Border(ts, 6); // OUTER_BL
-        if (!bottom && !left  && top && right) return Border(ts, 7); // OUTER_BR
-
-        // 后处理后理论上不会到达这里，兜底 FULL
-        return PickFull(ts, x, y);
-    }
-
-    /// <summary>
-    /// 判断坐标 (x,y) 是否精确属于层级 layerIdx（后处理后以 _grid 为准）。
-    /// </summary>
     private bool InLayer(int x, int y, int layerIdx)
     {
         if (_grid == null || layers == null) return false;
@@ -411,19 +469,21 @@ public class MapGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 判断坐标 (x,y) 是否属于层级 layerIdx 或更高层（更大索引）。
-    /// 用于 SelectTile：与更高层接触的边不显示边缘 Tile，而是视为"有邻居"。
+    /// 判断坐标 (x,y) 的格子是否"属于层级 layerIdx 内"。
+    /// 新模型：层级索引越低 = 越排他（阈值越低）。
+    /// "同层内"定义：layerIndex 在 [0, layerIdx] 之间，即该格也在 layerIdx 的绘制范围之内。
     /// </summary>
-    private bool InLayerOrHigher(int x, int y, int layerIdx)
+    private bool InLayerOrLower(int x, int y, int layerIdx)
     {
         if (_grid == null || layers == null) return false;
         if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) return false;
-        return _grid[x, y].layerIndex >= layerIdx;
+        int l = _grid[x, y].layerIndex;
+        return l >= 0 && l <= layerIdx;
     }
 
     private TileBase Border(TileSet ts, int index)
     {
-        if (ts?.borderTiles == null || index >= ts.borderTiles.Length) 
+        if (ts?.borderTiles == null || index >= ts.borderTiles.Length)
             return null;
         return ts.borderTiles[index];
     }
@@ -439,7 +499,7 @@ public class MapGenerator : MonoBehaviour
         return ts.fullVariants[idx];
     }
 
-    // ── 障碍物放置 ───────────────────────────────────────────────────
+    // ── Phase 4: 放置障碍预制体 ──────────────────────────────────────
 
     private void SpawnObstacles()
     {
@@ -482,10 +542,10 @@ public class MapGenerator : MonoBehaviour
             for (int dx = 0; dx < size; dx++)
             {
                 int cx = ox + dx, cy = oy + dy;
-                if (cx >= mapSize || cy >= mapSize)       return false;
-                if (_grid[cx, cy].layerIndex != -1)         return false;
+                if (cx >= mapSize || cy >= mapSize)        return false;
+                if (_grid[cx, cy].layerIndex != -1)          return false;
                 if (_grid[cx, cy].noise > obstacleThreshold) return false;
-                if (_grid[cx, cy].occupied)                 return false;
+                if (_grid[cx, cy].occupied)                  return false;
             }
         }
         return true;
@@ -503,7 +563,7 @@ public class MapGenerator : MonoBehaviour
         Transform parent = obstacleParent != null ? obstacleParent : transform;
 
         int randomIndex = Random.Range(0, 3);
-        Vector3 randomRotation = new Vector3(0f, 0f,  90 * randomIndex);
+        Vector3 randomRotation = new Vector3(0f, 0f, 90 * randomIndex);
 
 #if UNITY_EDITOR
         var obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
@@ -528,7 +588,6 @@ public class MapGenerator : MonoBehaviour
         Tilemap tm = GetReferenceTilemap();
         if (tm != null)
         {
-            // 在本地空间完成所有偏移，再由 TransformPoint 转为世界坐标
             Vector3 localCenter = tm.GetCellCenterLocal(new Vector3Int(x, y, 0));
             localCenter.x += (size - 1) * 0.5f * tm.cellSize.x;
             localCenter.y += (size - 1) * 0.5f * tm.cellSize.y;
@@ -554,13 +613,10 @@ public class MapGenerator : MonoBehaviour
         Tilemap tm = GetReferenceTilemap();
         Vector2 cs = tm != null ? (Vector2)tm.cellSize : Vector2.one;
 
-        // 将 Gizmos 矩阵设为 Tilemap（或自身）的本地→世界矩阵，
-        // 后续所有绘制坐标均在本地空间给出，自动跟随父物体旋转/缩放。
         Matrix4x4 prevMatrix = Gizmos.matrix;
         Transform drawBase   = tm != null ? tm.transform : transform;
         Gizmos.matrix = drawBase.localToWorldMatrix;
 
-        // 边界框（本地空间）
         Vector3 localOrigin = tm != null
             ? (Vector3)tm.CellToLocal(Vector3Int.zero)
             : Vector3.zero;
@@ -570,10 +626,8 @@ public class MapGenerator : MonoBehaviour
         Gizmos.color = new Color(1f, 1f, 1f, 0.35f);
         Gizmos.DrawWireCube(boxCenter, boxSize);
 
-        // 每格 Cube 大小（本地空间，跟随旋转）
         Vector3 cubeSize = new Vector3(cs.x * 0.88f, cs.y * 0.88f, 0.01f);
 
-        // 地形层格子
         if (showTerrainGizmos && _grid != null && layers != null)
         {
             for (int y = 0; y < mapSize; y++)
@@ -600,7 +654,6 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        // 障碍物线框（_gizmoObstacles 存储的是世界坐标，转换到本地空间再绘制）
         if (showObstacleGizmos && _gizmoObstacles != null)
         {
             foreach (var g in _gizmoObstacles)
@@ -625,9 +678,7 @@ public class MapGenerator : MonoBehaviour
     {
         if (tm != null)
         {
-            // GetCellCenterLocal：格子 (x,y) 的单格中心（本地空间）
             Vector3 localPos = tm.GetCellCenterLocal(new Vector3Int(x, y, 0));
-            // size > 1 时再向右上偏移，使中心落在 size×size 区块正中
             localPos.x += (size - 1) * 0.5f * cs.x;
             localPos.y += (size - 1) * 0.5f * cs.y;
             return localPos;
@@ -639,9 +690,9 @@ public class MapGenerator : MonoBehaviour
     {
         switch (size)
         {
-            case 3: return new Color(1f, 0.25f, 0.21f); // 红色
-            case 2: return new Color(1f, 0.86f, 0f);    // 黄色
-            case 1: return new Color(0.5f, 0.86f, 1f);  // 青色
+            case 3: return new Color(1f, 0.25f, 0.21f);
+            case 2: return new Color(1f, 0.86f, 0f);
+            case 1: return new Color(0.5f, 0.86f, 1f);
             default: return Color.white;
         }
     }

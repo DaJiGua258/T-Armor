@@ -150,7 +150,7 @@ Transform:
   m_GameObject: {fileID: 7782407028947840349}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.14666432}
+  m_LocalPosition: {x: 0, y: 0, z: -0.15051882}
   m_LocalScale: {x: 1, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -218,10 +218,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsObstacle: 0
+  CanSetScale: 0
   SizeMultiplier: 1
   SizeHieght: 1
   SpriteSheet: {fileID: 2800000, guid: 993c4e97c36f0354998b3b2021ed6e12, type: 3}
   SpriteSize: 32
+  UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: 0

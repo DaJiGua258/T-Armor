@@ -97,11 +97,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsObstacle: 1
+  CanSetScale: 1
   SizeMultiplier: 4
   SizeHieght: 6
-  SpriteSheet: {fileID: 2800000, guid: bfe2715ee25fd0a44aa61b81da8d7fb2, type: 3}
+  SpriteSheet: {fileID: 2800000, guid: b7b86c5cb72820547ad9e47a97ff629b, type: 3}
   SpriteSize: 32
+  UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: 0
 --- !u!61 &-6118486900564437799

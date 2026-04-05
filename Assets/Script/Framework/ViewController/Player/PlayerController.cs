@@ -14,8 +14,10 @@ namespace QFramework.ViewController.Player
 
         [Header("躯干引用")]
         [SerializeField] private Transform _body;
+        [SerializeField] private Rigidbody2D _rigid;
         public float MoveSpeed;
         public float AimZOffsetDeg;
+        
 
         [Header("脚部引用")]
         public Transform LegFl; // 前左
@@ -61,6 +63,7 @@ namespace QFramework.ViewController.Player
             if (!LegBl) LegBl = legs.Find("BL");
 
             _weapon = GetComponent<WeaponController>();
+            _rigid = GetComponent<Rigidbody2D>();
         }
 
         private void Start()
@@ -101,7 +104,8 @@ namespace QFramework.ViewController.Player
             Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             // 如果输入方向的平方大于1，则归一化
             if (input.sqrMagnitude > 1f) input.Normalize();
-            transform.position += new Vector3(input.x, input.y, 0f) * (MoveSpeed * Time.deltaTime);
+                _rigid.velocity = new Vector3(input.x, input.y, 0) * MoveSpeed;
+            // transform.position += new Vector3(input.x, input.y, 0f) * (MoveSpeed * Time.deltaTime);
         }
 
         private void SetInput()

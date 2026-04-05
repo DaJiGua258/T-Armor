@@ -16,7 +16,7 @@ namespace QFramework.Model
         {
             MaxHealth.Value = 100;
             CurrentHealth.Value = 100;
-            Speed.Value = 10;
+            Speed.Value = 3;
         }
         
         

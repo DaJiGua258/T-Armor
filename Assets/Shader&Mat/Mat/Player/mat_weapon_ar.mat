@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: mat_weapon_01
+  m_Name: mat_weapon_ar
   m_Shader: {fileID: 4800000, guid: d0cac4afb7deaed4695f9e359c0be2a0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

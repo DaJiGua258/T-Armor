@@ -1,6 +1,6 @@
 namespace QFramework.ViewController.Player
 {
-    public class WeaponRifle : AbstractWeapon
+    public class WeaponAR : AbstractWeapon
     {
 
     }

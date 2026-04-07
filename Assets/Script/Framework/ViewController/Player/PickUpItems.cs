@@ -3,16 +3,14 @@ using QFramework;
 using QFramework.Enum;
 using static QFramework.Command.PickUpCommand;
 using System;
-
-
-
+using System.Collections.Generic;
 
 // 如果需要使用 UnityEditor 相关的类，必须在非编辑器环境下屏蔽
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public class PickUp : MonoBehaviour, IController
+public class PickUpItems : MonoBehaviour, IController
 {
     public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
 
@@ -21,11 +19,25 @@ public class PickUp : MonoBehaviour, IController
     public TypeEnum _type;
     public WeaponTypeEnum _weaponType;
     public EquipmentTypeEnum _equipmentType;
-    public PickUpTypeEnum _pickUpType;
+    public ItemTypeEnum _pickUpType;
+    
+    [Header("拾取物品表现参数")]
+    [SerializeField] private float _y;
+    [SerializeField] private float _yOffset = 0.5f;
+    [SerializeField] private float _ySpeed = 2f;
+    [SerializeField] private float _rotationSpeed;
 
     void Start()
     {
+        _y = transform.position.y;
         UpdateInstanceId();
+    }
+
+    void Update()
+    {
+        float y = Mathf.Sin(Time.time * _ySpeed) * _yOffset + _yOffset + _y;
+        transform.position = new Vector3(transform.position.x, y, 0);
+        transform.rotation = Quaternion.Euler(0, 0, Time.time * _rotationSpeed);
     }
 
     public int GetInstanceId()
@@ -55,8 +67,8 @@ public class PickUp : MonoBehaviour, IController
                     return;
                 }
                 break;
-            case TypeEnum.PickUp:
-                if (_pickUpType == PickUpTypeEnum.None)
+            case TypeEnum.Item:
+                if (_pickUpType == ItemTypeEnum.None)
                 {
                     Debug.LogWarning("PickUpType is None");
                     _instanceId = -1;
@@ -90,7 +102,7 @@ public class PickUp : MonoBehaviour, IController
 
 // --- 以下是编辑器代码，必须用 #if UNITY_EDITOR 包裹 ---
 #if UNITY_EDITOR
-[CustomEditor(typeof(PickUp))]
+[CustomEditor(typeof(PickUpItems))]
 public class PickUpEditor : Editor
 {
     SerializedProperty _typeProp;
@@ -99,6 +111,10 @@ public class PickUpEditor : Editor
     SerializedProperty _pickUpTypeProp;
     SerializedProperty _instanceIdProp;
 
+    SerializedProperty _yOffsetProp;
+    SerializedProperty _ySpeedProp;
+    SerializedProperty _rotationSpeedProp;
+
     void OnEnable()
     {
         _typeProp = serializedObject.FindProperty("_type");
@@ -106,6 +122,10 @@ public class PickUpEditor : Editor
         _equipmentTypeProp = serializedObject.FindProperty("_equipmentType");
         _pickUpTypeProp = serializedObject.FindProperty("_pickUpType");
         _instanceIdProp = serializedObject.FindProperty("_instanceId");
+
+        _yOffsetProp = serializedObject.FindProperty("_yOffset");
+        _ySpeedProp = serializedObject.FindProperty("_ySpeed");
+        _rotationSpeedProp = serializedObject.FindProperty("_rotationSpeed");
     }
 
     public override void OnInspectorGUI()
@@ -115,7 +135,11 @@ public class PickUpEditor : Editor
         // 绘制只读 ID
         GUI.enabled = false;
         EditorGUILayout.PropertyField(_instanceIdProp, new GUIContent("实例 ID (只读)"));
-        GUI.enabled = true;
+         GUI.enabled = true;
+
+        EditorGUILayout.PropertyField(_yOffsetProp, new GUIContent("Y Offset"));
+        EditorGUILayout.PropertyField(_ySpeedProp, new GUIContent("Y Speed"));
+        EditorGUILayout.PropertyField(_rotationSpeedProp, new GUIContent("Rotation Speed"));
 
         EditorGUILayout.Space();
 
@@ -139,7 +163,7 @@ public class PickUpEditor : Editor
             case TypeEnum.Equipment:
                 EditorGUILayout.PropertyField(_equipmentTypeProp, new GUIContent("Equipment Type"));
                 break;
-            case TypeEnum.PickUp:
+            case TypeEnum.Item:
                 EditorGUILayout.PropertyField(_pickUpTypeProp, new GUIContent("PickUp Type"));
                 break;
             // 如果是 None，就不画任何细分类型

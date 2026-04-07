@@ -38,7 +38,6 @@ namespace QFramework.Model
     public class EnemeyConfig
     {
         // 标识
-        public int TypeId;
         public EnemyTypeEnum EnemyType;
 
         // 敌人属性
@@ -53,7 +52,6 @@ namespace QFramework.Model
         /// </summary>
         public EnemeyConfig(int enemySize, int maxHealth, int currentHealth, int speed)
         {
-            this.TypeId = TypeIdSetter.GetTypeId(TypeEnum.Enemy, (int)EnemyType);
             this.enemySize = enemySize;
             this.MaxHealth = maxHealth;
             this.CurrentHealth = currentHealth;

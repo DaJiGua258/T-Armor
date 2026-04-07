@@ -15,10 +15,10 @@ namespace QFramework.Model
         /// </summary>
         private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponModelsConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
-            {WeaponTypeEnum.Rifle, new WeaponConfig(WeaponTypeEnum.Rifle, 5, 30, 0.5f, 20, 10, 0.1f)},
-            {WeaponTypeEnum.Mech, new WeaponConfig(WeaponTypeEnum.Mech, 10, 30, 0.5f, 20, 10, 0.025f)},
-            {WeaponTypeEnum.Shotgun, new WeaponConfig(WeaponTypeEnum.Shotgun, 4, 30, 0.5f, 20, 10, 0.25f)},
-            {WeaponTypeEnum.Rocket, new WeaponConfig(WeaponTypeEnum.Rocket, 4, 30, 0.5f, 20, 10, 0.5f)},
+            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 0.5f, 20, 10, 0.1f)},
+            {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 30, 0.5f, 20, 10, 0.025f)},
+            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 0.5f, 20, 10, 0.25f)},
+            {WeaponTypeEnum.RL, new WeaponConfig(WeaponTypeEnum.RL, 4, 30, 0.5f, 20, 10, 0.5f)},
         };
 
         protected override void OnInit()
@@ -38,7 +38,6 @@ namespace QFramework.Model
     public class WeaponConfig
     {   
         // 标识
-        public int TypeId;
         public WeaponTypeEnum WeaponType;
         
         // 武器属性
@@ -65,9 +64,7 @@ namespace QFramework.Model
             int bulletSpeed, 
             int bulletDamage, 
             float shootingInterval)
-        {
-            this.TypeId = TypeIdSetter.GetTypeId(TypeEnum.Weapon, (int)weaponType);
-            
+        {            
             this.WeaponType = weaponType;
             this.MaxAmmo = maxMagazine * maxAmmoMultipler;
             this.CurrentAmmo = maxMagazine * maxAmmoMultipler;

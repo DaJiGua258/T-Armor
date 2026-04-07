@@ -51,10 +51,10 @@ namespace QFramework.System
     /// <summary>
     /// 由于每个敌人都是独立的运行时数据，所以配置model直接使用BindableProperty来存储
     /// </summary>
-    public class EnemeyDataModel
+    public class EnemeyDataModel : InstanceType
     {
-        public int InstanceId;  // 实例id
-        public int TypeId;  // 类型id
+        private static int _enemyCounter = 0;
+
         public EnemyState EnemyState;
         public BindableProperty<int> enemySize = new BindableProperty<int>();
         public BindableProperty<int> MaxHealth = new BindableProperty<int>();
@@ -66,8 +66,10 @@ namespace QFramework.System
         /// </summary>
         public EnemeyDataModel(EnemeyConfig enemeyConfig)
         {
-            this.InstanceId = enemeyConfig.TypeId * 100;
-            this.TypeId = enemeyConfig.TypeId;
+            this.TypeEnum = TypeEnum.Enemy;
+            this.InstanceId = GetInstanceId((int)enemeyConfig.EnemyType, _enemyCounter);
+            _enemyCounter++;
+
             this.enemySize.Value = enemeyConfig.enemySize;
             this.MaxHealth.Value = enemeyConfig.MaxHealth;
             this.CurrentHealth.Value = enemeyConfig.CurrentHealth;

@@ -4,6 +4,7 @@ using QFramework.Command;
 using QFramework.System;
 using QFramework.Enum;
 using QFramework.Utility;
+using Unity.VisualScripting;
 
 namespace QFramework.ViewController.Player
 {
@@ -53,11 +54,7 @@ namespace QFramework.ViewController.Player
                 return;
             }
 
-                
-
             Vector3 hit = hitPos;
-            if(hit == Vector3.zero || Vector3.Distance(hit, body.position) < 2f)
-                return;
 
             Vector3 dirLeft = hit - WeaponLeft.transform.position;
             Vector3 dirRight = hit - WeaponRight.transform.position;
@@ -104,7 +101,7 @@ namespace QFramework.ViewController.Player
         /// 武器数据变化
         /// </summary>
         /// <param name="weaponData"></param>
-        public void OnWeaponDataChanged(WeaponSlotEnum weaponSlotEnum, WeaponDataModel weaponData)
+        private void OnWeaponDataChanged(WeaponSlotEnum weaponSlotEnum, WeaponDataModel weaponData)
         {
             Transform weaponSlot = weaponSlotEnum == WeaponSlotEnum.Left ? _weaponSlotLeft : _weaponSlotRight;
             AbstractWeapon weapon = null;
@@ -114,17 +111,17 @@ namespace QFramework.ViewController.Player
                 Destroy(weaponSlot.GetChild(0).gameObject);
 
             // 如果武器数据为 Rifle，则生成 Rifle 武器
-            if(weaponData.WeaponType.Value == WeaponTypeEnum.Rifle)
+            if(weaponData.WeaponType == WeaponTypeEnum.AR)
             {
-                var rifle = Instantiate(this.GetUtility<IResourceLoad>().Load<GameObject>("Prefab/Weapon/Rifle"), weaponSlot);
-                weapon = rifle.GetComponent<AbstractWeapon>();
-                weapon.InitWeaponData(weaponData);
+                weapon = InstantiateWeapons(WeaponTypeEnum.AR, weaponSlot, weaponData);
             }
-            else if(weaponData.WeaponType.Value == WeaponTypeEnum.Mech)
+            else if(weaponData.WeaponType == WeaponTypeEnum.MG)
             {
-                var mech = Instantiate(this.GetUtility<IResourceLoad>().Load<GameObject>("Prefab/Weapon/Mech"), weaponSlot);
-                weapon = mech.GetComponent<AbstractWeapon>();
-                weapon.InitWeaponData(weaponData);
+                weapon = InstantiateWeapons(WeaponTypeEnum.MG, weaponSlot, weaponData);
+            }
+            else if(weaponData.WeaponType == WeaponTypeEnum.SG)
+            {
+                weapon = InstantiateWeapons(WeaponTypeEnum.SG, weaponSlot, weaponData);
             }
 
         
@@ -137,5 +134,20 @@ namespace QFramework.ViewController.Player
                 WeaponRight = weapon;
             }
         }
+
+        /// <summary>
+        /// 初始化并生成武器
+        /// </summary>
+        private AbstractWeapon InstantiateWeapons(WeaponTypeEnum weaponType, Transform weaponSlot, WeaponDataModel weaponData)
+        {
+            AbstractWeapon weapon = null;
+            var rifle = Instantiate(
+                this.GetUtility<IResourceLoad>().Load<GameObject>("Prefab/Weapon/" + weaponType.ToString()), weaponSlot);
+            weapon = rifle.GetComponent<AbstractWeapon>();
+            weapon.InitWeaponData(weaponData);
+
+            return weapon;
+        }
+
     }
 }

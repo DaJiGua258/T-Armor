@@ -1,40 +1,37 @@
 namespace QFramework.Enum
 {
-    public static class TypeIdSetter
-    {
-        public static int GetTypeId(TypeEnum typeEnum, int type)
-        {
-            return (int)typeEnum * 100 + type;
-        }
-    }
-    
-    /// <summary>
     public enum TypeEnum
     {
         None,
         Weapon,
         Equipment,
-        PickUp,
+        Item,
         Enemy,
     }
 
     public enum WeaponTypeEnum
     {
         None,
-        Rifle,
-        Mech,
-        Shotgun,
-        Rocket,
+        AR,  // 突击步枪
+        MG,  // 机枪
+        SG,  // 霰弹枪
+        RL,  // 火箭发射器
     }
 
-    public enum PickUpTypeEnum
+    public enum ItemTypeEnum
     {
         None,
-        Item_1,
-        Item_2,
-        Item_3,
-        Item_4,
-        Item_5,
+
+        Parts,  // 零件
+
+        // 支援
+        Supply_Health,
+        Supply_Ammo,
+
+        // 信标
+        Beacon_AirStrikes,  // 空袭
+        Beacon_AirSupport,  // 空中支援
+        Beacon_Shelling,  // 炮击
     }
 
     public enum EnemyTypeEnum

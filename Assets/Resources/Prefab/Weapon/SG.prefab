@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 6700076732239613813}
   - component: {fileID: 958060234085071654}
   - component: {fileID: 8164771634392685297}
-  - component: {fileID: 3491900514729209121}
+  - component: {fileID: 3109525931226930882}
   m_Layer: 0
-  m_Name: Mech
+  m_Name: SG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 157481683242528382}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.01}
+  m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -58,7 +58,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 90d4cb2657081b24dbf3564fede75315, type: 2}
+  - {fileID: 2100000, guid: 65f5b51ab146e6d4eb24d60aba969594, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -100,14 +100,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsObstacle: 0
+  CanSetScale: 1
   SizeMultiplier: 1
   SizeHieght: 1
-  SpriteSheet: {fileID: 2800000, guid: e05e8a92a340c7248ab8f41281c1b605, type: 3}
+  SpriteSheet: {fileID: 2800000, guid: abe8d42f901ac64448b35a11baa305e7, type: 3}
   SpriteSize: 32
+  UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: -1
---- !u!114 &3491900514729209121
+--- !u!114 &3109525931226930882
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -116,10 +117,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 157481683242528382}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67386adf808ebb84fb3bb1ae140f008c, type: 3}
+  m_Script: {fileID: 11500000, guid: 14e82e133ceb0d848b84df9aab29bd69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _weaponType: 2
+  _weaponType: 3
   _weaponId: 0
   Muzzle: {fileID: 0}
   _caseSpawnPoint: {fileID: 0}
@@ -183,7 +184,7 @@ Transform:
   m_GameObject: {fileID: 1572417219755240052}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.429, y: 0.031, z: 0}
+  m_LocalPosition: {x: 0.559, y: 0.059, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -9970,7 +9971,7 @@ Transform:
   m_GameObject: {fileID: 4361648101030771499}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.44, y: 0.12, z: 0}
+  m_LocalPosition: {x: 0.44, y: 0.089999996, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

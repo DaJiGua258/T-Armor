@@ -1,6 +1,8 @@
 using Unity.Mathematics;
 using UnityEngine;
 using QFramework.Model;
+using QFramework.Utility;
+using QFramework.UtilityKit;
 
 namespace QFramework.ViewController.Player
 {
@@ -8,6 +10,7 @@ namespace QFramework.ViewController.Player
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
+        private PlayerInput _playerInput => PlayerInput.Instance;
 
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
@@ -44,14 +47,12 @@ namespace QFramework.ViewController.Player
         [SerializeField] private float _legOffsetWeightMulti = 1f;          // 权重倍率
         private Vector3 lastBodyPosition;           // 上一次身体位置
         private Vector3 inertiaOffset;              // 惯性偏移
-        
 
-        private Camera _cam;
-        private Plane _plane;  // 平面
 
         void Awake()
         {
-            _cam = Camera.main;
+            _playerInput.InitPlayerInput(Camera.main, transform);
+
             if (!_body) _body = transform.Find("Body");
 
             
@@ -101,7 +102,7 @@ namespace QFramework.ViewController.Player
         private void Move()
         {
             // 获取键盘输入的移动方向
-            Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            Vector2 input = _playerInput.GetMovementDir();
             // 如果输入方向的平方大于1，则归一化
             if (input.sqrMagnitude > 1f) input.Normalize();
                 _rigid.velocity = new Vector3(input.x, input.y, 0) * MoveSpeed;
@@ -110,12 +111,12 @@ namespace QFramework.ViewController.Player
 
         private void SetInput()
         {
-            if(Input.GetMouseButton(0))
+            if(_playerInput.GetButtonLeft())
             {
                 _weapon.WeaponLeft.Shoot();
             }
             
-            if(Input.GetMouseButton(1))
+            if(_playerInput.GetButtonRight())
             {
                 _weapon.WeaponRight.Shoot();
             }
@@ -126,23 +127,19 @@ namespace QFramework.ViewController.Player
         /// </summary>
         private void RotateBody()
         {
-            
-            if (!_body || !_cam)
+            if (!_body)
                 return;
 
-            Vector3 hit = GetHitPosition();
+            Vector3 hit = _playerInput.GetMousePos();
+            
             if(hit == Vector3.zero)
                 return;
 
             // 计算点击位置与角色位置的差值
             Vector3 dir = hit - _body.position;
             dir.z = 0f;
+            float dist = Vector2.Distance(hit, _body.position);
 
-            // 如果差值小于1e-6f，则不进行旋转
-            if (Vector3.Distance(hit, _body.position) < 1e-6f) 
-            {
-                return;
-            }
 
             // 在这里实现旋转平滑效果
             // 当前Body的朝向（欧拉角z)
@@ -156,36 +153,12 @@ namespace QFramework.ViewController.Player
             _body.rotation = Quaternion.Euler(0f, 0f, smoothZ);
 
             // 当Body旋转到目标朝向时，小于10度，则允许Weapon旋转
-            if(Mathf.Abs(currentZ - targetZ) < 10f)
+            if(MathTool.GetAngleDifference(currentZ, targetZ) < 10f && dist > 1f)
             {
                 _weapon.RotateWeapon(hit, _body, AimZOffsetDeg);
             }
 
             return;
-        }
-
-        
-
-        /// <summary>
-        /// 获取点击位置的世界坐标
-        /// </summary>
-        /// <returns></returns>
-        private Vector3 GetHitPosition()   
-        {
-            // 创建一个平面，用于计算点击位置与角色位置的差值
-            // 数学上的无限平面，这里使用Vector3.forward作为法线
-            _plane = new Plane(Vector3.forward, transform.position);
-
-            // 从屏幕点击位置发射射线，获取点击位置的世界坐标
-            Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
-            if (!_plane.Raycast(ray, out float d)) 
-            {
-                return Vector3.zero;
-            }
-
-            // 获取点击位置的世界坐标
-            Vector3 hit = ray.GetPoint(d);  // 即point = ray.origin + ray.direction * d
-            return hit;
         }
 
         /// <summary>
@@ -253,7 +226,7 @@ namespace QFramework.ViewController.Player
             lastBodyPosition = transform.position;
 
             // 每条腿添加基于与body移动方向关系的独立偏移
-            Vector3 bodyMoveDir = (GetHitPosition() - _body.position);
+            Vector3 bodyMoveDir = (_playerInput.GetMousePos() - _body.position);
             lastBodyDir = bodyMoveDir;
             bodyMoveDir = Vector3.Lerp(lastBodyDir, bodyMoveDir, _lerpFactor * Time.deltaTime).normalized;
 

@@ -16,11 +16,11 @@ namespace QFramework.ViewController.Player
         [Header("武器组件")]
         [SerializeField] public Transform Muzzle;
         [SerializeField] private Transform _caseSpawnPoint;
-        [SerializeField] GameObject _pf_bullet;
-        [SerializeField] ParticleSystem _vfxShooting;
+        [SerializeField] protected GameObject _pf_bullet;
+        [SerializeField] protected ParticleSystem _vfxShooting;
 
-        [Header("子弹属性")]
-        [SerializeField] WeaponDataModel _weaponDataModel;
+        [Header("武器属性")]
+         protected WeaponDataModel _weaponDataModel;
 
 
 
@@ -59,16 +59,26 @@ namespace QFramework.ViewController.Player
                 return;
             }
 
+            // 开火间隔
             if(_timer < _weaponDataModel.ShootingInterval.Value)
                 return;
 
 
+            // 
             if (_pf_bullet == null || Muzzle == null)
             {
                 Debug.LogError("BulletPrefab or BulletSpawnPoint or Muzzle is null");
                 return;
             }
 
+            ShootDetal();
+
+            _timer = 0;
+        }
+
+        public virtual void ShootDetal()
+        {
+            
             // 计算发射方向：与武器朝向一致
             Vector3 shootDir = Muzzle.right; // local right 是2D武器的默认枪口方向 (一般为右)
             // 枪口世界坐标
@@ -77,20 +87,8 @@ namespace QFramework.ViewController.Player
             GameObject bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, Muzzle.position, Muzzle.rotation);
             _vfxShooting.Play();
 
-
-            // GameObject shootingVFX = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_shootingVFX, Muzzle.position, Muzzle.rotation);
-
-            // 延迟1秒后将射击特效推入对象池
-            // this.GetUtility<ITimerUtility>().AddOnce(
-            //     () => this.GetUtility<IObjectPoolUtility>().PushObject(shootingVFX),
-            //     1
-            // );
-
-            // 
             Bullet bulletComponent = bullet.GetComponent<Bullet>();
             bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed.Value);
-
-            _timer = 0;
         }
     }
 }

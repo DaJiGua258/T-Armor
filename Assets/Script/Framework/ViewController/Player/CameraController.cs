@@ -32,8 +32,6 @@ public class CameraController : MonoBehaviour, IController
 
     void LateUpdate()
     {
-        PickUpItem();
-
         if (!_target) return;
 
         Vector3 targetPos = _target.position;
@@ -94,28 +92,5 @@ public class CameraController : MonoBehaviour, IController
             return ray.GetPoint(d);
         }
         return referencePos;
-    }
-
-    private void PickUpItem()
-    {
-        Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
-
-        RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
-        if(hit.collider != null)
-        {
-            if(hit.collider.gameObject.CompareTag("PickUp") && Input.GetMouseButtonDown(0))
-            {
-                Debug.Log("PickUpItem");
-                PickUp pickUp = hit.collider.gameObject.GetComponent<PickUp>();
-                if(pickUp._type == TypeEnum.Weapon)
-                {
-                    this.SendCommand(new PickUpCommand.PickUpWeapon(
-                        this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId, 
-                        pickUp.GetInstanceId()));
-                }
-
-            }   
-        }
-
     }
 }

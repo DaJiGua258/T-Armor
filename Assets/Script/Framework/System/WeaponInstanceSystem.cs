@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using QFramework.Enum;
 using QFramework.Model;
+using UnityEngine;
 
 namespace QFramework.System
 {
@@ -67,12 +68,10 @@ namespace QFramework.System
         }
     }
     
-    public class WeaponDataModel
+    public class WeaponDataModel : InstanceType
     {
         private static int _weaponCounter = 0;
-        public int InstanceId;  // 实例id
-        public int TypeId;  // 类型id
-        public BindableProperty<WeaponTypeEnum> WeaponType = new BindableProperty<WeaponTypeEnum>();
+        public WeaponTypeEnum WeaponType;
         public BindableProperty<int> MaxAmmo = new BindableProperty<int>();
         public BindableProperty<int> CurrentAmmo = new BindableProperty<int>();
         public BindableProperty<int> MaxMagazine = new BindableProperty<int>();
@@ -84,9 +83,11 @@ namespace QFramework.System
 
         public WeaponDataModel(WeaponConfig weaponConfig)
         {
-            this.InstanceId = weaponConfig.TypeId * 100;
-            this.TypeId = weaponConfig.TypeId;
-            this.WeaponType.Value = weaponConfig.WeaponType;
+            this.TypeEnum = TypeEnum.Weapon;
+            this.InstanceId = GetInstanceId((int)weaponConfig.WeaponType, _weaponCounter);
+            _weaponCounter++;
+            
+            this.WeaponType = weaponConfig.WeaponType;
             this.MaxAmmo.Value = weaponConfig.MaxAmmo;
             this.CurrentAmmo.Value = weaponConfig.CurrentAmmo;
             this.MaxMagazine.Value = weaponConfig.MaxMagazine;
@@ -95,10 +96,6 @@ namespace QFramework.System
             this.BulletSpeed.Value = weaponConfig.BulletSpeed;
             this.BulletDamage.Value = weaponConfig.BulletDamage;
             this.ShootingInterval.Value = weaponConfig.ShootingInterval;
-
-            InstanceId += _weaponCounter;
-            _weaponCounter++;
-            UnityEngine.Debug.Log("WeaponDataModel Constructor: InstanceId = " + InstanceId);
         }
     }
 }

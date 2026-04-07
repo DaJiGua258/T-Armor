@@ -47,7 +47,10 @@ namespace QFramework.Command
                 WeaponDataModel currentWeaponData = null;
                 if(_currentId == _playerSystem.PlayerWeapon.WeaponDataLeft.Value.InstanceId)
                 {
+                    // 先在这里获取到当前持有的武器的引用
                     currentWeaponData = _playerSystem.PlayerWeapon.WeaponDataLeft.Value;
+                    
+                    // 然后在从缓存中移除目标武器，并将从缓存中获取的目标武器赋值给当前武器
                     _playerSystem.PlayerWeapon.WeaponDataLeft.Value = _weaponInstanceSystem.RemoveWeaponById(_targetId);
                 }
                 else if(_currentId == _playerSystem.PlayerWeapon.WeaponDataRight.Value.InstanceId)
@@ -61,11 +64,9 @@ namespace QFramework.Command
                     return;
                 }
                 
+                // 最后将之前持有的武器添加到缓存中，完成交换
                 _weaponInstanceSystem.AddExistingWeapon(currentWeaponData);
             }
         }
-        
-
-        
     }
 }

@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 6700076732239613813}
   - component: {fileID: 958060234085071654}
   - component: {fileID: 8164771634392685297}
-  - component: {fileID: 3491900514729209121}
+  - component: {fileID: -3535109288981998974}
   m_Layer: 0
-  m_Name: Rifle
+  m_Name: AR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 157481683242528382}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.01}
+  m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -58,7 +58,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 90d4cb2657081b24dbf3564fede75315, type: 2}
+  - {fileID: 2100000, guid: 5b99002eeff3ff544843950f433d64fe, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -100,14 +100,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsObstacle: 0
+  CanSetScale: 0
   SizeMultiplier: 1
   SizeHieght: 1
   SpriteSheet: {fileID: 2800000, guid: e05e8a92a340c7248ab8f41281c1b605, type: 3}
   SpriteSize: 32
+  UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: -1
---- !u!114 &3491900514729209121
+--- !u!114 &-3535109288981998974
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -116,7 +117,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 157481683242528382}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67386adf808ebb84fb3bb1ae140f008c, type: 3}
+  m_Script: {fileID: 11500000, guid: 2b049c738fa6c144daa2f6c6a89ff78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _weaponType: 1

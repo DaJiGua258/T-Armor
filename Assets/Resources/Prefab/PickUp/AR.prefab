@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 6700076732239613813}
   - component: {fileID: 958060234085071654}
   - component: {fileID: 8164771634392685297}
-  - component: {fileID: -1981014833234264615}
-  - component: {fileID: 594347530458191724}
+  - component: {fileID: 295419782232915669}
+  - component: {fileID: 7133509542579140469}
   m_Layer: 0
-  m_Name: Mech
+  m_Name: AR
   m_TagString: PickUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 157481683242528382}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.01}
+  m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 90d4cb2657081b24dbf3564fede75315, type: 2}
+  - {fileID: 2100000, guid: 5b99002eeff3ff544843950f433d64fe, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,14 +98,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsObstacle: 0
+  CanSetScale: 0
   SizeMultiplier: 1
   SizeHieght: 1
   SpriteSheet: {fileID: 2800000, guid: e05e8a92a340c7248ab8f41281c1b605, type: 3}
   SpriteSize: 32
+  UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: -1
---- !u!114 &-1981014833234264615
+--- !u!114 &295419782232915669
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -117,12 +118,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d287447cadbf0c044bcc4078ce34bf12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _instanceId: 10201
+  _instanceId: 10102
   _type: 1
-  _weaponType: 2
-  _equipmentType: 1
+  _weaponType: 1
+  _equipmentType: 0
   _pickUpType: 0
---- !u!61 &594347530458191724
+  _y: 0
+  _yOffset: 0.5
+  _ySpeed: 2
+  _rotationSpeed: 0
+--- !u!61 &7133509542579140469
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

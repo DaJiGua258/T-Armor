@@ -6,6 +6,87 @@ namespace QFramework.Command
 {
     public class PickUpCommand
     {
+        public class AddPickUpItemInstance : AbstractCommand<int>
+        {
+            private IPickUpItemInstanceSystem _pickUpItemInstanceSystem => this.GetSystem<IPickUpItemInstanceSystem>();
+            private ItemTypeEnum _itemType;
+            public AddPickUpItemInstance(ItemTypeEnum itemType)
+            {
+                this._itemType = itemType;
+            }
+
+            protected override int OnExecute()
+            {
+                return _pickUpItemInstanceSystem.AddItemInstance(_itemType);
+            }
+        }
+
+        /// <summary>
+        /// 添加拾取物品实例
+        /// </summary>
+        public class PickUpItemInstance : AbstractCommand
+        {
+            private IPickUpItemInstanceSystem _pickUpItemInstanceSystem => this.GetSystem<IPickUpItemInstanceSystem>();
+            private IInvenotrySystem _invenotrySystem => this.GetSystem<IInvenotrySystem>();
+            private int itemInstanceId;
+            public PickUpItemInstance(int itemInstanceId)
+            {
+                this.itemInstanceId = itemInstanceId;
+            }
+
+            protected override void OnExecute()
+            {
+                int nullSlotIndex = -1;
+                var pickUpItemData = _pickUpItemInstanceSystem.ItemDataInstanceCache[itemInstanceId];  // 从实例缓存字典获取物品的数据
+                int overflow = 0;  // 溢出数量
+
+                // 遍历背包槽位
+                for(int i = 0; i < _invenotrySystem.ItemDataCache.Count; i++)
+                {
+                    var slotData = _invenotrySystem.ItemDataCache[i];  // 获取的背包槽位数据
+                    if(slotData.ItemType == ItemTypeEnum.None && nullSlotIndex == -1)
+                    {
+                        nullSlotIndex = i;
+                    }
+                    // 如果背包槽位物品类型与拾取的物品类型相同
+                    if(slotData.ItemType == pickUpItemData.ItemType)
+                    {
+                        // 如果背包槽位物品可以堆叠，并且拾取的物品数量与背包槽位物品数量之和不超过背包槽位物品的最大数量
+                        if(slotData.canStack && slotData.Count.Value + pickUpItemData.Count.Value <= slotData.maxStack)
+                        {
+                            slotData.Count.Value += pickUpItemData.Count.Value;
+                            return;
+                        }
+                        // 如果背包槽位物品可以堆叠，并且拾取的物品数量与背包槽位物品数量之和超过背包槽位物品的最大数量
+                        else if(slotData.canStack && slotData.Count.Value + pickUpItemData.Count.Value > slotData.maxStack)
+                        {
+                            // 计算溢出数量(背包槽位物品数量 + 拾取的物品数量 - 背包槽位物品的最大数量)
+                            overflow = slotData.Count.Value + (pickUpItemData.Count.Value - overflow) - slotData.maxStack;
+                            slotData.Count.Value = slotData.maxStack;
+                        }
+                    }
+                    
+                }
+
+                if(nullSlotIndex != -1)
+                {
+                    _invenotrySystem.SetItemData(nullSlotIndex, pickUpItemData);
+                    return;
+                }
+                else if(overflow > 0)
+                {
+                    _invenotrySystem.SetItemDataCount(nullSlotIndex, overflow);
+                    return;
+                }
+
+                _pickUpItemInstanceSystem.RemoveItemInstance(itemInstanceId);
+            }
+        }
+            
+
+            /// <summary>
+            /// 添加拾取武器实例
+            /// </summary>
         public class AddPickUpWeaponInstance : AbstractCommand<int>
         {
             private IWeaponInstanceSystem _weaponInstanceSystem => this.GetSystem<IWeaponInstanceSystem>();
@@ -68,5 +149,5 @@ namespace QFramework.Command
                 _weaponInstanceSystem.AddExistingWeapon(currentWeaponData);
             }
         }
-    }
+    }   
 }

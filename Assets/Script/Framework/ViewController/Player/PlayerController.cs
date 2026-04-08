@@ -10,7 +10,7 @@ namespace QFramework.ViewController.Player
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
-        private PlayerInput _playerInput => PlayerInput.Instance;
+        private PlayerInputManager _playerInput => PlayerInputManager.Instance;
 
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
@@ -51,8 +51,6 @@ namespace QFramework.ViewController.Player
 
         void Awake()
         {
-            _playerInput.InitPlayerInput(Camera.main, transform);
-
             if (!_body) _body = transform.Find("Body");
 
             
@@ -69,10 +67,9 @@ namespace QFramework.ViewController.Player
 
         private void Start()
         {
+            _playerInput.InitPlayerInput(Camera.main, transform);
             ParamsInit();
             InitLegPostion();
-
-            
         }
 
         private void Update()
@@ -111,12 +108,12 @@ namespace QFramework.ViewController.Player
 
         private void SetInput()
         {
-            if(_playerInput.GetButtonLeft())
+            if(_playerInput.GetShootLeftInput())
             {
                 _weapon.WeaponLeft.Shoot();
             }
             
-            if(_playerInput.GetButtonRight())
+            if(_playerInput.GetShootRightInput())
             {
                 _weapon.WeaponRight.Shoot();
             }

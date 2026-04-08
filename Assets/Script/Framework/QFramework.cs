@@ -751,6 +751,33 @@ namespace QFramework
 
         public override string ToString() => Value.ToString();
     }
+    
+        public static class BindablePropertyExtension
+    {
+        /// <summary>
+        /// 注册值变化回调（带参数版本）
+        /// </summary>
+        public static IUnRegister RegisterOnValueChanged<T>(this IBindableProperty<T> bindableProperty, Action<T> onValueChanged)
+        {
+            return bindableProperty.Register(onValueChanged);
+        }
+ 
+        /// <summary>
+        /// 注册值变化回调（无参数版本）
+        /// </summary>
+        public static IUnRegister RegisterOnValueChanged<T>(this IBindableProperty<T> bindableProperty, Action onValueChanged)
+        {
+            return ((IEasyEvent)bindableProperty).Register(onValueChanged);
+        }
+ 
+        /// <summary>
+        /// 注册值变化回调并立即触发一次（带初始值）
+        /// </summary>
+        public static IUnRegister RegisterOnValueChangedWithInitValue<T>(this IBindableProperty<T> bindableProperty, Action<T> onValueChanged)
+        {
+            return bindableProperty.RegisterWithInitValue(onValueChanged);
+        }
+    }
 
     internal class ComparerAutoRegister
     {

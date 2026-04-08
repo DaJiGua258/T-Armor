@@ -21,7 +21,7 @@ namespace QFramework.System
         private Dictionary<int, WeaponDataModel> _weaponDataCache = new Dictionary<int, WeaponDataModel>();
 
         // 武器数据
-        private IWeaponModel _weaponModel => this.GetModel<IWeaponModel>();
+        private IWeaponConfigModel _weaponModel => this.GetModel<IWeaponConfigModel>();
 
         // 玩家运行时数据
         protected override void OnInit()
@@ -93,9 +93,38 @@ namespace QFramework.System
             this.MaxMagazine.Value = weaponConfig.MaxMagazine;
             this.CurrentMagazine.Value = weaponConfig.CurrentMagazine;
             this.ReloadTime.Value = weaponConfig.ReloadTime;
+            
             this.BulletSpeed.Value = weaponConfig.BulletSpeed;
             this.BulletDamage.Value = weaponConfig.BulletDamage;
             this.ShootingInterval.Value = weaponConfig.ShootingInterval;
+        }
+
+        public void CopyFrom(WeaponDataModel otherWeaponData)
+        {
+            WeaponType = otherWeaponData.WeaponType;
+            MaxAmmo.Value = otherWeaponData.MaxAmmo.Value;
+            CurrentAmmo.Value = otherWeaponData.CurrentAmmo.Value;
+            MaxMagazine.Value = otherWeaponData.MaxMagazine.Value;
+            CurrentMagazine.Value = otherWeaponData.CurrentMagazine.Value;
+            ReloadTime.Value = otherWeaponData.ReloadTime.Value;
+
+            BulletSpeed.Value = otherWeaponData.BulletSpeed.Value;
+            BulletDamage.Value = otherWeaponData.BulletDamage.Value;
+            ShootingInterval.Value = otherWeaponData.ShootingInterval.Value;
+        }
+
+        public void SwapWith(WeaponDataModel otherWeaponData)
+        {
+            (WeaponType, otherWeaponData.WeaponType) = (otherWeaponData.WeaponType, WeaponType);
+            (MaxAmmo.Value, otherWeaponData.MaxAmmo.Value) = (otherWeaponData.MaxAmmo.Value, MaxAmmo.Value);
+            (CurrentAmmo.Value, otherWeaponData.CurrentAmmo.Value) = (otherWeaponData.CurrentAmmo.Value, CurrentAmmo.Value);
+            (MaxMagazine.Value, otherWeaponData.MaxMagazine.Value) = (otherWeaponData.MaxMagazine.Value, MaxMagazine.Value);
+            (CurrentMagazine.Value, otherWeaponData.CurrentMagazine.Value) = (otherWeaponData.CurrentMagazine.Value, CurrentMagazine.Value);
+            (ReloadTime.Value, otherWeaponData.ReloadTime.Value) = (otherWeaponData.ReloadTime.Value, ReloadTime.Value);
+
+            (BulletSpeed.Value, otherWeaponData.BulletSpeed.Value) = (otherWeaponData.BulletSpeed.Value, BulletSpeed.Value);
+            (BulletDamage.Value, otherWeaponData.BulletDamage.Value) = (otherWeaponData.BulletDamage.Value, BulletDamage.Value);
+            (ShootingInterval.Value, otherWeaponData.ShootingInterval.Value) = (otherWeaponData.ShootingInterval.Value, ShootingInterval.Value);
         }
     }
 }

@@ -10,12 +10,15 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
  
         // 模型注册
         RegisterModel<IPlayerModel>(new PlayerModel());
-        RegisterModel<IWeaponModel>(new WeaponConfigModel());
+        RegisterModel<IWeaponConfigModel>(new WeaponConfigModel());
         RegisterModel<IEnemeyConfigModel>(new EnemeyConfigModel());
+        RegisterModel<IItemConfigModel>(new ItemConfigModel());
 
         // 系统注册
         RegisterSystem<IEnemyInstanceSystem>(new EnemyInstanceSystem());
         RegisterSystem<IWeaponInstanceSystem>(new WeaponInstanceSystem());
+        RegisterSystem<IPickUpItemInstanceSystem>(new PickUpItemInstanceSystem());
+        RegisterSystem<IInvenotrySystem>(new InvenotrySystem());
 
         // 玩家系统（引用武器，改装槽系统）
         RegisterSystem<IPlayerSystem>(new PlayerSystem());

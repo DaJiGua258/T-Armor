@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 8482001784776433979}
   - component: {fileID: 8482001784776433972}
   - component: {fileID: 8482001784776433973}
-  - component: {fileID: 473824488368840086}
+  - component: {fileID: -6118486900564437799}
   m_Layer: 0
-  m_Name: env_wall_1x1
+  m_Name: Wall2x2
   m_TagString: Env
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 4, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: befdb570a29936648bded192be1ec562, type: 2}
+  - {fileID: 2100000, guid: fcb36396eb5639249b33b11319fc7c60, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,14 +98,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CanSetScale: 1
-  SizeMultiplier: 2
-  SizeHieght: 4
+  SizeMultiplier: 4
+  SizeHieght: 6
   SpriteSheet: {fileID: 2800000, guid: b7b86c5cb72820547ad9e47a97ff629b, type: 3}
   SpriteSize: 32
   UseLocalZSort: 1
   OrderParent: {fileID: 0}
   ZSortOffset: 0
---- !u!61 &473824488368840086
+--- !u!61 &-6118486900564437799
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

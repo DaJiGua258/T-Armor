@@ -5,7 +5,7 @@ using QFramework.UtilityKit;
 
 namespace QFramework.ViewController.Player
 {
-    public class PlayerInput : MonoSingleton<PlayerInput>
+    public class PlayerInputManager : MonoSingleton<PlayerInputManager>
     {
         private Camera _cam;
         private Transform _player;
@@ -38,14 +38,19 @@ namespace QFramework.ViewController.Player
             return Vector3.zero;
         }
 
-        public bool GetButtonLeft()
+        public bool GetShootLeftInput()
         {
             return Input.GetMouseButton(0);
         }
 
-        public bool GetButtonRight()
+        public bool GetShootRightInput()
         {
             return Input.GetMouseButton(1);
+        }
+
+        public bool GetPickUpItemInput()
+        {
+            return Input.GetKeyDown(KeyCode.F);
         }
     }
 }

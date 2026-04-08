@@ -3,12 +3,12 @@ using QFramework.Enum;
 
 namespace QFramework.Model
 {
-    public interface IWeaponModel : IModel
+    public interface IWeaponConfigModel : IModel
     {
         public WeaponConfig GetWeaponConfigModel(WeaponTypeEnum weaponType);
     }
 
-    public class WeaponConfigModel : AbstractModel, IWeaponModel
+    public class WeaponConfigModel : AbstractModel, IWeaponConfigModel
     {
         /// <summary>
         /// 生成在配置中的所有武器数据

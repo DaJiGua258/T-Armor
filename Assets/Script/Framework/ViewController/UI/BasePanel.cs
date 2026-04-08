@@ -1,3 +1,5 @@
+using QFramework.System;
+using QFramework.Utility;
 using UnityEngine;
 
 namespace QFramework.ViewController.UI
@@ -13,6 +15,8 @@ namespace QFramework.ViewController.UI
     public abstract class BasePanel : MonoBehaviour, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+        public IInvenotrySystem _invenotrySystem => this.GetSystem<IInvenotrySystem>();
+        public IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
 
         /// <summary> 首次创建时调用一次，用于查找子节点引用、初始化状态。 </summary>
         public virtual void OnInit() { }

@@ -1,9 +1,8 @@
 using UnityEngine;
 using QFramework;
 using QFramework.Enum;
-using static QFramework.Command.PickUpCommand;
-using System;
-using System.Collections.Generic;
+using QFramework.Command;
+
 
 // 如果需要使用 UnityEditor 相关的类，必须在非编辑器环境下屏蔽
 #if UNITY_EDITOR
@@ -84,14 +83,14 @@ public class PickUpItems : MonoBehaviour, IController
         switch (_type)
         {
             case TypeEnum.Weapon:
-                _instanceId = this.SendCommand(new AddPickUpWeaponInstance(_weaponType));
+                _instanceId = this.SendCommand(new PickUpCommand.AddPickUpWeaponInstance(_weaponType));
                 break;
             // case TypeEnum.Equipment:
             //     _instanceId = this.SendCommand(new AddPickUpEquipmentInstance(_equipmentType));
             //     break;
-            // case TypeEnum.PickUp:
-            //     _instanceId = this.SendCommand(new AddPickUpPickUpInstance(_pickUpType));
-            //     break;
+            case TypeEnum.Item:
+                _instanceId = this.SendCommand(new PickUpCommand.AddPickUpItemInstance(_pickUpType));
+                break;
             case TypeEnum.None:
                 _instanceId = -1;
                 break;

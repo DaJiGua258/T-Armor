@@ -12,7 +12,7 @@ namespace QFramework.System
     public class PlayerSystem : AbstractSystem, IPlayerSystem
     {   
         // 基础Model和System引用
-        private IWeaponModel _weaponModel => this.GetModel<IWeaponModel>();
+        private IWeaponConfigModel _weaponModel => this.GetModel<IWeaponConfigModel>();
         private IWeaponInstanceSystem _weaponInstanceSystem => this.GetSystem<IWeaponInstanceSystem>();
         
 

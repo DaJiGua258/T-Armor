@@ -9,11 +9,13 @@ namespace QFramework.ViewController.Player
     public class PickUpController : MonoBehaviour, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+        private IObjectPoolUtility _objectPoolUtility => this.GetUtility<IObjectPoolUtility>();
 
         void Update()
         {
             UpdatePickUpCheck();
         }
+
 
         private void UpdatePickUpCheck()
         {
@@ -28,34 +30,40 @@ namespace QFramework.ViewController.Player
                     switch (pickUp._type)
                     {
                         case TypeEnum.Weapon:
-                            this.SendCommand(new PickUpCommand.PickUpWeapon(
-                                this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId,
-                                pickUp.GetInstanceId()));
+                            OnPickUpWeapon(pickUp);
                             break;
 
                         case TypeEnum.Item:
-                            Debug.Log("PickUpItemInstance");
-                            this.SendCommand(new PickUpCommand.PickUpItemInstance(
-                                pickUp.GetInstanceId()));
+                            OnPickUpItem(pickUp);
                             break;
                         default:
                             break;
                     }
-
-                    // if(hit.collider.gameObject.CompareTag("PickUp") && Input.GetMouseButtonDown(0))
-                    // {
-                    //     PickUpItems pickUp = hit.collider.gameObject.GetComponent<PickUpItems>();
-                    //     if(pickUp._type == TypeEnum.Weapon)
-                    //     {
-                    //         this.SendCommand(new PickUpCommand.PickUpWeapon(
-                    //             this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId, 
-                    //             pickUp.GetInstanceId()));
-                    //     }
-
-                    // }  
-
                 }
             }
+        }
+
+        private void OnPickUpWeapon(PickUpItems pickUp)
+        {
+            int currentWeaponId = this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId;
+
+            // 交换数据
+            this.SendCommand(new PickUpCommand.PickUpWeapon(
+                this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId,
+                pickUp.GetInstanceId()));
+            
+            // TODO: 交换武器
+            _objectPoolUtility.PushObject(pickUp.gameObject);
+        }
+
+        private void OnPickUpItem(PickUpItems pickUp)
+        {
+            this.SendCommand(new PickUpCommand.PickUpItemInstance(
+                pickUp.GetInstanceId()));
+                
+            // 销毁
+            // TODO: 销毁物品
+            _objectPoolUtility.PushObject(pickUp.gameObject);
         }
     }
 }

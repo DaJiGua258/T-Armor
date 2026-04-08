@@ -1,6 +1,6 @@
 namespace QFramework.ViewController.UI
 {
-    public class InteractionPanel : BasePanel
+    public class InteractionPanel : AbstractBasePanel
     {
         
     }

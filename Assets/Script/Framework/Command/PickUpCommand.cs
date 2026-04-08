@@ -70,15 +70,16 @@ namespace QFramework.Command
 
                 if(nullSlotIndex != -1)
                 {
-                    _invenotrySystem.SetItemData(nullSlotIndex, pickUpItemData);
+                    _invenotrySystem.AddItem(nullSlotIndex, pickUpItemData);
                     return;
                 }
                 else if(overflow > 0)
                 {
-                    _invenotrySystem.SetItemDataCount(nullSlotIndex, overflow);
+                    _invenotrySystem.SetItemCount(nullSlotIndex, overflow);
                     return;
                 }
 
+                // 将拾取完成的物品从字典缓存中删去
                 _pickUpItemInstanceSystem.RemoveItemInstance(itemInstanceId);
             }
         }

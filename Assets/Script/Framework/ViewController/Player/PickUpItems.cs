@@ -19,8 +19,9 @@ public class PickUpItems : MonoBehaviour, IController
     public WeaponTypeEnum _weaponType;
     public EquipmentTypeEnum _equipmentType;
     public ItemTypeEnum _pickUpType;
-    
+
     [Header("拾取物品表现参数")]
+    [SerializeField] private bool canShowing = false;
     [SerializeField] private float _y;
     [SerializeField] private float _yOffset = 0.5f;
     [SerializeField] private float _ySpeed = 2f;
@@ -28,15 +29,17 @@ public class PickUpItems : MonoBehaviour, IController
 
     void Start()
     {
-        _y = transform.position.y;
-        UpdateInstanceId();
+        // _y = transform.position.y;
+        InitInstanceId();
     }
 
     void Update()
     {
-        float y = Mathf.Sin(Time.time * _ySpeed) * _yOffset + _yOffset + _y;
-        transform.position = new Vector3(transform.position.x, y, 0);
-        transform.rotation = Quaternion.Euler(0, 0, Time.time * _rotationSpeed);
+        if(canShowing)
+        {
+            // float y = Mathf.Sin(Time.time * _ySpeed) * _yOffset + _yOffset + _y;
+            transform.rotation = Quaternion.Euler(0, 0, Time.time * _rotationSpeed);
+        }
     }
 
     public int GetInstanceId()
@@ -46,8 +49,13 @@ public class PickUpItems : MonoBehaviour, IController
 
 
     // 逻辑：更新 InstanceId
-    public void UpdateInstanceId()
+    public void InitInstanceId()
     {
+        if(canShowing)
+        {
+            return;
+        }
+
         switch (_type)
         {
             case TypeEnum.Weapon:
@@ -79,7 +87,7 @@ public class PickUpItems : MonoBehaviour, IController
                 _instanceId = -1;
                 return;
         }
-
+        
         switch (_type)
         {
             case TypeEnum.Weapon:
@@ -97,9 +105,15 @@ public class PickUpItems : MonoBehaviour, IController
         }
         Debug.Log($"已更新 {gameObject.name} 的 InstanceId: {_instanceId}");
     }
+
+    public void CanShowing()
+    {
+        canShowing = true;
+    }
+    
 }
 
-// --- 以下是编辑器代码，必须用 #if UNITY_EDITOR 包裹 ---
+
 #if UNITY_EDITOR
 [CustomEditor(typeof(PickUpItems))]
 public class PickUpEditor : Editor

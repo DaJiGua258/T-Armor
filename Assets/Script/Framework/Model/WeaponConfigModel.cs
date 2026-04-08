@@ -15,6 +15,7 @@ namespace QFramework.Model
         /// </summary>
         private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponModelsConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
+            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0f, 0, 0, 0f)},
             {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 0.5f, 20, 10, 0.1f)},
             {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 30, 0.5f, 20, 10, 0.025f)},
             {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 0.5f, 20, 10, 0.25f)},

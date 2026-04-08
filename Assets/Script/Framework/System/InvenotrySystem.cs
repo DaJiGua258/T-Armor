@@ -11,8 +11,9 @@ namespace QFramework.System
     {
         // public void AddNewItemToInventory(ItemTypeEnum itemType);
         public List<ItemDataModel> ItemDataCache { get; }
-        public void SetItemData(int slotIndex, ItemDataModel itemData);
-        public void SetItemDataCount(int slotIndex, int count);
+        public void AddItem(int slotIndex, ItemDataModel itemData);
+        public void SetItemCount(int slotIndex, int count);
+        public ItemDataModel GetInventoryItemByIndex(int slotIndex);
     }
 
     public class InvenotrySystem : AbstractSystem, IInvenotrySystem
@@ -48,9 +49,9 @@ namespace QFramework.System
         }
 
         /// <summary>
-        /// 设置对应物品槽的数据
+        /// 添加物品数据
         /// </summary>
-        public void SetItemData(int slotIndex, ItemDataModel itemData)
+        public void AddItem(int slotIndex, ItemDataModel itemData)
         {
             ItemDataCache[slotIndex].CopyFrom(itemData);
         }
@@ -58,9 +59,14 @@ namespace QFramework.System
         /// <summary>
         /// 设置对应物品槽的数量
         /// </summary>
-        public void SetItemDataCount(int slotIndex, int count)
+        public void SetItemCount(int slotIndex, int count)
         {
             ItemDataCache[slotIndex].Count.Value = count;
+        }
+
+        public ItemDataModel GetInventoryItemByIndex(int slotIndex)
+        {
+            return ItemDataCache[slotIndex];
         }
     }
 

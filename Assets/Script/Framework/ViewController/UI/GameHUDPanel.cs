@@ -1,6 +1,6 @@
 namespace QFramework.ViewController.UI
 {
-    public class GameHUDPanel : BasePanel
+    public class GameHUDPanel : AbstractBasePanel
     {
         
     }

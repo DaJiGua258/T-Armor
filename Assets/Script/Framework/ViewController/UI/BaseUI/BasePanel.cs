@@ -1,6 +1,8 @@
 using QFramework.System;
 using QFramework.Utility;
 using UnityEngine;
+using UnityEngine.EventSystems;
+
 
 namespace QFramework.ViewController.UI
 {
@@ -12,27 +14,11 @@ namespace QFramework.ViewController.UI
     /// 生命周期顺序：OnInit → OnShow ↔ OnHide（可重复）→ OnClose
     /// 推荐在 OnShow() 中订阅 BindableProperty / Event，在 OnHide() 中取消订阅。
     /// </summary>
-    public abstract class BasePanel : MonoBehaviour, IController
+    public abstract class AbstractBasePanel : MonoBehaviour, IBasePanel, IController, IUIEventBase
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         public IInvenotrySystem _invenotrySystem => this.GetSystem<IInvenotrySystem>();
         public IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
-
-        /// <summary> 首次创建时调用一次，用于查找子节点引用、初始化状态。 </summary>
-        public virtual void OnInit() { }
-
-        /// <summary> 
-        /// 每次显示时调用，在此订阅数据源。 
-        /// </summary>
-        public virtual void OnShow() { }
-
-        /// <summary> 
-        /// 每次隐藏时调用，在此取消数据订阅。 
-        /// </summary>
-        public virtual void OnHide() { }
-
-        /// <summary> 面板被 UIManager.DestroyPanel 销毁前调用。 </summary>
-        public virtual void OnClose() { }
 
         public void Show()
         {
@@ -45,5 +31,34 @@ namespace QFramework.ViewController.UI
             OnHide();
             gameObject.SetActive(false);
         }
+
+        public virtual void OnInit() { }
+
+        public virtual void OnShow() { }
+
+        public virtual void OnHide() { }
+
+        public virtual void OnClose() { }
+
+        // --- 点击与按下事件 --
+        public virtual void OnPointerClick(PointerEventData eventData) { }
+
+        public virtual void OnPointerDown(PointerEventData eventData) { }
+
+        public virtual void OnPointerUp(PointerEventData eventData) { }
+
+        // --- 鼠标进入与移出事件 ---
+
+        public virtual void OnPointerEnter(PointerEventData eventData) { }
+
+        public virtual void OnPointerExit(PointerEventData eventData) { }
+
+        // --- 拖拽事件 ---
+
+        public virtual void OnBeginDrag(PointerEventData eventData) { }
+
+        public virtual void OnDrag(PointerEventData eventData) { }
+
+        public virtual void OnEndDrag(PointerEventData eventData) { }
     }
 }

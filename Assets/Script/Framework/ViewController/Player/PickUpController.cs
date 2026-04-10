@@ -10,6 +10,7 @@ namespace QFramework.ViewController.Player
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         private IObjectPoolUtility _objectPoolUtility => this.GetUtility<IObjectPoolUtility>();
+        private IInputUtility _inputUtility => this.GetUtility<IInputUtility>();
 
         void Update()
         {
@@ -24,7 +25,7 @@ namespace QFramework.ViewController.Player
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
             if (hit.collider != null && hit.collider.gameObject.CompareTag("PickUp"))
             {
-                if (PlayerInputManager.Instance.GetPickUpItemInput())
+                if (_inputUtility.GetPickUpItemInput())
                 {
                     PickUpItems pickUp = hit.collider.gameObject.GetComponent<PickUpItems>();
                     switch (pickUp._type)
@@ -45,11 +46,11 @@ namespace QFramework.ViewController.Player
 
         private void OnPickUpWeapon(PickUpItems pickUp)
         {
-            int currentWeaponId = this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId;
+            int currentWeaponId = this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value;
 
             // 交换数据
             this.SendCommand(new PickUpCommand.PickUpWeapon(
-                this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId,
+                this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value,
                 pickUp.GetInstanceId()));
             
             // TODO: 交换武器

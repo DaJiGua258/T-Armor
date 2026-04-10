@@ -47,7 +47,7 @@ namespace QFramework.ViewController.Player
         public void InitWeaponData(WeaponDataModel weaponDataModel)
         {
             _weaponDataModel = weaponDataModel;
-            _weaponId = _weaponDataModel.InstanceId;
+            _weaponId = _weaponDataModel.InstanceId.Value;
         }
 
 

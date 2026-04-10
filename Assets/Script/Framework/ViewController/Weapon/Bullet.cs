@@ -47,7 +47,7 @@ namespace QFramework.ViewController.Player
             }
             else if (other.gameObject.CompareTag("Enemy"))
             {
-                other.gameObject.GetComponent<EnemyController>().DamageEnemy(10);
+                // other.gameObject.GetComponent<EnemyController>().DamageEnemy(10);
                 BulletExplosion();
             }
 

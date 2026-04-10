@@ -3,6 +3,7 @@ using UnityEngine;
 using QFramework.Model;
 using QFramework.Utility;
 using QFramework.UtilityKit;
+using QFramework.ViewController.FSM;
 
 namespace QFramework.ViewController.Player
 {
@@ -10,7 +11,7 @@ namespace QFramework.ViewController.Player
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
-        private PlayerInputManager _playerInput => PlayerInputManager.Instance;
+        public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
 
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
@@ -47,6 +48,8 @@ namespace QFramework.ViewController.Player
         [SerializeField] private float _legOffsetWeightMulti = 1f;          // 权重倍率
         private Vector3 lastBodyPosition;           // 上一次身体位置
         private Vector3 inertiaOffset;              // 惯性偏移
+        [Header("状态机")]
+        private StateMachine<PlayerController> _fsm;
 
 
         void Awake()
@@ -67,19 +70,57 @@ namespace QFramework.ViewController.Player
 
         private void Start()
         {
-            _playerInput.InitPlayerInput(Camera.main, transform);
             ParamsInit();
             InitLegPostion();
+            
+            // 初始化状态字典
+            _fsm = new StateMachine<PlayerController>();
+            _fsm.AddState(new PlayerIdelState(this, _fsm));
+            _fsm.AddState(new PlayerMoveState(this, _fsm));
+            _fsm.AddState(new PlayerDashState(this, _fsm));
+            _fsm.AddState(new PlayerDeathState(this, _fsm));
+            _fsm.StartState<PlayerIdelState>();
+
+            // 死亡状态注册
+            _playerModel.CurrentHealth.RegisterOnValueChanged(
+                (value) =>
+                {
+                    if(value <= 0)
+                    {
+                        _fsm.ChangeState<PlayerDeathState>();
+                    }
+                }
+            );
         }
 
         private void Update()
         {
-            Move(); // 移动
-            RotateBody(); // 旋转躯干
-            UpdateLegPostion(); // 更新腿部位置
+            // 死亡后状态不更新
+            if(typeof(PlayerDeathState) == _fsm.CurrentStateType)
+            {
+                return;
+            }
 
-            SetInput();
-            //RotateWeapon();
+            _fsm.Update();
+        
+            if(typeof(PlayerDeathState) != _fsm.CurrentStateType)
+            {
+                RotateBody();           // 旋转躯干
+                UpdateLegPostion();     // 更新腿部位置
+                WeaponInput();          // 武器输入
+            }
+            
+        }
+
+        private void FixedUpdate()
+        {
+            // 死亡后状态不更新
+            if(typeof(PlayerDeathState) == _fsm.CurrentStateType)
+            {
+                return;
+            }
+
+            _fsm.FixedUpdate();
         }
 
         /// <summary>
@@ -88,32 +129,41 @@ namespace QFramework.ViewController.Player
         private void ParamsInit()
         {
             MoveSpeed = _playerModel.Speed.Value;
-            // MoveSpeed = 3f;
-            // AimZOffsetDeg = 180f;
         }
 
 
         /// <summary>
         /// 移动
         /// </summary>
-        private void Move()
+        public void Move()
         {
             // 获取键盘输入的移动方向
-            Vector2 input = _playerInput.GetMovementDir();
+            Vector2 input = InputUtility.GetMovementDir();
             // 如果输入方向的平方大于1，则归一化
             if (input.sqrMagnitude > 1f) input.Normalize();
                 _rigid.velocity = new Vector3(input.x, input.y, 0) * MoveSpeed;
-            // transform.position += new Vector3(input.x, input.y, 0f) * (MoveSpeed * Time.deltaTime);
         }
 
-        private void SetInput()
+        public void Dash()
         {
-            if(_playerInput.GetShootLeftInput())
+            _rigid.velocity = InputUtility.GetMovementDir() * MoveSpeed * 3f;
+        }
+
+
+        public void StopMovement()
+        {
+            if (_rigid != null)
+                _rigid.velocity = Vector2.zero;
+        }
+
+        public void WeaponInput()
+        {
+            if(InputUtility.GetShootLeftInput())
             {
                 _weapon.WeaponLeft.Shoot();
             }
             
-            if(_playerInput.GetShootRightInput())
+            if(InputUtility.GetShootRightInput())
             {
                 _weapon.WeaponRight.Shoot();
             }
@@ -122,12 +172,12 @@ namespace QFramework.ViewController.Player
         /// <summary>
         /// 旋转躯干
         /// </summary>
-        private void RotateBody()
+        public void RotateBody()
         {
             if (!_body)
                 return;
 
-            Vector3 hit = _playerInput.GetMousePos();
+            Vector3 hit = InputUtility.GetMousePos();
             
             if(hit == Vector3.zero)
                 return;
@@ -161,7 +211,7 @@ namespace QFramework.ViewController.Player
         /// <summary>
         /// 更新腿部位置
         /// </summary>
-        void InitLegPostion()
+        public void InitLegPostion()
         {
             if (!LegFl || !LegFr || !LegBr || !LegBl) return;
 
@@ -223,7 +273,7 @@ namespace QFramework.ViewController.Player
             lastBodyPosition = transform.position;
 
             // 每条腿添加基于与body移动方向关系的独立偏移
-            Vector3 bodyMoveDir = (_playerInput.GetMousePos() - _body.position);
+            Vector3 bodyMoveDir = (InputUtility.GetMousePos() - _body.position);
             lastBodyDir = bodyMoveDir;
             bodyMoveDir = Vector3.Lerp(lastBodyDir, bodyMoveDir, _lerpFactor * Time.deltaTime).normalized;
 

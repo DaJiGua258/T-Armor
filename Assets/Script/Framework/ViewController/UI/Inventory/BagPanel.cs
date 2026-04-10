@@ -30,6 +30,7 @@ namespace QFramework.ViewController.UI
             for (int i = 0; i < _invenotrySystem.ItemDataCache.Count; i++)
             {
                 _invenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(UpdateSlots);
+                _invenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(UpdateSlots);
             }
         }
 
@@ -41,7 +42,7 @@ namespace QFramework.ViewController.UI
                 _slots[i].Index = i;
 
                 var itemData = _invenotrySystem.ItemDataCache[i];
-                _slots[i].OnInit(itemData);
+                _slots[i].UpdateSlot(itemData);
             }
             
         }

@@ -27,5 +27,6 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterUtility<IResourceLoad>(new ResouceLoad());
         RegisterUtility<ITimerUtility>(new TimerUtility());
         RegisterUtility<IObjectPoolUtility>(new ObjectPool());
+        RegisterUtility<IInputUtility>(new InputUtility());
     }
 }

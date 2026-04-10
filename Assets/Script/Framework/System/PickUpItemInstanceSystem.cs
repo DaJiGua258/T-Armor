@@ -33,9 +33,9 @@ namespace QFramework.System
 
             // 生成新的实例数据
             ItemDataModel itemData = new ItemDataModel(itemConfig);
-            ItemDataInstanceCache.Add(itemData.InstanceId, itemData);
+            ItemDataInstanceCache.Add(itemData.InstanceId.Value, itemData);
             
-            return itemData.InstanceId;
+            return itemData.InstanceId.Value;
         }
 
         /// <summary>

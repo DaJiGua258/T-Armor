@@ -84,7 +84,7 @@ namespace QFramework.System
         public ItemDataModel(ItemConfig itemConfig)
         {
             this.TypeEnum = TypeEnum.Item;
-            this.InstanceId = GetInstanceId((int)itemConfig.ItemType, _itemCounter);
+            this.InstanceId.Value = GetInstanceId((int)itemConfig.ItemType, _itemCounter);
             _itemCounter++;
 
             this.ItemType = itemConfig.ItemType;
@@ -107,6 +107,8 @@ namespace QFramework.System
         /// </summary>
         public void CopyFrom(ItemDataModel otherItemData)
         {
+            InstanceId.Value = otherItemData.InstanceId.Value;
+
             ItemType = otherItemData.ItemType;
             canStack = otherItemData.canStack;
             maxStack = otherItemData.maxStack;
@@ -120,12 +122,16 @@ namespace QFramework.System
         /// </summary>
         public void SwapWith(ItemDataModel otherItemData)
         {
+            // 先交换普通字段（不触发事件），确保数据完全就绪后再触发刷新
+            (TypeEnum, otherItemData.TypeEnum) = (otherItemData.TypeEnum, TypeEnum);
             (ItemType, otherItemData.ItemType) = (otherItemData.ItemType, ItemType);
             (canStack, otherItemData.canStack) = (otherItemData.canStack, canStack);
             (maxStack, otherItemData.maxStack) = (otherItemData.maxStack, maxStack);
             (iconPath, otherItemData.iconPath) = (otherItemData.iconPath, iconPath);
             (description, otherItemData.description) = (otherItemData.description, description);
 
+            // 最后交换 BindableProperty，此时所有数据已就绪，事件触发时 UI 读取的是完整正确的状态
+            (InstanceId.Value, otherItemData.InstanceId.Value) = (otherItemData.InstanceId.Value, InstanceId.Value);
             (Count.Value, otherItemData.Count.Value) = (otherItemData.Count.Value, Count.Value);
         }        
     }

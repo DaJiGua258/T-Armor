@@ -4,23 +4,13 @@ namespace QFramework.Enum
 {
     public interface IInstanceType
     {
-        public int InstanceId { get; set; }
         public TypeEnum TypeEnum { get; set; }
     }
 
     public class InstanceType : IInstanceType
     {
-        private int _instanceId = -1;
-        public int InstanceId 
-        { 
-            get
-            {
-                if (_instanceId == -1)
-                    Debug.LogWarning("InstanceId: " + GetType().Name + " 尚未初始化！");
-                return _instanceId;
-            }
-            set => _instanceId = value;
-        }
+        public BindableProperty<int> InstanceId = new();
+
         private TypeEnum _typeId = TypeEnum.None;
         public TypeEnum TypeEnum 
         { 

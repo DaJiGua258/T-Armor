@@ -12,12 +12,15 @@ namespace QFramework.ViewController
 
         public void Update()   
         {
-
+            if(Input.GetKeyDown(KeyCode.Space))
+            {
+                this.SendCommand(new PlayerCommand.Damage(50));
+            }
         }
 
         public void Damage()
         {
-   
+            
         }
     }
 }

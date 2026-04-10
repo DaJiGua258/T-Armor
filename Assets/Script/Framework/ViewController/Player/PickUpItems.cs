@@ -23,8 +23,8 @@ public class PickUpItems : MonoBehaviour, IController
     [Header("拾取物品表现参数")]
     [SerializeField] private bool canShowing = false;
     [SerializeField] private float _y;
-    [SerializeField] private float _yOffset = 0.5f;
-    [SerializeField] private float _ySpeed = 2f;
+    // [SerializeField] private float _yOffset = 0.5f;
+    // [SerializeField] private float _ySpeed = 2f;
     [SerializeField] private float _rotationSpeed;
 
     void Start()

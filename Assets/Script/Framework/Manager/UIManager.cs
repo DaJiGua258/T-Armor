@@ -24,15 +24,30 @@ namespace QFramework.Utility.Manager
 
         // 存储已创建的面板实例
         private Dictionary<UIPanelType, AbstractBasePanel> panelDict = new();
+
+        [SerializeField] private Canvas _canvas;
+
         
         // Canvas 下的层级节点
         [SerializeField] private Transform normalLayer;   // 普通界面层
         [SerializeField] private Transform popupLayer;    // 弹窗层
         [SerializeField] private Transform topLayer;      // 顶层（Loading等）
 
+        [Header("Slot拖拽")]
+        [SerializeField] public GameObject DragSlot;
+        // 当前slot
+        [SerializeField] public int currentIndex;  // 当前拖拽的Slot索引
+        [SerializeField] public SlotType currentSlotType;  // 当前拖拽的Slot类型
+        // 目标slot
+        [SerializeField] public int targetIndex;  // 目标拖拽的Slot索引
+        [SerializeField] public SlotType targetSlotType;  // 目标拖拽的Slot类型
+
         protected override void Awake()
         {
             base.Awake();
+
+            _canvas = GetComponent<Canvas>();
+            DragSlot = transform.Find("DragSlot").gameObject;
 
             // 初始化
             // var gameHUD = Instantiate(_resourceLoad.Load<GameObject>("Prefab/UI/Panel/" + UIPanelType.GameHUD.ToString()), transform);

@@ -1,0 +1,56 @@
+#pragma kernel CSMain
+
+// 输出的 3D 纹理
+RWTexture3D<float4> Result;
+
+// 由 C# 传递的参数
+float _Scale;
+float3 _Offset;
+float _Persistence; // 持续性（影响多层噪声强度）
+float _Lacunarity;  // 空隙率（影响多层噪声频率）
+int _Octaves;       // 噪声层数
+
+// 简单的 3D 噪声函数 (可以使用更复杂的 Simplex)
+float hash(float3 p) {
+    p = frac(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float noise(float3 x) {
+    float3 i = floor(x);
+    float3 f = frac(x);
+    f = f * f * (3.0 - 2.0 * f);
+    
+    return lerp(lerp(lerp(hash(i + float3(0,0,0)), hash(i + float3(1,0,0)), f.x),
+                   lerp(hash(i + float3(0,1,0)), hash(i + float3(1,1,0)), f.x), f.y),
+               lerp(lerp(hash(i + float3(0,0,1)), hash(i + float3(1,0,1)), f.x),
+                   lerp(hash(i + float3(0,1,1)), hash(i + float3(1,1,1)), f.x), f.y), f.z);
+}
+
+// 分形布朗运动 (FBM) 让噪声更有细节
+float fbm(float3 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < _Octaves; i++) {
+        value += amplitude * noise(p);
+        p *= _Lacunarity;
+        amplitude *= _Persistence;
+    }
+    return value;
+}
+
+[numthreads(8, 8, 8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint3 size;
+    Result.GetDimensions(size.x, size.y, size.z);
+    
+    // 归一化坐标 [0, 1]
+    float3 pos = (float3)id / (float3)size;
+    
+    // 计算噪声值
+    float n = fbm(pos * _Scale + _Offset);
+    
+    Result[id] = float4(n, n, n, 1.0);
+}

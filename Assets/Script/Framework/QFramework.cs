@@ -752,7 +752,7 @@ namespace QFramework
         public override string ToString() => Value.ToString();
     }
     
-        public static class BindablePropertyExtension
+    public static class BindablePropertyExtension
     {
         /// <summary>
         /// 注册值变化回调（带参数版本）

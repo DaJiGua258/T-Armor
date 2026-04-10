@@ -37,8 +37,8 @@ namespace QFramework.System
             var weaponConfig = _weaponModel.GetWeaponConfigModel(weaponType);
             WeaponDataModel weaponData = new WeaponDataModel(weaponConfig);
 
-            _weaponDataCache.Add(weaponData.InstanceId, weaponData);
-            return weaponData.InstanceId;
+            _weaponDataCache.Add(weaponData.InstanceId.Value, weaponData);
+            return weaponData.InstanceId.Value;
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace QFramework.System
         /// </summary>
         public void AddExistingWeapon(WeaponDataModel weaponData)
         {
-            _weaponDataCache.Add(weaponData.InstanceId, weaponData);
+            _weaponDataCache.Add(weaponData.InstanceId.Value, weaponData);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace QFramework.System
         public WeaponDataModel(WeaponConfig weaponConfig)
         {
             this.TypeEnum = TypeEnum.Weapon;
-            this.InstanceId = GetInstanceId((int)weaponConfig.WeaponType, _weaponCounter);
+            this.InstanceId.Value = GetInstanceId((int)weaponConfig.WeaponType, _weaponCounter);
             _weaponCounter++;
             
             this.WeaponType = weaponConfig.WeaponType;

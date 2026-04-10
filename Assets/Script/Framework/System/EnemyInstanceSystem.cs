@@ -30,7 +30,7 @@ namespace QFramework.System
         {
             var enemyConfig = _enemeyConfigModel.GetEnemyFromCache(enemyEnum);
             EnemeyDataModel enemyData = new EnemeyDataModel(enemyConfig);
-            int currentId = enemyData.InstanceId + _enemyCounter;
+            int currentId = enemyData.InstanceId.Value + _enemyCounter;
 
             _enemyDataCache.Add(currentId, enemyData);
             _enemyCounter++;
@@ -67,7 +67,7 @@ namespace QFramework.System
         public EnemeyDataModel(EnemeyConfig enemeyConfig)
         {
             this.TypeEnum = TypeEnum.Enemy;
-            this.InstanceId = GetInstanceId((int)enemeyConfig.EnemyType, _enemyCounter);
+            this.InstanceId.Value = GetInstanceId((int)enemeyConfig.EnemyType, _enemyCounter);
             _enemyCounter++;
 
             this.enemySize.Value = enemeyConfig.enemySize;

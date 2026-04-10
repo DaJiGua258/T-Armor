@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: mat_planet
+  m_Shader: {fileID: 4800000, guid: 89b5dd83219beee46b961ca53d1abd77, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _GradientTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Angle: 0
+    - _AtmospherePower: 3.5
+    - _BackRange: 0.796
+    - _Blend: 1
+    - _ClipValue: 0
+    - _CloudClip: 0.5
+    - _CloudHeight: 1
+    - _HumidFreq: 2.5
+    - _HumidVariance: 0.3
+    - _LayerCount: 18
+    - _LayerOffset: 1
+    - _LineCount: 0
+    - _NoiseAmplitude: 1
+    - _NoiseIntensity: 0.05
+    - _NoiseLacunarity: 2
+    - _NoiseLayers: 1
+    - _NoiseOctaves: 4
+    - _NoisePersistence: 0.5
+    - _NoiseScale: 4.06
+    - _NoiseSeed: 1.234
+    - _NoiseSnap: 20
+    - _NumSlices: 10
+    - _OffsetX: 0
+    - _OffsetY: 0
+    - _PixelResolution: 0
+    - _PixelSize: 2.27
+    - _Rotation: 51
+    - _SeaLevel: -0.05
+    - _SeaThreshold: 0.482
+    - _Seed: 2.15
+    - _ShadowSteps: 2
+    - _ShadowThreshold: 0.15
+    - _SliceCount: 1
+    - _SliceHeight: 0.03
+    - _SliceIndex: 0
+    - _SliceOffset: 0.95
+    - _Speed: 0.5
+    - _Step: 0.1
+    - _Steps: 12.11
+    - _TerrainFreq: 1.8
+    - _Threshold: 0.5
+    - _WarpStrength: 0.4
+    - _YOffset: 0.02
+    m_Colors:
+    - _AtmosphereColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+    - _BaseColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+    - _BorealColor: {r: 0.12, g: 0.35, b: 0.18, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorA: {r: 0.1, g: 0.3, b: 0.8, a: 1}
+    - _ColorB: {r: 1, g: 0.6, b: 0.1, a: 1}
+    - _ColorTint: {r: 1, g: 1, b: 1, a: 1}
+    - _DeepColor: {r: 0.04, g: 0.15, b: 0.45, a: 1}
+    - _DesertColor: {r: 0.88, g: 0.72, b: 0.32, a: 1}
+    - _GrassColor: {r: 0.48, g: 0.68, b: 0.2, a: 1}
+    - _IceColor: {r: 0.88, g: 0.93, b: 1, a: 1}
+    - _LandColor: {r: 0.30277675, g: 0.33490145, b: 0.3962264, a: 1}
+    - _LightDir: {r: 1, g: 1, b: 0.5, a: 0}
+    - _NoiseOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _PeakColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SavannaColor: {r: 0.75, g: 0.7, b: 0.28, a: 1}
+    - _SeaColor: {r: 0.31933066, g: 0.38582984, b: 0.49056602, a: 1}
+    - _ShadowLandColor: {r: 0.1, g: 0.08, b: 0.18, a: 1}
+    - _ShadowSeaColor: {r: 0.02, g: 0.06, b: 0.2, a: 1}
+    - _ShallowColor: {r: 0.2, g: 0.55, b: 0.8, a: 1}
+    - _StackDir: {r: 0, g: 1, b: 0, a: 0}
+    - _TemperateColor: {r: 0.15, g: 0.5, b: 0.15, a: 1}
+    - _TropicalColor: {r: 0.04, g: 0.38, b: 0.08, a: 1}
+    - _TundraColor: {r: 0.6, g: 0.72, b: 0.68, a: 1}
+  m_BuildTextureStacks: []

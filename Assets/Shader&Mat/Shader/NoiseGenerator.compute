@@ -1,56 +1,89 @@
 #pragma kernel CSMain
 
-// 输出的 3D 纹理
-RWTexture3D<float4> Result;
+RWTexture3D<float> _Result;
+uint _Resolution;
 
-// 由 C# 传递的参数
-float _Scale;
+float3 _Scale3D; 
+int _Octaves;
+float _Persistence;
+float _Lacunarity;
 float3 _Offset;
-float _Persistence; // 持续性（影响多层噪声强度）
-float _Lacunarity;  // 空隙率（影响多层噪声频率）
-int _Octaves;       // 噪声层数
 
-// 简单的 3D 噪声函数 (可以使用更复杂的 Simplex)
-float hash(float3 p) {
-    p = frac(p * 0.3183099 + 0.1);
-    p *= 17.0;
-    return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+// 辅助函数：取模运算
+float3 mod(float3 x, float3 y) {
+    return x - y * floor(x / y);
 }
 
-float noise(float3 x) {
+// 稳定的梯度向量构造
+float3 hashGrad(float3 p) {
+    float3 q;
+    q.x = dot(p, float3(127.1, 311.7, 74.7));
+    q.y = dot(p, float3(269.5, 183.3, 246.1));
+    q.z = dot(p, float3( 13.5, 129.0, 227.3));
+    return frac(sin(q) * 43758.5453) * 2.0 - 1.0;
+}
+
+// ============================================================
+// 周期性 3D Perlin 噪声逻辑
+// ============================================================
+float tilingNoise(float3 x, float3 p_period) {
     float3 i = floor(x);
     float3 f = frac(x);
-    f = f * f * (3.0 - 2.0 * f);
-    
-    return lerp(lerp(lerp(hash(i + float3(0,0,0)), hash(i + float3(1,0,0)), f.x),
-                   lerp(hash(i + float3(0,1,0)), hash(i + float3(1,1,0)), f.x), f.y),
-               lerp(lerp(hash(i + float3(0,0,1)), hash(i + float3(1,0,1)), f.x),
-                   lerp(hash(i + float3(0,1,1)), hash(i + float3(1,1,1)), f.x), f.y), f.z);
-}
 
-// 分形布朗运动 (FBM) 让噪声更有细节
-float fbm(float3 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int i = 0; i < _Octaves; i++) {
-        value += amplitude * noise(p);
-        p *= _Lacunarity;
-        amplitude *= _Persistence;
-    }
-    return value;
+    // 计算当前频率下的格点索引，并进行周期性取模
+    // 这样 0.99 和 1.01 会采样到相同的哈希格点，从而闭合接缝
+    float3 i0 = mod(i, p_period);
+    float3 i1 = mod(i + 1.0, p_period);
+
+    // Quintic 插值曲线
+    float3 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+
+    // 8个顶点的梯度点积，输入必须是取模后的 i0, i1
+    float v000 = dot(hashGrad(float3(i0.x, i0.y, i0.z)), f - float3(0,0,0));
+    float v100 = dot(hashGrad(float3(i1.x, i0.y, i0.z)), f - float3(1,0,0));
+    float v010 = dot(hashGrad(float3(i0.x, i1.y, i0.z)), f - float3(0,1,0));
+    float v110 = dot(hashGrad(float3(i1.x, i1.y, i0.z)), f - float3(1,1,0));
+    float v001 = dot(hashGrad(float3(i0.x, i0.y, i1.z)), f - float3(0,0,1));
+    float v101 = dot(hashGrad(float3(i1.x, i0.y, i1.z)), f - float3(1,0,1));
+    float v011 = dot(hashGrad(float3(i0.x, i1.y, i1.z)), f - float3(0,1,1));
+    float v111 = dot(hashGrad(float3(i1.x, i1.y, i1.z)), f - float3(1,1,1));
+
+    float result = lerp(
+        lerp(lerp(v000, v100, u.x), lerp(v010, v110, u.x), u.y),
+        lerp(lerp(v001, v101, u.x), lerp(v011, v111, u.x), u.y),
+        u.z
+    );
+
+    return result * 0.7071 + 0.5;
 }
 
 [numthreads(8, 8, 8)]
-void CSMain (uint3 id : SV_DispatchThreadID)
-{
-    uint3 size;
-    Result.GetDimensions(size.x, size.y, size.z);
+void CSMain (uint3 id : SV_DispatchThreadID) {
+    if (id.x >= _Resolution || id.y >= _Resolution || id.z >= _Resolution) return;
+
+    // 基础 0-1 采样坐标
+    float3 uv3d = (float3)id / (float)_Resolution;
     
-    // 归一化坐标 [0, 1]
-    float3 pos = (float3)id / (float3)size;
-    
-    // 计算噪声值
-    float n = fbm(pos * _Scale + _Offset);
-    
-    Result[id] = float4(n, n, n, 1.0);
+    float noiseValue = 0;
+    float amplitude = 1.0;
+    float frequency = 1.0;
+    float maxValue = 0; 
+
+    // 分形叠加
+    for (int i = 0; i < _Octaves; i++) {
+        // 重要：计算当前 Octave 的周期（格点总数）
+        // 如果你的 Scale3D 是整数，噪声将在纹理边缘完美闭合
+        float3 currentPeriod = _Scale3D * frequency;
+        
+        // 采样位置包含缩放、频率和偏移
+        float3 samplingPos = uv3d * currentPeriod + _Offset;
+        
+        noiseValue += tilingNoise(samplingPos, currentPeriod) * amplitude;
+        
+        maxValue += amplitude;
+        amplitude *= _Persistence;
+        frequency *= _Lacunarity;
+    }
+
+    _Result[id] = noiseValue / maxValue;
 }

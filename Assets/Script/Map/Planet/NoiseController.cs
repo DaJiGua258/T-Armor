@@ -1,117 +1,220 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
-[ExecuteAlways]
-public class NoiseController : MonoBehaviour
+[ExecuteInEditMode]
+public class PlanetGenerator : MonoBehaviour
 {
+    [System.Serializable]
+    public class NoiseLayer {
+        public string label = "Noise Layer";
+        public int seed; // 种子系统
+        public float scale = 1;
+        public Vector3 scale3D = Vector3.one;
+        [Range(1, 8)] public int octaves = 4;
+        public float persistence = 0.5f;
+        public float lacunarity = 2.0f;
+        public Vector3 offset;
+        [HideInInspector] public RenderTexture noiseTex;
+
+        public void Release() {
+            if (noiseTex != null) { noiseTex.Release(); noiseTex = null; }
+        }
+    }
+
+    [System.Serializable]
+    public class PlanetSettings {
+        [Header("1. Base Terrain (Height)")]
+        public NoiseLayer heightNoise;
+        public Color seaColor = new Color(0, 0.2f, 0.5f);
+        [Range(0, 1)] public float seaLevel = 0.3f;
+
+        [Header("Ground Tiers (Baked to 1D Texture)")]
+        public Color shoreColor = Color.yellow;
+        [Range(0, 1)] public float shoreThreshold = 0.1f;
+        public Color plain1Color = new Color(0.2f, 0.6f, 0.2f);
+        [Range(0, 1)] public float plain1Threshold = 0.3f;
+        public Color plain2Color = new Color(0.1f, 0.4f, 0.1f);
+        [Range(0, 1)] public float plain2Threshold = 0.5f;
+        public Color mountain1Color = new Color(0.4f, 0.3f, 0.2f);
+        [Range(0, 1)] public float mountain1Threshold = 0.7f;
+        public Color mountain2Color = new Color(0.3f, 0.2f, 0.1f);
+        [Range(0, 1)] public float mountain2Threshold = 0.9f;
+        public Color snowColor = Color.white;
+
+        [Header("2. Climate (Moisture)")]
+        public NoiseLayer moistureNoise;
+        public Color dryColor = new Color(0.8f, 0.7f, 0.4f);
+        public Color wetColor = new Color(0.2f, 0.5f, 0.2f);
+        [Range(0, 1)] public float moistureThreshold = 0.5f;
+        [Range(0, 1)] public float climateMixStrength = 0.5f;
+
+        [Header("3. Poles")]
+        public Color poleColor = Color.white;
+        [Range(0, 1)] public float poleThreshold = 0.8f;
+        [Range(0, 1)] public float poleStrength = 1.0f;
+        [Header("4. Night Color")]
+        public Color seaColorNight = Color.white;
+        public Color landColorNight = Color.white;
+
+        [HideInInspector] public Texture2D gradientTex;
+    }
+
+    [System.Serializable]
+    public class CloudSettings {
+        public NoiseLayer noise;
+        public Gradient alphaGradient;
+        [HideInInspector] public Texture2D gradientTex;
+        [Header("基本参数")]
+        public float cloudHeight = 1;
+        public float cloudClip = 0.5f;
+        public float CloudSpeed;
+        public Vector3 CloudDir;
+
+        [Header("云层生成")]
+        public float cloudCoverage = 0.5f;
+        public float cloudSoftness = 0.1f;
+        public float cloudScale2 = 2.0f;
+
+
+    }
+
     public ComputeShader noiseCompute;
-    public Material targetMaterial;
+    [Range(32, 512)] public int resolution = 64;
+    public PlanetSettings planet;
+    public Material planetMaterial;
+    public CloudSettings clouds;
+    public Material cloudMaterial;
 
-    [Header("Noise Settings")]
-    [Range(1f, 50f)] public float scale = 10f;
-    public Vector3 offset;
-    [Range(1, 8)] public int octaves = 4;
-
-    [Header("Gradient Settings")]
-    public Gradient gradient; // Unity 原生漸變色面板
-    
-    [Header("Texture Settings")]
-    public int textureSize = 64; 
-
-    private RenderTexture noiseRT;
-    private Texture2D gradientTex; // 烘焙出的 1D 貼圖
-
-    void OnEnable() {
-        ValidateAndInit();
+    private void OnValidate() => Generate();
+    private void OnDisable() {
+        planet.heightNoise.Release();
+        planet.moistureNoise.Release();
+        clouds.noise.Release();
+        if (planet.gradientTex) DestroyImmediate(planet.gradientTex);
+        if (clouds.gradientTex) DestroyImmediate(clouds.gradientTex);
     }
 
-    void OnValidate() {
-        // 面板參數一動，就重新烘焙貼圖並計算
-        BakeGradient();
-        ValidateAndInit();
+    [ContextMenu("Generate")]
+    public void Generate() {
+        if (!noiseCompute) return;
+
+        UpdateNoise(planet.heightNoise);
+        UpdateNoise(planet.moistureNoise);
+        UpdatePlanetGradient(); // 使用新的分層烘焙邏輯
+        SyncPlanetMaterial();
+
+        UpdateNoise(clouds.noise);
+        UpdateGradient(ref clouds.gradientTex, clouds.alphaGradient);
+        SyncCloudMaterial();
     }
 
-    void Update() {
-        if (noiseCompute == null || targetMaterial == null) return;
-
-        if (noiseRT == null || !noiseRT.IsCreated() || gradientTex == null) {
-            ValidateAndInit();
+    void UpdateNoise(NoiseLayer layer) {
+        if (layer.noiseTex == null || layer.noiseTex.width != resolution) {
+            layer.Release();
+            layer.noiseTex = new RenderTexture(resolution, resolution, 0, GraphicsFormat.R16_SFloat);
+            layer.noiseTex.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            layer.noiseTex.volumeDepth = resolution;
+            layer.noiseTex.enableRandomWrite = true;
+            layer.noiseTex.filterMode = FilterMode.Point;
+            layer.noiseTex.wrapMode = TextureWrapMode.Mirror;
+            layer.noiseTex.Create();
         }
-
-        if (Application.isPlaying) {
-            DispatchCompute();
-        }
-    }
-
-    // 將 Gradient 烘焙成 256x1 的貼圖
-    void BakeGradient() {
-        if (gradient == null) return;
-        
-        if (gradientTex == null) {
-            gradientTex = new Texture2D(256, 1, TextureFormat.RGBA32, false);
-            gradientTex.wrapMode = TextureWrapMode.Clamp;
-            gradientTex.filterMode = FilterMode.Bilinear;
-            gradientTex.hideFlags = HideFlags.DontSave;
-        }
-
-        Color[] colors = new Color[256];
-        for (int i = 0; i < 256; i++) {
-            colors[i] = gradient.Evaluate(i / 255f);
-        }
-        gradientTex.SetPixels(colors);
-        gradientTex.Apply();
-
-        if (targetMaterial) {
-            targetMaterial.SetTexture("_GradientTex", gradientTex);
-        }
-    }
-
-    private void ValidateAndInit() {
-        if (noiseCompute == null || targetMaterial == null) return;
-
-        if (noiseRT == null || !noiseRT.IsCreated()) {
-            CreateRT();
-        }
-        
-        if (gradientTex == null) {
-            BakeGradient();
-        }
-
-        targetMaterial.SetTexture("_NoiseTex", noiseRT);
-        targetMaterial.SetTexture("_GradientTex", gradientTex);
-        
-        DispatchCompute();
-    }
-
-    void CreateRT() {
-        if (noiseRT != null) noiseRT.Release();
-
-        noiseRT = new RenderTexture(textureSize, textureSize, 0, RenderTextureFormat.RFloat); // 改用單通道 RFloat，更輕量
-        noiseRT.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
-        noiseRT.volumeDepth = textureSize;
-        noiseRT.enableRandomWrite = true;
-        noiseRT.Create();
-    }
-
-    void DispatchCompute() {
-        if (noiseCompute == null || noiseRT == null) return;
 
         int kernel = noiseCompute.FindKernel("CSMain");
-        noiseCompute.SetTexture(kernel, "Result", noiseRT);
-        noiseCompute.SetFloat("_Scale", scale);
         
-        Vector3 finalOffset = offset;
+        // 种子偏移计算
+        Vector3 seedOffset = new Vector3(layer.seed * 131.1f % 1000, layer.seed * 633.7f % 1000, layer.seed * 915.2f % 1000);
 
-        
-        noiseCompute.SetVector("_Offset", finalOffset);
-        noiseCompute.SetInt("_Octaves", octaves);
-        noiseCompute.SetFloat("_Persistence", 0.5f);
-        noiseCompute.SetFloat("_Lacunarity", 2.0f);
+        noiseCompute.SetInt("_Resolution", resolution);
+        noiseCompute.SetVector("_Scale3D", layer.scale3D * layer.scale);
+        noiseCompute.SetInt("_Octaves", layer.octaves);
+        noiseCompute.SetFloat("_Persistence", layer.persistence);
+        noiseCompute.SetFloat("_Lacunarity", layer.lacunarity);
+        noiseCompute.SetVector("_Offset", layer.offset + seedOffset);
+        noiseCompute.SetTexture(kernel, "_Result", layer.noiseTex);
 
-        int groups = Mathf.CeilToInt(textureSize / 8f);
+        int groups = Mathf.CeilToInt(resolution / 8.0f);
         noiseCompute.Dispatch(kernel, groups, groups, groups);
+    }
 
-        #if UNITY_EDITOR
-        if (!Application.isPlaying) UnityEditor.EditorUtility.SetDirty(targetMaterial);
-        #endif
+    // 核心優化：將 6 個層級烘焙進 1D 紋理
+    void UpdatePlanetGradient() {
+        if (planet.gradientTex == null) {
+            planet.gradientTex = new Texture2D(256, 1, TextureFormat.RGBA32, false);
+            planet.gradientTex.wrapMode = TextureWrapMode.Clamp;
+            planet.gradientTex.filterMode = FilterMode.Point; // 確保硬邊緣
+        }
+
+        for (int i = 0; i < 256; i++) {
+            float t = i / 255f;
+            Color c;
+            if (t < planet.shoreThreshold) c = planet.shoreColor;
+            else if (t < planet.plain1Threshold) c = planet.plain1Color;
+            else if (t < planet.plain2Threshold) c = planet.plain2Color;
+            else if (t < planet.mountain1Threshold) c = planet.mountain1Color;
+            else if (t < planet.mountain2Threshold) c = planet.mountain2Color;
+            else c = planet.snowColor;
+
+            planet.gradientTex.SetPixel(i, 0, c);
+        }
+        planet.gradientTex.Apply();
+    }
+
+    void UpdateGradient(ref Texture2D tex, Gradient grad) {
+        if (tex == null) {
+            tex = new Texture2D(256, 1, TextureFormat.RGBA32, false);
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Point;
+        }
+        for (int i = 0; i < 256; i++) tex.SetPixel(i, 0, grad.Evaluate(i / 255f));
+        tex.Apply();
+    }
+
+    void SyncPlanetMaterial() {
+        if (!planetMaterial) return;
+        planetMaterial.SetTexture("_HeightNoise", planet.heightNoise.noiseTex);
+        planetMaterial.SetTexture("_MoistureNoise", planet.moistureNoise.noiseTex);
+        planetMaterial.SetTexture("_GradientTexture", planet.gradientTex);
+        planetMaterial.SetColor("_SeaColor", planet.seaColor);
+        planetMaterial.SetFloat("_SeaLevel", planet.seaLevel);
+        planetMaterial.SetColor("_DryColor", planet.dryColor);
+        planetMaterial.SetColor("_WetColor", planet.wetColor);
+        planetMaterial.SetFloat("_MoistureThreshold", planet.moistureThreshold);
+        planetMaterial.SetFloat("_ClimateMixStrength", planet.climateMixStrength);
+        planetMaterial.SetColor("_PoleColor", planet.poleColor);
+        planetMaterial.SetFloat("_PoleThreshold", planet.poleThreshold);
+        planetMaterial.SetFloat("_PoleStrength", planet.poleStrength);
+
+        planetMaterial.SetColor("_SeaColorNight", planet.seaColorNight);
+        planetMaterial.SetColor("_LandColorNight", planet.landColorNight);
+    }
+
+    void SyncCloudMaterial() 
+    {
+        if (!cloudMaterial) return;
+
+        // 基础纹理
+        cloudMaterial.SetTexture("_NoiseTexture", clouds.noise.noiseTex);
+        cloudMaterial.SetTexture("_GradientTexture", clouds.gradientTex);
+
+        // 参数控制
+        cloudMaterial.SetFloat("_CloudHeight", clouds.cloudHeight);
+        cloudMaterial.SetFloat("_CloudClip", clouds.cloudClip);
+        
+        // 补充参数 (你可以根据需要在 CloudSettings 类里添加这些变量)
+        cloudMaterial.SetFloat("_CloudSpeed", 0.02f); // 云层移动速度
+        cloudMaterial.SetFloat("_CloudScale2", 2.0f); // 第二层噪声的缩放，增加细节
+        
+        // 关键：将星球的陆地颜色传给云层，用于背光面显示
+        // 假设使用 planetSettings 里的 plain1Color 作为背光参考
+        cloudMaterial.SetColor("_LandColor", planet.plain1Color);
+        cloudMaterial.SetFloat("_CloudSpeed", clouds.CloudSpeed);
+        cloudMaterial.SetVector("_CloudDir", clouds.CloudDir);
+
+        cloudMaterial.SetColor("_LandColor", planet.landColorNight);
+
+        cloudMaterial.SetFloat("_CloudCoverage", clouds.cloudCoverage);
+        cloudMaterial.SetFloat("_CloudSoftness", clouds.cloudSoftness);
+        cloudMaterial.SetFloat("_CloudScale2", clouds.cloudScale2);
     }
 }

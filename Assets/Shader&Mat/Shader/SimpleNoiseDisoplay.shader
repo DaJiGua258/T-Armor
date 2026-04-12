@@ -1,4 +1,4 @@
-Shader "URP/Noise3D_Gradient"
+Shader "Custom/Noise3D_Gradient"
 {
     Properties
     {

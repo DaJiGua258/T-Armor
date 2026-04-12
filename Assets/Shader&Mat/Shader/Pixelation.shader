@@ -1,4 +1,4 @@
-Shader "Hidden/PostProcessing/Pixelation"
+Shader "Custom/PostProcessing/Pixelation"
 {
     Properties
     {

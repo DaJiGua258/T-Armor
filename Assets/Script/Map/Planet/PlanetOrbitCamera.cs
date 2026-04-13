@@ -22,8 +22,8 @@ public class PlanetOrbitCamera : MonoBehaviour
 
     [Header("轨道半径")]
     [Tooltip("摄像机与星球中心的距离")]
-    public float orbitRadius = 5f;
-    [Tooltip("滚轮缩放范围（最小/最大半径）")]
+        public float orbitRadius = 5f;
+        [Tooltip("滚轮缩放范围（最小/最大半径）")]
     public Vector2 radiusRange = new Vector2(2f, 12f);
     [Tooltip("滚轮缩放速度")]
     public float zoomSpeed = 1f;
@@ -41,14 +41,15 @@ public class PlanetOrbitCamera : MonoBehaviour
     private Vector3 _lastMousePos;
     private bool  _dragging;
 
-    private void Start()
+
+    void OnEnable()
     {
         _yaw   = initialYaw;
         _pitch = initialPitch;
         ApplyOrbit();
     }
 
-    private void Update()
+    void Update()
     {
         HandleDrag();
         HandleZoom();

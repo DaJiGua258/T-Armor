@@ -23,7 +23,8 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            TypeEventSystem.Global.Register<UpdateViewerEvent>(e => SetCamera(e.itemData));
+            TypeEventSystem.Global.Register<UpdateViewerEvent>(e => SetCamera(e.itemData))
+                .UnRegisterWhenCurrentSceneUnloaded();
 
             _renderTextureItems.Add(ItemTypeEnum.Supply_Ammo, 
                 Instantiate(_resourceLoad.Load<GameObject>("Prefab/PickUp/Supply/AmmoSupply")));

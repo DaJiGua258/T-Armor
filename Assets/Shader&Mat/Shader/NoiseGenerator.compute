@@ -1,6 +1,9 @@
 #pragma kernel CSMain
+#pragma kernel CSCopy3DToBuffer
 
 RWTexture3D<float> _Result;
+Texture3D<float> _SourceTex;
+RWStructuredBuffer<float> _OutBuffer;
 uint _Resolution;
 
 float3 _Scale3D; 
@@ -86,4 +89,12 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
     }
 
     _Result[id] = noiseValue / maxValue;
+}
+
+[numthreads(8, 8, 8)]
+void CSCopy3DToBuffer(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Resolution || id.y >= _Resolution || id.z >= _Resolution) return;
+    uint index = id.x + id.y * _Resolution + id.z * _Resolution * _Resolution;
+    _OutBuffer[index] = _SourceTex[id];
 }

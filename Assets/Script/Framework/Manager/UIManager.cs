@@ -6,7 +6,7 @@ using QFramework.Utility;
 using UnityEngine;
 using System;
 
-namespace QFramework.Utility.Manager
+namespace QFramework.Manager
 {
     public enum UIPanelType
     {

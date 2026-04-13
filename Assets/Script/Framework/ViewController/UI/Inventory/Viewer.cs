@@ -16,7 +16,7 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            TypeEventSystem.Global.Register<UpdateViewerEvent>(e => UpdateViewer(e.itemData));
+            
         }
 
         public void UpdateViewer(ItemDataModel itemData)

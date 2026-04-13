@@ -80,10 +80,16 @@ public class PlanetGenerator : MonoBehaviour
 
     public ComputeShader noiseCompute;
     [Range(32, 512)] public int resolution = 64;
+    [Tooltip("与 Planet.shader 的 input.positionOS 量纲保持一致。Unity 默认 Sphere 顶点半径通常约为 0.5。")]
+    [Range(0.1f, 1.0f)] public float noiseSampleRadiusOS = 0.5f;
     public PlanetSettings planet;
     public Material planetMaterial;
     public CloudSettings clouds;
     public Material cloudMaterial;
+    
+    private float[] _heightNoiseCache;
+    private float[] _moistureNoiseCache;
+    private int _noiseCacheResolution = -1;
 
     private void OnValidate() => Generate();
     private void OnDisable() {
@@ -108,10 +114,66 @@ public class PlanetGenerator : MonoBehaviour
         SyncCloudMaterial();
     }
 
+    public bool BuildNoiseCacheSync()
+    {
+        if (planet.heightNoise.noiseTex == null || planet.moistureNoise.noiseTex == null)
+        {
+            Debug.LogWarning("PlanetGenerator: 噪声纹理不存在，先调用 Generate().");
+            return false;
+        }
+
+        int totalCount = resolution * resolution * resolution;
+        if (_heightNoiseCache == null || _heightNoiseCache.Length != totalCount)
+            _heightNoiseCache = new float[totalCount];
+        if (_moistureNoiseCache == null || _moistureNoiseCache.Length != totalCount)
+            _moistureNoiseCache = new float[totalCount];
+
+        if (!CopyNoiseToBufferSync(planet.heightNoise.noiseTex, _heightNoiseCache, "Height")) return false;
+        if (!CopyNoiseToBufferSync(planet.moistureNoise.noiseTex, _moistureNoiseCache, "Moisture")) return false;
+
+        _noiseCacheResolution = resolution;
+        return true;
+    }
+
+    public global::PlanetNodeMapData EvaluateNodeMapData(Vector3 surfaceNormalWorld, Vector3 mainLightDirection, float sunlitDotThreshold)
+    {
+        if (_noiseCacheResolution != resolution || _heightNoiseCache == null || _moistureNoiseCache == null)
+        {
+            bool ok = BuildNoiseCacheSync();
+            if (!ok)
+            {
+                return global::PlanetNodeMapData.Create(
+                    planet,
+                    surfaceNormalWorld.normalized,
+                    Vector3.one * 0.5f,
+                    0.0f,
+                    0.0f,
+                    mainLightDirection,
+                    sunlitDotThreshold);
+            }
+        }
+
+        Vector3 localNormal = transform.InverseTransformDirection(surfaceNormalWorld.normalized).normalized;
+        Vector3 localPosOnSurface = localNormal * noiseSampleRadiusOS;
+        Vector3 uv3d = localPosOnSurface * 0.5f + (Vector3.one * 0.5f);
+
+        float hNoise = SampleNoise(_heightNoiseCache, uv3d);
+        float mNoise = SampleNoise(_moistureNoiseCache, uv3d);
+
+        return global::PlanetNodeMapData.Create(
+            planet,
+            surfaceNormalWorld.normalized,
+            uv3d,
+            hNoise,
+            mNoise,
+            mainLightDirection,
+            sunlitDotThreshold);
+    }
+
     void UpdateNoise(NoiseLayer layer) {
         if (layer.noiseTex == null || layer.noiseTex.width != resolution) {
             layer.Release();
-            layer.noiseTex = new RenderTexture(resolution, resolution, 0, GraphicsFormat.R16_SFloat);
+            layer.noiseTex = new RenderTexture(resolution, resolution, 0, GraphicsFormat.R32_SFloat);
             layer.noiseTex.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
             layer.noiseTex.volumeDepth = resolution;
             layer.noiseTex.enableRandomWrite = true;
@@ -135,6 +197,103 @@ public class PlanetGenerator : MonoBehaviour
 
         int groups = Mathf.CeilToInt(resolution / 8.0f);
         noiseCompute.Dispatch(kernel, groups, groups, groups);
+    }
+
+    bool CopyNoiseToBufferSync(RenderTexture source, float[] target, string label)
+    {
+        int kernel = noiseCompute.FindKernel("CSCopy3DToBuffer");
+        int count = resolution * resolution * resolution;
+        ComputeBuffer buffer = null;
+        try
+        {
+            buffer = new ComputeBuffer(count, sizeof(float));
+            noiseCompute.SetInt("_Resolution", resolution);
+            noiseCompute.SetTexture(kernel, "_SourceTex", source);
+            noiseCompute.SetBuffer(kernel, "_OutBuffer", buffer);
+
+            int groups = Mathf.CeilToInt(resolution / 8.0f);
+            noiseCompute.Dispatch(kernel, groups, groups, groups);
+
+            buffer.GetData(target, 0, 0, count);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"PlanetGenerator: ComputeBuffer 同步复制失败 -> {label} ({source.name})\n{e}");
+            return false;
+        }
+        finally
+        {
+            if (buffer != null) buffer.Release();
+        }
+
+        float min = float.MaxValue;
+        float max = float.MinValue;
+        for (int i = 0; i < count; i++)
+        {
+            float value = target[i];
+            if (value < min) min = value;
+            if (value > max) max = value;
+        }
+
+        Debug.Log($"PlanetGenerator: {label} 噪声范围 = [{min:F3}, {max:F3}], SeaLevel = {planet.seaLevel:F3}");
+
+        if (max <= 0.0001f && min <= 0.0001f)
+        {
+            Debug.LogWarning($"PlanetGenerator: {label} 读回值接近全0，可能导致无法判定陆地。");
+            return false;
+        }
+
+        // 关键检查：如果最小值大于海平面，所有位置都会被判断为陆地！
+        if (min >= planet.seaLevel)
+        {
+            Debug.LogWarning($"PlanetGenerator: {label} 最小噪声值({min:F3}) >= 海平面({planet.seaLevel:F3})，所有位置都会被判定为陆地！请调整噪声参数或降低海平面。");
+        }
+
+        return true;
+    }
+
+    float SampleNoise(float[] data, Vector3 uv3d)
+    {
+        float x = Mathf.Clamp01(uv3d.x) * (resolution - 1);
+        float y = Mathf.Clamp01(uv3d.y) * (resolution - 1);
+        float z = Mathf.Clamp01(uv3d.z) * (resolution - 1);
+
+        int x0 = Mathf.Clamp(Mathf.FloorToInt(x), 0, resolution - 1);
+        int y0 = Mathf.Clamp(Mathf.FloorToInt(y), 0, resolution - 1);
+        int z0 = Mathf.Clamp(Mathf.FloorToInt(z), 0, resolution - 1);
+        int x1 = Mathf.Clamp(x0 + 1, 0, resolution - 1);
+        int y1 = Mathf.Clamp(y0 + 1, 0, resolution - 1);
+        int z1 = Mathf.Clamp(z0 + 1, 0, resolution - 1);
+
+        float fx = x - x0;
+        float fy = y - y0;
+        float fz = z - z0;
+
+        float v000 = GetNoiseAt(data, x0, y0, z0);
+        float v100 = GetNoiseAt(data, x1, y0, z0);
+        float v010 = GetNoiseAt(data, x0, y1, z0);
+        float v110 = GetNoiseAt(data, x1, y1, z0);
+        float v001 = GetNoiseAt(data, x0, y0, z1);
+        float v101 = GetNoiseAt(data, x1, y0, z1);
+        float v011 = GetNoiseAt(data, x0, y1, z1);
+        float v111 = GetNoiseAt(data, x1, y1, z1);
+
+        float v00 = Mathf.Lerp(v000, v100, fx);
+        float v10 = Mathf.Lerp(v010, v110, fx);
+        float v01 = Mathf.Lerp(v001, v101, fx);
+        float v11 = Mathf.Lerp(v011, v111, fx);
+
+        float v0 = Mathf.Lerp(v00, v10, fy);
+        float v1 = Mathf.Lerp(v01, v11, fy);
+
+        return Mathf.Lerp(v0, v1, fz);
+    }
+
+    float GetNoiseAt(float[] data, int x, int y, int z)
+    {
+        int idx = x + y * resolution + z * resolution * resolution;
+        if (idx < 0 || idx >= data.Length) return 0.0f;
+        return data[idx];
     }
 
     // 核心優化：將 6 個層級烘焙進 1D 紋理

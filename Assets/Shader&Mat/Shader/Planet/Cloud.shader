@@ -115,7 +115,7 @@ Shader "Custom/PlanetClouds_Final"
                 }
 
                 finalRGB = (lDotN - 0.4) * (lDotN - 0.42) > 0 ? finalRGB : _LandColor.rgb;
-                finalRGB *= light.color * toonDiffuse;
+                finalRGB *= toonDiffuse;
 
                 return half4(finalRGB, 1);
             }

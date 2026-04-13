@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using QFramework.Event;
 using QFramework.Enum;
-using QFramework.Utility.Manager;
+using QFramework.Manager;
 using QFramework.Command;
 
 namespace QFramework.ViewController.UI

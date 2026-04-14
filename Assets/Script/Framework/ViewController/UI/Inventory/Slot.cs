@@ -53,7 +53,7 @@ namespace QFramework.ViewController.UI
             }
             else
             {
-                _image.sprite = _resourceLoad.Load<Sprite>(itemData.iconPath);
+                _image.sprite = ResourceLoad.Load<Sprite>(itemData.iconPath);
                 _text.text = itemData.Count.Value.ToString();
             }
 
@@ -65,7 +65,7 @@ namespace QFramework.ViewController.UI
             TypeEventSystem.Global.
                 Send<UpdateViewerEvent>(new UpdateViewerEvent
                 {
-                    itemData = _invenotrySystem.GetInventoryItemByIndex(Index)
+                    itemData = InvenotrySystem.GetInventoryItemByIndex(Index)
                 });
         }
 
@@ -78,7 +78,7 @@ namespace QFramework.ViewController.UI
 
         public override void OnBeginDrag(PointerEventData eventData)
         {
-            var itemData = _invenotrySystem.GetInventoryItemByIndex(Index);
+            var itemData = InvenotrySystem.GetInventoryItemByIndex(Index);
             if(itemData.TypeEnum == TypeEnum.None)
             {
                 return;

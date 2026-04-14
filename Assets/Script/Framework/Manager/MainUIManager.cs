@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace QFramework.Manager
 {
-    public enum UIMainMenuPanelType
+    public enum UIMainPanelType
     {
         // 主菜单流程
         MainMenuPanel,           // 主菜单（新游戏/继续/加载/设置/退出）
@@ -29,13 +29,15 @@ namespace QFramework.Manager
         [SerializeField] private Transform _canvasScreenSpace;
 
         // 屏幕空间面板字典
-        private Dictionary<UIMainMenuPanelType, AbstractBasePanel> _panelDict = new();
+        private Dictionary<UIMainPanelType, AbstractBasePanel> _panelDict = new();
+        public UIMainPanelType CurrentPanel;
 
         // 世界空间面板
         public PlanetNodeList PlanetNodeList;
 
         // 世界空间游戏物体
         public PlanetGenerator PlanetGenerator;
+        public PlanetOrbitCamera OrbitOrbitCamera;
 
         // 主菜单全局共享资源
         public List<GameObject> NodeS;
@@ -47,6 +49,9 @@ namespace QFramework.Manager
         protected override void Awake()
         {
             base.Awake();
+
+            // 强制更新计算功能
+            Canvas.ForceUpdateCanvases();
 
             // 获取挂载节点
             _canvasWorldSpace = transform.Find("CanvasWorldSpace");
@@ -62,17 +67,14 @@ namespace QFramework.Manager
             // 初始化主菜单世界UI数据
             InitMainMenuWorldDataInOrder();
 
-            // 初始
-            foreach (var node in NodeS)
-            {
-                node.GetComponent<Button>().onClick.AddListener(() => EnterLevelConfirm());
-            }
 
 
             PlanetNodeList.gameObject.SetActive(false);
             
             Camera = Camera.main;
-            ShowPanelOnly(UIMainMenuPanelType.MainMenuPanel);
+            OrbitOrbitCamera = Camera.GetComponent<PlanetOrbitCamera>();
+            LockCamera();
+            ShowPanelOnly(UIMainPanelType.MainMenuPanel);
         }
 
         void Start()
@@ -89,17 +91,22 @@ namespace QFramework.Manager
         /// </summary>
         private void InitScreenPanelDict()
         {
-            void AddPanel(UIMainMenuPanelType type)
+            void AddPanel(UIMainPanelType type)
             {
                 if (_canvasScreenSpace.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) _panelDict.Add(type, panel);
             }
 
-            AddPanel(UIMainMenuPanelType.MainMenuPanel);
-            AddPanel(UIMainMenuPanelType.LevelSelectPanel);
-            AddPanel(UIMainMenuPanelType.LevelDetailPanel);
-            AddPanel(UIMainMenuPanelType.EquipmentConfigPanel);
-            AddPanel(UIMainMenuPanelType.SettingsPanel);
-            AddPanel(UIMainMenuPanelType.LoadGamePanel);
+            AddPanel(UIMainPanelType.MainMenuPanel);
+            AddPanel(UIMainPanelType.LevelSelectPanel);
+            AddPanel(UIMainPanelType.LevelDetailPanel);
+            AddPanel(UIMainPanelType.EquipmentConfigPanel);
+            AddPanel(UIMainPanelType.SettingsPanel);
+            AddPanel(UIMainPanelType.LoadGamePanel);
+
+            foreach (var item in _panelDict)
+            {
+                item.Value.OnInit();
+            }
         }
 
         /// <summary>
@@ -145,8 +152,9 @@ namespace QFramework.Manager
         /// <summary>
         /// 只显示当前类型的Panel，其余的全部关闭
         /// </summary>
-        private void ShowPanelOnly(UIMainMenuPanelType type)
+        private void ShowPanelOnly(UIMainPanelType type)
         {
+            HideAll();
             if (!_panelDict.TryGetValue(type, out var panel))
             {
                 panel = CreatePanel(type);
@@ -154,21 +162,23 @@ namespace QFramework.Manager
             }
             
             panel.Show();
+            CurrentPanel = type;
         }
 
         /// <summary>
         /// 显示当前类型的Panel，其余的状态不变
         /// </summary>
-        private void ShowPanel(UIMainMenuPanelType type)
+        private void ShowPanel(UIMainPanelType type)
         {
             if (_panelDict.TryGetValue(type, out var panel))
                 panel.Show();
+            CurrentPanel = type;
         }
 
         /// <summary>
         /// 只关闭当前类型的Panel，其余的状态不变
         /// </summary>
-        private void HidePanel(UIMainMenuPanelType type)
+        private void HidePanel(UIMainPanelType type)
         {
             if (_panelDict.TryGetValue(type, out var panel))
                 panel.Hide();
@@ -183,7 +193,7 @@ namespace QFramework.Manager
                 panel.Hide();
         }
 
-        private AbstractBasePanel CreatePanel(UIMainMenuPanelType type)
+        private AbstractBasePanel CreatePanel(UIMainPanelType type)
         {
             string path = $"UIPanels/{type}";
             var prefab = Resources.Load<GameObject>(path);
@@ -198,6 +208,15 @@ namespace QFramework.Manager
             return go.GetComponent<AbstractBasePanel>();
         }
 
+        public T GetPanel<T>(UIMainPanelType type) where T : AbstractBasePanel
+        {
+            if (_panelDict.TryGetValue(type, out var panel))
+            {
+                return panel as T;
+            }
+            return null;
+        }
+
         #endregion
 
         #region ----- 流程入口 ------------------------------
@@ -207,8 +226,7 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterMainMenu()
         {
-            HideAll();
-            ShowPanelOnly(UIMainMenuPanelType.MainMenuPanel);
+            ShowPanelOnly(UIMainPanelType.MainMenuPanel);
         }
 
         /// <summary>
@@ -216,8 +234,8 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterLevelSelect()
         {
-            HideAll();
-            ShowPanelOnly(UIMainMenuPanelType.LevelSelectPanel);
+            ShowPanelOnly(UIMainPanelType.LevelSelectPanel);
+            UnlockCamera();
         }
 
         /// <summary>
@@ -225,8 +243,9 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterLevelConfirm()
         {
-            ShowPanelOnly(UIMainMenuPanelType.LevelDetailPanel);
-            ShowPanelOnly(UIMainMenuPanelType.EquipmentConfigPanel);
+            LockCamera();
+            ShowPanel(UIMainPanelType.LevelDetailPanel);
+            ShowPanel(UIMainPanelType.EquipmentConfigPanel);
             Debug.Log("EnterLevelConfirm");
         }
 
@@ -246,6 +265,17 @@ namespace QFramework.Manager
         public void ResetCamera()
         {
             Camera.transform.SetPositionAndRotation(StartCameraPosition, StartCameraRotation);
+        }
+
+        public void LockCamera()
+        {
+            OrbitOrbitCamera.IsLock = true;
+        }
+
+        public void UnlockCamera()
+        {
+            OrbitOrbitCamera.ApplyOrbit();
+            OrbitOrbitCamera.IsLock = false;
         }
 
         #endregion

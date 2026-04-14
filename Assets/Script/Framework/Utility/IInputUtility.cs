@@ -10,6 +10,8 @@ namespace QFramework.Utility
         public bool GetShootRightInput();  // 获取射击右键输入
         public bool GetPickUpItemInput();  // 获取拾取物品输入
         public bool GetDashInput();  // 获取冲刺输入
+
+        public bool GetESCInput();
     }
 
     public class InputUtility : IInputUtility
@@ -66,6 +68,11 @@ namespace QFramework.Utility
         public bool GetDashInput()
         {
             return Input.GetKeyDown(KeyCode.Space);
+        }
+
+        public bool GetESCInput()
+        {
+            return Input.GetKeyDown(KeyCode.Escape);
         }
     }
 }

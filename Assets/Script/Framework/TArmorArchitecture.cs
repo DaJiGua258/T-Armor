@@ -13,6 +13,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterModel<IWeaponConfigModel>(new WeaponConfigModel());
         RegisterModel<IEnemeyConfigModel>(new EnemeyConfigModel());
         RegisterModel<IItemConfigModel>(new ItemConfigModel());
+        RegisterModel<LevelTypeModel>(new LevelTypeModel());
 
         // 系统注册
         RegisterSystem<IEnemyInstanceSystem>(new EnemyInstanceSystem());
@@ -22,6 +23,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
 
         // 玩家系统（引用武器，改装槽系统）
         RegisterSystem<IPlayerSystem>(new PlayerSystem());
+        RegisterSystem<ILevelSystem>(new LevelSystem());
         
         // 工具注册
         RegisterUtility<IResourceLoad>(new ResouceLoad());

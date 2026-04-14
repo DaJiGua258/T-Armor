@@ -56,7 +56,7 @@ Material:
     - _CloudHeightScale: 0.05
     - _CloudScale2: 1
     - _CloudSoftness: 0.1
-    - _CloudSpeed: 0.01
+    - _CloudSpeed: 0.002
     - _CloudWeight: 0.511
     - _HumidFreq: 2.5
     - _HumidVariance: 0.3

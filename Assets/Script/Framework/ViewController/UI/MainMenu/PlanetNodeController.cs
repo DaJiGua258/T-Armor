@@ -1,5 +1,9 @@
+using QFramework;
+using QFramework.Command;
+using QFramework.Manager;
 using QFramework.ViewController.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class PlanetNodeController : AbstractBasePanel
@@ -15,9 +19,43 @@ public class PlanetNodeController : AbstractBasePanel
 
     public void Init(Transform planetTransform, PlanetNodeMapData mapData)
     {
+        // 注册点击事件监听，点击图标后加载关卡信息
+        gameObject.GetComponent<Button>().onClick
+            .AddListener(() => 
+            {
+                MainUIManager.Instance.EnterLevelConfirm();
+                this.SendCommand<MainMenuCommand.SelectLevel>(new MainMenuCommand.SelectLevel(mapData));
+                // MainUIManager.Instance.GetPanel<LevelDetailPanel>(UIMainPanelType.LevelDetailPanel)
+                //     .UpdateMapDetailInfo();
+                
+                Debug.Log("Seed: " + MapData.Seed + '\n' +
+                    "TerrainTierType: " + MapData.TerrainTierType + '\n' +
+                    "MoistureBandType: " + MapData.MoistureBandType + '\n' +
+                    "NoiseHeight: " + MapData.HeightNoise + '\n' +
+                    "NoiseMoisture: " + MapData.MoistureNoise + '\n' +
+                    "IsLand: " + MapData.IsLand + '\n' +
+                    "IsSunlit: " + MapData.IsSunlit + '\n' +
+                    "PlantLevelType: " + MapData.PlantLevelType);
+                
+            });
+        // this.RegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+
+        
+
+
+        // 初始化数据
         planet = planetTransform;
         mainCam = Camera.main.transform;
         MapData = mapData;
+
+        Debug.Log("Seed: " + MapData.Seed + '\n' +
+                    "TerrainTierType: " + MapData.TerrainTierType + '\n' +
+                    "MoistureBandType: " + MapData.MoistureBandType + '\n' +
+                    "NoiseHeight: " + MapData.HeightNoise + '\n' +
+                    "NoiseMoisture: " + MapData.MoistureNoise + '\n' +
+                    "IsLand: " + MapData.IsLand + '\n' +
+                    "IsSunlit: " + MapData.IsSunlit + '\n' +
+                    "PlantLevelType: " + MapData.PlantLevelType);
     }
 
 
@@ -49,5 +87,10 @@ public class PlanetNodeController : AbstractBasePanel
         float dot = Mathf.Clamp01(Vector3.Dot(nodeNormal, dirToCam.normalized));
         float scale = Mathf.Lerp(minScaleLimit, maxScaleLimit, dot) * baseScale;
         transform.localScale = new Vector3(scale, scale, scale);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        Debug.Log("射线碰到了: " + gameObject.name);
     }
 }

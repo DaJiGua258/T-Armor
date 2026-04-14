@@ -27,21 +27,21 @@ namespace QFramework.ViewController.UI
         {
             UpdateSlots();
             // 注册刷新事件
-            for (int i = 0; i < _invenotrySystem.ItemDataCache.Count; i++)
+            for (int i = 0; i < InvenotrySystem.ItemDataCache.Count; i++)
             {
-                _invenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(UpdateSlots);
-                _invenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(UpdateSlots);
+                InvenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(UpdateSlots);
+                InvenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(UpdateSlots);
             }
         }
 
         private void UpdateSlots()
         {
             // 从背包遍历物品数据
-            for(int i = 0; i < _invenotrySystem.ItemDataCache.Count; i++)
+            for(int i = 0; i < InvenotrySystem.ItemDataCache.Count; i++)
             {
                 _slots[i].Index = i;
 
-                var itemData = _invenotrySystem.ItemDataCache[i];
+                var itemData = InvenotrySystem.ItemDataCache[i];
                 _slots[i].UpdateSlot(itemData);
             }
             

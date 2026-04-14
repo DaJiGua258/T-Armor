@@ -1,5 +1,6 @@
 using QFramework.System;
 using UnityEngine;
+using QFramework.Model;
 
 
 [System.Serializable]
@@ -10,12 +11,15 @@ public class PlanetNodeMapData
     public float HeightNoise;
     public float MoistureNoise;
     public float LandHeight01;
+    public int Seed;
     public bool IsLand;
     public bool IsSunlit;
     public PlanetTerrainType TerrainTierType;
     public PlanetMoistureType MoistureBandType;
+    public PlantLevelType PlantLevelType;
 
-    public static PlanetNodeMapData Create(
+
+    public PlanetNodeMapData Create(
         PlanetGenerator.PlanetSettings settings,
         Vector3 surfaceNormal,
         Vector3 uv3d,
@@ -24,16 +28,15 @@ public class PlanetNodeMapData
         Vector3 mainLightDirection,
         float sunlitDotThreshold)
     {
-        PlanetNodeMapData data = new PlanetNodeMapData
-        {
-            SurfaceNormal = surfaceNormal.normalized,
-            Uv3D = uv3d,
-            HeightNoise = heightNoise,
-            MoistureNoise = moistureNoise,
-        };
+        // ----- 初始化 -------------------------
+        PlanetNodeMapData data = new PlanetNodeMapData();
+        data.SurfaceNormal = surfaceNormal.normalized;
+        data.Uv3D = uv3d;
+        data.HeightNoise = heightNoise;
+        data.MoistureNoise = moistureNoise;
 
+        // ----- 开始计算地图信息 -------------------------
         data.IsLand = heightNoise >= settings.seaLevel;
-        data.LandHeight01 = data.IsLand ? Mathf.InverseLerp(settings.seaLevel, 1.0f, heightNoise) : 0.0f;
 
         Vector3 lightDir = Vector3.up;
         if(mainLightDirection.sqrMagnitude > 0.00001f) // 如果光源方向不为0，则使用光源方向
@@ -52,14 +55,48 @@ public class PlanetNodeMapData
         }
 
 
-        data.TerrainTierType = ResolveTerrainTier(settings, data.IsLand, data.LandHeight01, uv3d, heightNoise);
+        data.TerrainTierType = ResolveTerrainTier(settings, data.IsLand, uv3d, heightNoise);
+
+        // 计算植物等级
+        if(data.IsLand)
+        {
+            data.PlantLevelType = ResolvePlantLevel(data.TerrainTierType, data.MoistureBandType);
+        }
+
+        data.Seed = (int)(heightNoise * 1000000);
+
         return data;
     }
 
+    public PlantLevelType ResolvePlantLevel(PlanetTerrainType terrainTierType, PlanetMoistureType moistureBandType)
+    {
+        // Chance 越高代表地形越适宜植物生长，作为 roll 的倍率使高 Chance 时更容易出现 Dense
+        float Chance = 0.25f;
+        if (terrainTierType == PlanetTerrainType.Plain1 || terrainTierType == PlanetTerrainType.Plain2)
+            Chance += 0.15f;
+        else if (terrainTierType == PlanetTerrainType.Mountain1 || terrainTierType == PlanetTerrainType.Mountain2)
+            Chance += 0.05f;
+        // Shore / Snow / Polar：不额外加分
+
+        if (moistureBandType == PlanetMoistureType.Wet)
+            Chance += 0.20f;
+        else
+            Chance += 0.10f;
+
+        // Chance ∈ [0.35, 0.60]
+        // roll 经 Chance 放大后最大可超过 0.66，使 Dense 在高 Chance 时可触达
+        float roll = Random.Range(0f, 1f) * (2f * Chance);
+        if (roll < 0.33f)      return PlantLevelType.Sparse;
+        else if (roll < 0.66f) return PlantLevelType.Regular;
+        else                   return PlantLevelType.Dense;
+    }
+
+    /// <summary>
+    /// 计算地形类型
+    /// </summary>
     private static PlanetTerrainType ResolveTerrainTier(
         PlanetGenerator.PlanetSettings settings,
         bool isLand,
-        float landHeight01,
         Vector3 uv3d,
         float heightNoise)
     {   
@@ -81,13 +118,15 @@ public class PlanetNodeMapData
             return PlanetTerrainType.Polar;
         }
 
-        // 修复：使用原始 heightNoise 而不是 landHeight01，与 shader 保持一致
-        // 这样阈值的含义就统一了：都是针对完整高度范围 [0, 1] 的
-        // 注意：shoreThreshold 是海岸线，应该在 seaLevel 之上才是陆地
-        if (heightNoise < settings.plain1Threshold) return PlanetTerrainType.Plain1;
-        if (heightNoise < settings.plain2Threshold) return PlanetTerrainType.Plain2;
-        if (heightNoise < settings.mountain1Threshold) return PlanetTerrainType.Mountain1;
-        if (heightNoise < settings.mountain2Threshold) return PlanetTerrainType.Mountain2;
+        // 与 Shader UpdatePlanetGradient 保持相同的梯度分层顺序：
+        // Shore → Plain1 → Plain2 → Mountain1 → Mountain2 → Snow
+        // （Shore 仅在 seaLevel < shoreThreshold 时可见；若不满足则直接跳至 Plain1）
+
+        if (heightNoise - settings.seaLevel < settings.shoreThreshold)    return PlanetTerrainType.Shore;
+        if (heightNoise - settings.seaLevel < settings.plain1Threshold)   return PlanetTerrainType.Plain1;
+        if (heightNoise - settings.seaLevel < settings.plain2Threshold)   return PlanetTerrainType.Plain2;
+        if (heightNoise - settings.seaLevel < settings.mountain1Threshold) return PlanetTerrainType.Mountain1;
+        if (heightNoise - settings.seaLevel < settings.mountain2Threshold) return PlanetTerrainType.Mountain2;
         return PlanetTerrainType.Snow;
     }
 }

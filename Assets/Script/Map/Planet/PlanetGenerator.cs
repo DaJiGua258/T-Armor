@@ -22,7 +22,8 @@ public class PlanetGenerator : MonoBehaviour
     }
 
     [System.Serializable]
-    public class PlanetSettings {
+    public class PlanetSettings 
+    {
         [Header("1. Base Terrain (Height)")]
         public NoiseLayer heightNoise;
         public Color seaColor = new Color(0, 0.2f, 0.5f);
@@ -135,14 +136,16 @@ public class PlanetGenerator : MonoBehaviour
         return true;
     }
 
-    public global::PlanetNodeMapData EvaluateNodeMapData(Vector3 surfaceNormalWorld, Vector3 mainLightDirection, float sunlitDotThreshold)
+    public PlanetNodeMapData EvaluateNodeMapData(Vector3 surfaceNormalWorld, Vector3 mainLightDirection, float sunlitDotThreshold)
     {
+        PlanetNodeMapData data = new PlanetNodeMapData();
+
         if (_noiseCacheResolution != resolution || _heightNoiseCache == null || _moistureNoiseCache == null)
         {
             bool ok = BuildNoiseCacheSync();
             if (!ok)
             {
-                return global::PlanetNodeMapData.Create(
+                data = data.Create(
                     planet,
                     surfaceNormalWorld.normalized,
                     Vector3.one * 0.5f,
@@ -150,6 +153,7 @@ public class PlanetGenerator : MonoBehaviour
                     0.0f,
                     mainLightDirection,
                     sunlitDotThreshold);
+                return data;
             }
         }
 
@@ -160,14 +164,17 @@ public class PlanetGenerator : MonoBehaviour
         float hNoise = SampleNoise(_heightNoiseCache, uv3d);
         float mNoise = SampleNoise(_moistureNoiseCache, uv3d);
 
-        return global::PlanetNodeMapData.Create(
+        data = data.Create(
             planet,
             surfaceNormalWorld.normalized,
             uv3d,
             hNoise,
             mNoise,
             mainLightDirection,
-            sunlitDotThreshold);
+            sunlitDotThreshold
+        );
+
+        return data;
     }
 
     void UpdateNoise(NoiseLayer layer) {
@@ -235,7 +242,7 @@ public class PlanetGenerator : MonoBehaviour
             if (value > max) max = value;
         }
 
-        Debug.Log($"PlanetGenerator: {label} 噪声范围 = [{min:F3}, {max:F3}], SeaLevel = {planet.seaLevel:F3}");
+        // Debug.Log($"PlanetGenerator: {label} 噪声范围 = [{min:F3}, {max:F3}], SeaLevel = {planet.seaLevel:F3}");
 
         if (max <= 0.0001f && min <= 0.0001f)
         {
@@ -321,11 +328,14 @@ public class PlanetGenerator : MonoBehaviour
 
     void UpdateGradient(ref Texture2D tex, Gradient grad) {
         if (tex == null) {
-            tex = new Texture2D(256, 1, TextureFormat.RGBA32, false);
+            tex = new Texture2D(1024, 1, TextureFormat.RGBA32, false);
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
         }
-        for (int i = 0; i < 256; i++) tex.SetPixel(i, 0, grad.Evaluate(i / 255f));
+        for (int i = 0; i < 1024; i++) 
+        {
+            tex.SetPixel(i, 0, grad.Evaluate(i / 1024f));
+        }
         tex.Apply();
     }
 

@@ -1,4 +1,6 @@
 using QFramework.Manager;
+using QFramework.Utility;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace QFramework.ViewController.UI
@@ -8,10 +10,19 @@ namespace QFramework.ViewController.UI
 
         void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Escape))
+            if(MainUIManager.Instance.CurrentPanel == UIMainPanelType.LevelSelectPanel && InputUtility.GetESCInput())
             {
                 MainUIManager.Instance.ResetCamera();
                 MainUIManager.Instance.EnterMainMenu();
+                MainUIManager.Instance.LockCamera();
+            }
+
+            if((MainUIManager.Instance.CurrentPanel == UIMainPanelType.LevelDetailPanel || 
+               MainUIManager.Instance.CurrentPanel == UIMainPanelType.EquipmentConfigPanel)
+                && InputUtility.GetESCInput())
+            {
+                MainUIManager.Instance.EnterLevelSelect();
+                MainUIManager.Instance.UnlockCamera();
             }
         }
 
@@ -19,14 +30,14 @@ namespace QFramework.ViewController.UI
         public override void OnShow()
         {
             base.OnShow();
-            MainUIManager.Instance.Camera.GetComponent<PlanetOrbitCamera>().enabled = true;
+            MainUIManager.Instance.UnlockCamera();
             MainUIManager.Instance.PlanetNodeList.gameObject.SetActive(true);
         }
 
         public override void OnHide()
         {
             base.OnHide();
-            MainUIManager.Instance.Camera.GetComponent<PlanetOrbitCamera>().enabled = false;
+            MainUIManager.Instance.LockCamera();
             MainUIManager.Instance.PlanetNodeList.gameObject.SetActive(false);
         }
     }

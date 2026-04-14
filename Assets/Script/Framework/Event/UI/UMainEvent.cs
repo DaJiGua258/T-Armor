@@ -7,4 +7,9 @@ namespace QFramework.Event
     {
         
     }
+
+    public struct UpdateMapInfo
+    {
+        
+    }
 }

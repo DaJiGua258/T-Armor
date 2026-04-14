@@ -83,7 +83,7 @@ Material:
     - _PixelSize: 2.27
     - _Resolution: 64
     - _Rotation: 51
-    - _SeaLevel: 0.567
+    - _SeaLevel: 0.5
     - _SeaThreshold: 0.482
     - _Seed: 2.15
     - _ShadowSteps: 2

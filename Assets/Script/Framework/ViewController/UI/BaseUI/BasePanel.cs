@@ -1,3 +1,4 @@
+using QFramework.Model;
 using QFramework.System;
 using QFramework.Utility;
 using UnityEngine;
@@ -17,8 +18,19 @@ namespace QFramework.ViewController.UI
     public abstract class AbstractBasePanel : MonoBehaviour, IBasePanel, IController, IUIEventBase
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
-        public IInvenotrySystem _invenotrySystem => this.GetSystem<IInvenotrySystem>();
-        public IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
+
+        // ----- Model -------------------------
+        public LevelTypeModel LevelTypeModel => this.GetModel<LevelTypeModel>();
+        
+        // ----- System -------------------------
+        public IInvenotrySystem InvenotrySystem => this.GetSystem<IInvenotrySystem>();
+        public ILevelSystem LevelSystem => this.GetSystem<ILevelSystem>();
+
+        // ----- Utility -------------------------
+        public IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();
+        public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
+        
+
 
         public void Show()
         {

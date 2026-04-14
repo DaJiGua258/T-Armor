@@ -12,6 +12,7 @@ using UnityEngine;
 /// </summary>
 public class PlanetOrbitCamera : MonoBehaviour
 {
+    public bool IsLock = true;
     [Header("目标")]
     [Tooltip("星球中心的 Transform（或任意空对象）")]
     public Transform planetCenter;
@@ -33,6 +34,7 @@ public class PlanetOrbitCamera : MonoBehaviour
 
     [Header("俯仰限制（度）")]
     public Vector2 pitchRange = new Vector2(-80f, 80f);
+    
 
     // ── 内部状态 ──────────────────────────────────────────────
 
@@ -46,11 +48,16 @@ public class PlanetOrbitCamera : MonoBehaviour
     {
         _yaw   = initialYaw;
         _pitch = initialPitch;
-        ApplyOrbit();
     }
 
     void Update()
     {
+        if(IsLock)
+        {
+            _dragging = false;
+            return;
+        }
+
         HandleDrag();
         HandleZoom();
     }
@@ -94,7 +101,7 @@ public class PlanetOrbitCamera : MonoBehaviour
 
     // ── 应用 Orbit 位置 ───────────────────────────────────────
 
-    private void ApplyOrbit()
+    public void ApplyOrbit()
     {
         if (planetCenter == null) return;
 

@@ -103,7 +103,7 @@ public class PickUpItems : MonoBehaviour, IController
                 _instanceId = -1;
                 break;
         }
-        Debug.Log($"已更新 {gameObject.name} 的 InstanceId: {_instanceId}");
+        // Debug.Log($"已更新 {gameObject.name} 的 InstanceId: {_instanceId}");
     }
 
     public void CanShowing()
@@ -124,8 +124,7 @@ public class PickUpEditor : Editor
     SerializedProperty _pickUpTypeProp;
     SerializedProperty _instanceIdProp;
 
-    SerializedProperty _yOffsetProp;
-    SerializedProperty _ySpeedProp;
+    SerializedProperty _yProp;
     SerializedProperty _rotationSpeedProp;
 
     void OnEnable()
@@ -136,8 +135,7 @@ public class PickUpEditor : Editor
         _pickUpTypeProp = serializedObject.FindProperty("_pickUpType");
         _instanceIdProp = serializedObject.FindProperty("_instanceId");
 
-        _yOffsetProp = serializedObject.FindProperty("_yOffset");
-        _ySpeedProp = serializedObject.FindProperty("_ySpeed");
+        _yProp = serializedObject.FindProperty("_y");
         _rotationSpeedProp = serializedObject.FindProperty("_rotationSpeed");
     }
 
@@ -150,8 +148,7 @@ public class PickUpEditor : Editor
         EditorGUILayout.PropertyField(_instanceIdProp, new GUIContent("实例 ID (只读)"));
          GUI.enabled = true;
 
-        EditorGUILayout.PropertyField(_yOffsetProp, new GUIContent("Y Offset"));
-        EditorGUILayout.PropertyField(_ySpeedProp, new GUIContent("Y Speed"));
+        EditorGUILayout.PropertyField(_yProp, new GUIContent("Y"));
         EditorGUILayout.PropertyField(_rotationSpeedProp, new GUIContent("Rotation Speed"));
 
         EditorGUILayout.Space();

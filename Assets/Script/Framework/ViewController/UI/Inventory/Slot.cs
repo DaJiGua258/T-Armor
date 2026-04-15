@@ -71,7 +71,6 @@ namespace QFramework.ViewController.UI
 
         public override void OnPointerExit(PointerEventData eventData)
         {
-            Debug.Log("OnPointerExit");
         }
 
 

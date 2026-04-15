@@ -25,37 +25,14 @@ public class PlanetNodeController : AbstractBasePanel
             {
                 MainUIManager.Instance.EnterLevelConfirm();
                 this.SendCommand<MainMenuCommand.SelectLevel>(new MainMenuCommand.SelectLevel(mapData));
-                // MainUIManager.Instance.GetPanel<LevelDetailPanel>(UIMainPanelType.LevelDetailPanel)
-                //     .UpdateMapDetailInfo();
-                
-                Debug.Log("Seed: " + MapData.Seed + '\n' +
-                    "TerrainTierType: " + MapData.TerrainTierType + '\n' +
-                    "MoistureBandType: " + MapData.MoistureBandType + '\n' +
-                    "NoiseHeight: " + MapData.HeightNoise + '\n' +
-                    "NoiseMoisture: " + MapData.MoistureNoise + '\n' +
-                    "IsLand: " + MapData.IsLand + '\n' +
-                    "IsSunlit: " + MapData.IsSunlit + '\n' +
-                    "PlantLevelType: " + MapData.PlantLevelType);
-                
             });
-        // this.RegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
-
-        
 
 
+    
         // 初始化数据
         planet = planetTransform;
         mainCam = Camera.main.transform;
         MapData = mapData;
-
-        Debug.Log("Seed: " + MapData.Seed + '\n' +
-                    "TerrainTierType: " + MapData.TerrainTierType + '\n' +
-                    "MoistureBandType: " + MapData.MoistureBandType + '\n' +
-                    "NoiseHeight: " + MapData.HeightNoise + '\n' +
-                    "NoiseMoisture: " + MapData.MoistureNoise + '\n' +
-                    "IsLand: " + MapData.IsLand + '\n' +
-                    "IsSunlit: " + MapData.IsSunlit + '\n' +
-                    "PlantLevelType: " + MapData.PlantLevelType);
     }
 
 
@@ -89,7 +66,7 @@ public class PlanetNodeController : AbstractBasePanel
         transform.localScale = new Vector3(scale, scale, scale);
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    public override void OnPointerEnter(PointerEventData eventData)
     {
         Debug.Log("射线碰到了: " + gameObject.name);
     }

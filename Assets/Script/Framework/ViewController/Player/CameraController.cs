@@ -1,12 +1,11 @@
 using QFramework.Enum;
 using QFramework;
 using UnityEngine;
-using QFramework.Command;
-using QFramework.System;
+using QFramework.UtilityKit;
 
-public class CameraController : MonoBehaviour, IController
+[RequireComponent(typeof(Camera))]
+public class CameraController : OverrideSingleton<CameraController>
 {
-    public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
 
     [Header("跟随目标")]
     [SerializeField] private Transform _target;
@@ -24,10 +23,17 @@ public class CameraController : MonoBehaviour, IController
     private Plane _plane;
     private Vector3 _currentOffset;
 
-    void Awake()
-    {
+    protected override void Awake()
+    {   
+        base.Awake();
+        
         _cam = GetComponent<Camera>();
         if (!_cam) _cam = Camera.main;
+    }
+
+    public void InitCameraTarget(Transform target)
+    {
+        _target = target;
     }
 
     void LateUpdate()

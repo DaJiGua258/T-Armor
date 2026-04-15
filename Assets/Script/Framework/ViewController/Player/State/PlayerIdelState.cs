@@ -10,8 +10,6 @@ namespace QFramework.ViewController.Player
         
         public override void OnEnter()
         {
-            Debug.Log("PlayerIdelState OnEnter");
-
             Entity.StopMovement();
         }
 

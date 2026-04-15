@@ -2,7 +2,7 @@ Shader "Custom/SpriteStacking"
 {
     Properties
     {
-        _Color ("MainColor", Color)  = (1, 1, 1, 1)
+        _MainColor ("MainColor", Color)  = (1, 1, 1, 1)
         _MainTex ("Sprite Sheet (Left to Right)", 2D) = "white" {}
         _LayerCount ("Layer Count", Int) = 16
         _YOffset ("Layer Y Offset", Float) = 0.02
@@ -26,7 +26,7 @@ Shader "Custom/SpriteStacking"
             #pragma fragment frag
             #include "UnityCG.cginc"
 
-            float4 _Color;
+            float4 _MainColor;
             sampler2D _MainTex;
             int _LayerCount;
             float _YOffset;
@@ -102,7 +102,7 @@ Shader "Custom/SpriteStacking"
                 fixed4 col = tex2D(_MainTex, i.uv);
                 // 简单的透明剔除，防止透明重叠区域可能产生的渲染错误
                 if (col.a < 0.05) discard; 
-                return col * _Color;
+                return col * _MainColor;
             }
             ENDCG
         }

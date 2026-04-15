@@ -83,7 +83,6 @@ namespace QFramework.ViewController.MainMenuUI
             Vector2 mousePos = Input.mousePosition;
             Vector2 finalScreenPos = mousePos;
             float minDistance = float.MaxValue;
-            bool isSnapping = false;
 
             // 1. 遍历目标点，寻找最近的吸附点
             foreach (var target in _targetTransforms)
@@ -104,7 +103,6 @@ namespace QFramework.ViewController.MainMenuUI
                     {
                         minDistance = distance;
                         finalScreenPos = screenPos2D;
-                        isSnapping = true;
                     }
                 }
             }

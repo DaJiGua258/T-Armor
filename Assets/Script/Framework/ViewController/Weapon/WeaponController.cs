@@ -36,7 +36,6 @@ namespace QFramework.ViewController.Player
 
         void Start()
         {
-            Debug.Log("WeaponController Start");
             _playerSystem.PlayerWeapon.WeaponDataLeft.Register(OnWeaponLeftDataChanged);
             _playerSystem.PlayerWeapon.WeaponDataRight.Register(OnWeaponRightDataChanged);
 

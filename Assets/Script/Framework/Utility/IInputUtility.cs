@@ -16,7 +16,7 @@ namespace QFramework.Utility
 
     public class InputUtility : IInputUtility
     {
-        private Camera _cam = Camera.main;
+        private Camera _cam;
         private Transform _player;
         public Transform Player
         {
@@ -40,6 +40,13 @@ namespace QFramework.Utility
 
         public Vector3 GetMousePos()
         {
+            if(Camera.main == null)
+            {
+                Debug.LogWarning("Camera is null");
+                return Vector3.zero;
+            }
+
+            _cam = Camera.main;
             Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
             Plane plane = new Plane(Vector3.forward, Player.position);
             if (plane.Raycast(ray, out float distance))

@@ -1,27 +1,28 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace QFramework.Model
 {
     public interface ILevelTypeModel : IModel
     {
-        public string GetTerrainTypeName(PlanetTerrainType type);
+        public string GetTerrainTypeName(TerrainType type);
         public string GetPlantLevelTypeName(PlantLevelType type);
-        public string GetMoistureTypeName(PlanetMoistureType type);
+        public string GetMoistureTypeName(MoistureType type);
     }
 
     public class LevelTypeModel : AbstractModel, ILevelTypeModel
     {
         // ----- 维护的信息 -------------------------
-        private Dictionary<PlanetTerrainType, string> _terrainTypeNames = new Dictionary<PlanetTerrainType, string>()
+        private Dictionary<TerrainType, string> _terrainTypeNames = new Dictionary<TerrainType, string>()
         {
-            {PlanetTerrainType.Ocean, "海洋"},
-            {PlanetTerrainType.Shore, "海岸"},
-            {PlanetTerrainType.Plain1, "平原1"},
-            {PlanetTerrainType.Plain2, "平原2"},
-            {PlanetTerrainType.Mountain1, "山脉1"},
-            {PlanetTerrainType.Mountain2, "山脉2"},
-            {PlanetTerrainType.Snow, "雪地"},
-            {PlanetTerrainType.Polar, "极地"},
+            {TerrainType.Ocean, "海洋"},
+            {TerrainType.Shore, "海岸"},
+            {TerrainType.Plain, "平原"},
+            {TerrainType.Hills, "丘陵"},
+            {TerrainType.Highlands, "高地"},
+            {TerrainType.Valleys, "山谷"},
+            {TerrainType.Snow, "雪地"},
+            {TerrainType.Polar, "极地"},
         };
 
         private Dictionary<PlantLevelType, string> _plantTypeNames = new Dictionary<PlantLevelType, string>()
@@ -31,10 +32,10 @@ namespace QFramework.Model
             {PlantLevelType.Dense, "密集"},
         };
 
-        private Dictionary<PlanetMoistureType, string> _moistureTypeNames = new Dictionary<PlanetMoistureType, string>()
+        private Dictionary<MoistureType, string> _moistureTypeNames = new Dictionary<MoistureType, string>()
         {
-            {PlanetMoistureType.Dry, "干燥"},
-            {PlanetMoistureType.Wet, "湿润"},
+            {MoistureType.Dry, "干燥"},
+            {MoistureType.Wet, "湿润"},
         };
 
         protected override void OnInit()
@@ -42,7 +43,7 @@ namespace QFramework.Model
            
         }
 
-        public string GetMoistureTypeName(PlanetMoistureType type)
+        public string GetMoistureTypeName(MoistureType type)
         {
             return _moistureTypeNames[type];
         }
@@ -52,28 +53,26 @@ namespace QFramework.Model
             return _plantTypeNames[type];
         }
 
-        public string GetTerrainTypeName(PlanetTerrainType type)
+        public string GetTerrainTypeName(TerrainType type)
         {
             return _terrainTypeNames[type];
         }
-
-        
     }
 
-    public enum PlanetTerrainType
+    public enum TerrainType
     {
         Ocean,     // 海洋
         Shore,     // 海岸（seaLevel ~ shoreThreshold 之间的沙滩带）
-        Plain1,    // 平原类型1
-        Plain2,    // 平原类型2
-        Mountain1, // 山脉类型1
-        Mountain2, // 山脉类型2
+        Plain,    // 平原
+        Hills,    // 丘陵
+        Highlands, // 高地
+        Valleys, // 山谷
         Snow,      // 雪地
         Polar,     // 极地
     }
 
     // 湿度类型
-    public enum PlanetMoistureType
+    public enum MoistureType
     {
         Dry,
         Wet,

@@ -29,7 +29,6 @@ namespace QFramework.System
 
         public void InitPlayerWeapon()
         {   
-            UnityEngine.Debug.Log("InitPlayerWeapon");
             var weaponDataLeft = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
             var weaponDataRight = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
             PlayerWeapon.WeaponDataLeft.Value = weaponDataLeft;

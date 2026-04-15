@@ -43,6 +43,7 @@ Material:
     - _SliceOffset: 0.95
     - _YOffset: 0.125
     m_Colors:
-    - _Color: {r: 0.5471698, g: 0.4879099, b: 0.40779632, a: 1}
+    - _Color: {r: 0.42767292, g: 0.42058972, b: 0.3967406, a: 1}
+    - _MainColor: {r: 0.44654083, g: 0.41388997, b: 0.3356077, a: 1}
     - _StackDir: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

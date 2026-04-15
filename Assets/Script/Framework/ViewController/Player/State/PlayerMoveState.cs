@@ -10,7 +10,6 @@ namespace QFramework.ViewController.Player
 
         public override void OnEnter()
         {
-            Debug.Log("PlayerMoveState OnEnter");
         }
 
         public override void OnUpdate()

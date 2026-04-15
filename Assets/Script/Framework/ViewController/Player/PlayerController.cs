@@ -7,9 +7,8 @@ using QFramework.ViewController.FSM;
 
 namespace QFramework.ViewController.Player
 {
-    public class PlayerController : MonoBehaviour, IController
+    public class PlayerController : OverrideSingleton<PlayerController>
     {
-        public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
         public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
 
@@ -52,8 +51,10 @@ namespace QFramework.ViewController.Player
         private StateMachine<PlayerController> _fsm;
 
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             if (!_body) _body = transform.Find("Body");
 
             

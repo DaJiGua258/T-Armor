@@ -126,8 +126,6 @@ MonoBehaviour:
   _pickUpType: 3
   canShowing: 0
   _y: 0
-  _yOffset: 0.1
-  _ySpeed: 2
   _rotationSpeed: 10
 --- !u!61 &613198098468697558
 BoxCollider2D:

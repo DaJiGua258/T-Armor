@@ -124,9 +124,8 @@ MonoBehaviour:
   _weaponType: 2
   _equipmentType: 1
   _pickUpType: 0
+  canShowing: 0
   _y: 0
-  _yOffset: 0.5
-  _ySpeed: 2
   _rotationSpeed: 0
 --- !u!61 &594347530458191724
 BoxCollider2D:

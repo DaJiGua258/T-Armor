@@ -10,10 +10,10 @@ namespace QFramework.Manager
 {
     public enum UIPanelType
     {
-        GameHUD,
-        Interaction,
-        Inventory,
-        Pause,
+        GameHUDPanel,
+        InteractionPanel,
+        InventoryPanel,
+        PausePnael,
     }
     
 
@@ -34,13 +34,13 @@ namespace QFramework.Manager
         [SerializeField] private Transform topLayer;      // 顶层（Loading等）
 
         [Header("Slot拖拽")]
-        [SerializeField] public GameObject DragSlot;
-        // 当前slot
-        [SerializeField] public int currentIndex;  // 当前拖拽的Slot索引
-        [SerializeField] public SlotType currentSlotType;  // 当前拖拽的Slot类型
-        // 目标slot
-        [SerializeField] public int targetIndex;  // 目标拖拽的Slot索引
-        [SerializeField] public SlotType targetSlotType;  // 目标拖拽的Slot类型
+        public GameObject DragSlot;
+        
+        public int currentIndex;  // 当前拖拽的Slot索引
+        public SlotType currentSlotType;  // 当前拖拽的Slot类型
+        
+        public int targetIndex;  // 目标拖拽的Slot索引
+        public SlotType targetSlotType;  // 目标拖拽的Slot类型
 
         protected override void Awake()
         {

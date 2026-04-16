@@ -1,3 +1,4 @@
+using QFramework.Manager;
 using QFramework.ViewController.FSM;
 using UnityEngine;
 
@@ -10,8 +11,10 @@ namespace QFramework.ViewController.Player
 
         public override void OnEnter()
         {
-            Debug.Log("PlayerDeathState OnEnter");
             Entity.StopMovement();
+
+            GameManager.Instance.SetGameResultState(GameResultState.GameOver);
+            UIManager.Instance.ShowPanel(UIPanelType.GameOverPanel);
         }
 
         public override void OnUpdate()

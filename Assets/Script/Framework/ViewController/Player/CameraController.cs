@@ -4,7 +4,7 @@ using UnityEngine;
 using QFramework.UtilityKit;
 
 [RequireComponent(typeof(Camera))]
-public class CameraController : OverrideSingleton<CameraController>
+public class CameraController : OverrideMonoSingleton<CameraController>
 {
 
     [Header("跟随目标")]

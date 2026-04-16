@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using QFramework.Event;
 using QFramework.UtilityKit;
@@ -24,26 +25,36 @@ namespace QFramework.Manager
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
 
-        // 挂载节点
+        // ----- 挂载节点 ------------------------------
         [SerializeField] private Transform _canvasWorldSpace;
         [SerializeField] private Transform _canvasScreenSpace;
 
-        // 屏幕空间面板字典
+        // ----- 屏幕空间面板字典 ------------------------------
         private Dictionary<UIMainPanelType, AbstractBasePanel> _panelDict = new();
         public UIMainPanelType CurrentPanel;
 
-        // 世界空间面板
+        // ----- 世界空间面板 ------------------------------
         public PlanetNodeList PlanetNodeList;
 
-        // 世界空间游戏物体
+        // ----- 世界空间游戏物体 ------------------------------
         public PlanetGenerator PlanetGenerator;
         public PlanetOrbitCamera OrbitOrbitCamera;
 
-        // 主菜单全局共享资源
+        // ----- 主菜单全局共享资源 ------------------------------
         public List<GameObject> NodeS;
         public Camera Camera;
         public Vector3 StartCameraPosition;
         public Quaternion StartCameraRotation;
+
+        public static void ForceRebuildFromRoot(RectTransform root)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            
+            foreach (RectTransform child in root)
+            {
+                ForceRebuildFromRoot(child);
+            }
+        }
 
 
         protected override void Awake()
@@ -63,26 +74,34 @@ namespace QFramework.Manager
             // 获取UI面板
             InitWorldPanelDict();
             InitScreenPanelDict();
-
+        
             // 初始化主菜单世界UI数据
             InitMainMenuWorldDataInOrder();
 
-
-
             PlanetNodeList.gameObject.SetActive(false);
-            
+
+            // 获取必要引用
             Camera = Camera.main;
             OrbitOrbitCamera = Camera.GetComponent<PlanetOrbitCamera>();
-            LockCamera();
-            ShowPanelOnly(UIMainPanelType.MainMenuPanel);
         }
 
         void Start()
         {
             StartCameraPosition = Camera.transform.position;
             StartCameraRotation = Camera.transform.rotation;
-            EnterMainMenu();
+            
+            if(GameManager.Instance.GetGameResultState() == GameResultState.GameFinished)
+            {
+                EnterLevelSelect();
+            }
+            else
+            {
+                EnterMainMenu();
+            }
+
+            
         }
+        
 
         
         #region ----- 基础面板事件 ------------------------------
@@ -93,7 +112,8 @@ namespace QFramework.Manager
         {
             void AddPanel(UIMainPanelType type)
             {
-                if (_canvasScreenSpace.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) _panelDict.Add(type, panel);
+                if (_canvasScreenSpace.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) 
+                    _panelDict.Add(type, panel);
             }
 
             AddPanel(UIMainPanelType.MainMenuPanel);
@@ -108,6 +128,7 @@ namespace QFramework.Manager
                 item.Value.OnInit();
             }
         }
+
 
         /// <summary>
         /// 初始化世界空间下的面板
@@ -162,6 +183,7 @@ namespace QFramework.Manager
             }
             
             panel.Show();
+            ForceRebuildFromRoot(panel.GetComponent<RectTransform>());
             CurrentPanel = type;
         }
 
@@ -171,7 +193,11 @@ namespace QFramework.Manager
         private void ShowPanel(UIMainPanelType type)
         {
             if (_panelDict.TryGetValue(type, out var panel))
+            {
                 panel.Show();
+                ForceRebuildFromRoot(panel.GetComponent<RectTransform>());
+            }
+            
             CurrentPanel = type;
         }
 
@@ -219,7 +245,7 @@ namespace QFramework.Manager
 
         #endregion
 
-        #region ----- 流程入口 ------------------------------
+        #region ----- 主菜单按钮 ------------------------------
 
         /// <summary>
         /// 进入主菜单
@@ -227,6 +253,7 @@ namespace QFramework.Manager
         public void EnterMainMenu()
         {
             ShowPanelOnly(UIMainPanelType.MainMenuPanel);
+            LockCamera();
         }
 
         /// <summary>
@@ -246,8 +273,8 @@ namespace QFramework.Manager
             LockCamera();
             ShowPanel(UIMainPanelType.LevelDetailPanel);
             ShowPanel(UIMainPanelType.EquipmentConfigPanel);
-            Debug.Log("EnterLevelConfirm");
         }
+
 
         #endregion
 

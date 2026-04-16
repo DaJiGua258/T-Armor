@@ -3,14 +3,19 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using QFramework.UtilityKit;
 using QFramework.Model;
+using QFramework.Utility;
+using QFramework;
+
+
 
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public partial class MapGenerator : OverrideSingleton<MapGenerator>
+public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 {
+    private IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
     [Header("参数存档")]
     [Tooltip("用于保存当前生成参数的 ScriptableObject 资源")]
     public MapGeneratorParametersSO parameterAsset;
@@ -43,11 +48,11 @@ public partial class MapGenerator : OverrideSingleton<MapGenerator>
     public void GenerateMapByLoadAsset(TerrainType terrainType)
     {
         // 从文件加载数据
-        parameterAsset = ResourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + terrainType.ToString());
+        parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + terrainType.ToString());
 
         if (parameterAsset == null)
         {
-            parameterAsset = ResourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Plain);
+            parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Plain);
             DebugUtility.LogWarning("MapGenerator: 未找到参数资产，使用默认参数。");
         }
 

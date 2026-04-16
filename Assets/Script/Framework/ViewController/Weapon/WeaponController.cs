@@ -103,6 +103,8 @@ namespace QFramework.ViewController.Player
         private void OnWeaponDataChanged(WeaponSlotEnum weaponSlotEnum, WeaponDataModel weaponData)
         {
             Transform weaponSlot = weaponSlotEnum == WeaponSlotEnum.Left ? _weaponSlotLeft : _weaponSlotRight;
+            if(weaponSlot == null) return;
+
             AbstractWeapon weapon = null;
 
             // 如果左槽位有武器，则销毁

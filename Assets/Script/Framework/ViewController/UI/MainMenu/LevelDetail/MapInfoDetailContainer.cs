@@ -22,8 +22,9 @@ namespace QFramework.ViewController.UI
             _danger = new MapInfoDetailItem("DangerType", transform);
 
             // LevelSystem.CurrentSelectLevelData.seed.RegisterOnValueChanged(UpdateMapDetailInfo);
-
-            this.RegisterEvent<UpdateMapInfo>(e => UpdateMapDetailInfo());
+            Debug.Log("加载Map容器");
+            this.RegisterEvent<UpdateMapInfo>(e => UpdateMapDetailInfo())
+                .UnRegisterWhenGameObjectDestroyed(this);
         }
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace QFramework.ViewController.UI
         /// </summary>
         public void UpdateMapDetailInfo()
         {
-            var currentLevel = LevelSystem.CurrentSelectLevelData;
+            var currentLevel = LevelSystem.LoadedLevelData;
             Debug.Log("seed: " + currentLevel.seed.Value);
             _terrainItem.Info.text = LevelTypeModel.GetTerrainTypeName(currentLevel.environmentData.terrainType);
             _moistureItem.Info.text = LevelTypeModel.GetMoistureTypeName(currentLevel.environmentData.moistureType);
@@ -46,14 +47,14 @@ namespace QFramework.ViewController.UI
     /// </summary>
     public class MapInfoDetailItem
     {
-        public Sprite Icon;
+        public Image Icon;
         public Text IconName;
         public Text Info;
 
         public MapInfoDetailItem(string itemName, Transform parent)
         {
             Transform itemTransform = parent.Find(itemName);
-            Icon = itemTransform.Find("Icon_Img").GetComponent<Image>().sprite;
+            Icon = itemTransform.Find("Icon_Img").GetComponent<Image>();
             IconName = itemTransform.GetChild(0).Find("IconName_Txt").GetComponent<Text>();
             Info = itemTransform.Find("Info").GetComponent<Text>();
         }

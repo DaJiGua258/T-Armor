@@ -7,7 +7,7 @@ using QFramework.ViewController.FSM;
 
 namespace QFramework.ViewController.Player
 {
-    public class PlayerController : OverrideSingleton<PlayerController>
+    public class PlayerController : OverrideMonoSingleton<PlayerController>
     {
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
         public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
@@ -217,20 +217,16 @@ namespace QFramework.ViewController.Player
             if (!LegFl || !LegFr || !LegBr || !LegBl) return;
 
             // FL (前左): y增加(前), x减少(左)
-            LegFl.localPosition = new Vector3(-RL, FB, LegFl.localPosition.z);
-            LegFl.localRotation = Quaternion.Euler(0, 0, LegRotation);
+            LegFl.SetLocalPositionAndRotation(new Vector3(-RL, FB, LegFl.localPosition.z), Quaternion.Euler(0, 0, LegRotation));
 
             // FR (前右): y增加(前), x增加(右)
-            LegFr.localPosition = new Vector3(RL, FB, LegFr.localPosition.z);
-            LegFr.localRotation = Quaternion.Euler(0, 0, -LegRotation);
+            LegFr.SetLocalPositionAndRotation(new Vector3(RL, FB, LegFr.localPosition.z), Quaternion.Euler(0, 0, -LegRotation));
 
             // BR (后右): y减少(后), x增加(右)
-            LegBr.localPosition = new Vector3(RL, -FB, LegBr.localPosition.z);
-            LegBr.localRotation = Quaternion.Euler(0, 0, LegRotation);
+            LegBr.SetLocalPositionAndRotation(new Vector3(RL, -FB, LegBr.localPosition.z), Quaternion.Euler(0, 0, LegRotation));
 
             // BL (后左): y减少(后), x减少(左)
-            LegBl.localPosition = new Vector3(-RL, -FB, LegBl.localPosition.z);
-            LegBl.localRotation = Quaternion.Euler(0, 0, -LegRotation);
+            LegBl.SetLocalPositionAndRotation(new Vector3(-RL, -FB, LegBl.localPosition.z), Quaternion.Euler(0, 0, -LegRotation));
         }
 
         /// <summary>
@@ -238,72 +234,7 @@ namespace QFramework.ViewController.Player
         /// </summary>
         void UpdateLegPostion()
         {
-            // 初始化
-            if (lastBodyPosition == Vector3.zero) lastBodyPosition = transform.position;
-            if (inertiaOffset == Vector3.zero) inertiaOffset = Vector3.zero;
-
-            // 计算Body的速度
-            Vector3 bodyDelta = (transform.position - lastBodyPosition);
-            float bodySpeed = bodyDelta.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
-
-            // 判断是否在移动（可调参数：速度阈值）
-            bool isMoving = bodySpeed > minMoveThreshold;
-
-            if (isMoving)
-            {
-                // 角色移动时，腿部惯性方向和Body移动方向相反，制造滞后感
-                Vector3 targetOffset = -bodyDelta * inertiaDelay;   // 滞后感倍数可调
-                inertiaOffset = Vector3.Lerp(inertiaOffset, targetOffset, inertiaSpeed * Time.deltaTime);
-            }
-            else
-            {
-                // 停止后，腿部朝上一次移动的方向“超前”一小段，然后逐渐回归
-                Vector3 stopDir = bodyDelta.normalized;
-                Vector3 targetOffset = stopDir * inertiaDistance;
-                inertiaOffset = Vector3.Lerp(inertiaOffset, targetOffset, (inertiaSpeed * 0.33f) * Time.deltaTime);
-
-                // 当惯性offset足够小时，归零
-                if (inertiaOffset.magnitude < 0.001f)
-                    inertiaOffset = Vector3.zero;
-            }
-
-            // 对腿部偏移进行限制，避免偏移过大
-            if (inertiaOffset.magnitude > inertiaDistance) inertiaOffset = inertiaOffset.normalized * inertiaDistance;
-
-            // 记录本帧位置
-            lastBodyPosition = transform.position;
-
-            // 每条腿添加基于与body移动方向关系的独立偏移
-            Vector3 bodyMoveDir = (InputUtility.GetMousePos() - _body.position);
-            lastBodyDir = bodyMoveDir;
-            bodyMoveDir = Vector3.Lerp(lastBodyDir, bodyMoveDir, _lerpFactor * Time.deltaTime).normalized;
-
-            // 定义每条腿的相对初始朝向（单位向量）
-            Vector3 legFlDir = new Vector3(-1, 1, 0).normalized;
-            Vector3 legFrDir = new Vector3(1, 1, 0).normalized;
-            Vector3 legBrDir = new Vector3(1, -1, 0).normalized;
-            Vector3 legBlDir = new Vector3(-1, -1, 0).normalized;
-
-            // 计算相关系数，越接近1代表方向越一致，应该减少惯性偏移
-            float flWeight = Mathf.Max(Vector3.Dot(bodyMoveDir, legFlDir) + 0.5f, 0) * _legOffsetWeightMulti * 0.1f;
-            float frWeight = Mathf.Max(Vector3.Dot(bodyMoveDir, legFrDir) + 0.5f, 0) * _legOffsetWeightMulti * 0.1f;
-            float brWeight = Mathf.Max(Vector3.Dot(bodyMoveDir, legBrDir) + 0.5f, 0) * _legOffsetWeightMulti * 0.1f;
-            float blWeight = Mathf.Max(Vector3.Dot(bodyMoveDir, legBlDir) + 0.5f, 0) * _legOffsetWeightMulti * 0.1f;
-
-            // Debug.Log("flWeight: " + flWeight + " frWeight: " + frWeight + " brWeight: " + brWeight + " blWeight: " + blWeight);
-            // Debug.Log("bodyMoveDir: " + bodyMoveDir);
-
-            // 保存每只腿的惯性offset
-            Vector3 legFlOffset = inertiaOffset  * flWeight;
-            Vector3 legFrOffset = inertiaOffset  * frWeight;
-            Vector3 legBrOffset = inertiaOffset  * brWeight;
-            Vector3 legBlOffset = inertiaOffset  * blWeight;
             
-            // 将惯性效果应用到四条腿的通用位移
-            LegFl.localPosition = new Vector3(-RL + legFlOffset.x, FB + legFlOffset.y, LegFl.localPosition.z);
-            LegFr.localPosition = new Vector3(RL + legFrOffset.x, FB + legFrOffset.y, LegFr.localPosition.z);
-            LegBr.localPosition = new Vector3(RL + legBrOffset.x, -FB + legBrOffset.y, LegBr.localPosition.z);
-            LegBl.localPosition = new Vector3(-RL + legBlOffset.x, -FB + legBlOffset.y, LegBl.localPosition.z);
         }
     }
 }

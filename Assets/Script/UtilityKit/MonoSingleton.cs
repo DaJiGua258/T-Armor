@@ -34,7 +34,7 @@ namespace QFramework.UtilityKit
     /// <summary>
     /// 重写单例模式，用于在Awake中进行实例的替换
     /// </summary>
-    public class OverrideSingleton<T> : MonoBehaviour, IController where T : OverrideSingleton<T>
+    public class OverrideMonoSingleton<T> : MonoBehaviour, IController where T : OverrideMonoSingleton<T>
     {
         private static T s_instance;
 

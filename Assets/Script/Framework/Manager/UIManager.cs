@@ -14,6 +14,7 @@ namespace QFramework.Manager
         InteractionPanel,
         InventoryPanel,
         PausePnael,
+        GameOverPanel,
     }
     
 
@@ -23,7 +24,7 @@ namespace QFramework.Manager
         private IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
 
         // 存储已创建的面板实例
-        private Dictionary<UIPanelType, AbstractBasePanel> panelDict = new();
+        private Dictionary<UIPanelType, AbstractBasePanel> _panelDict = new();
 
         [SerializeField] private Canvas _canvas;
 
@@ -64,6 +65,29 @@ namespace QFramework.Manager
             // TryInitPanel(UIPanelType.Interaction);
             // TryInitPanel(UIPanelType.Inventory);
             // TryInitPanel(UIPanelType.Pause);
+
+            InitScreenPanelDict();
+        }
+        
+        
+        private void InitScreenPanelDict()
+        {
+            void AddPanel(UIPanelType type)
+            {
+                if (_canvas.transform.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) 
+                    _panelDict.Add(type, panel);
+            }
+
+            AddPanel(UIPanelType.GameHUDPanel);
+            AddPanel(UIPanelType.InteractionPanel);
+            AddPanel(UIPanelType.InventoryPanel);
+            //AddPanel(UIPanelType.PausePnael);
+            AddPanel(UIPanelType.GameOverPanel);
+
+            foreach (var item in _panelDict)
+            {
+                item.Value.OnInit();
+            }
         }
 
         /// <summary>
@@ -71,7 +95,7 @@ namespace QFramework.Manager
         /// </summary>
         public void ShowPanel(UIPanelType panelType)
         {
-            if (panelDict.TryGetValue(panelType, out AbstractBasePanel panel))
+            if (_panelDict.TryGetValue(panelType, out AbstractBasePanel panel))
             {
                 panel.Show();
             }
@@ -82,13 +106,13 @@ namespace QFramework.Manager
         /// </summary>
         public void HidePanel(UIPanelType type)
         {
-            if (panelDict.TryGetValue(type, out var panel))
+            if (_panelDict.TryGetValue(type, out var panel))
                 panel.Hide();
         }
         
         private void TryInitPanel(UIPanelType panelType)
         {
-            if (panelDict.TryGetValue(panelType, out AbstractBasePanel panel))
+            if (_panelDict.TryGetValue(panelType, out AbstractBasePanel panel))
             {
                 return;
             }
@@ -96,7 +120,7 @@ namespace QFramework.Manager
             {
                 var panelObject = Instantiate(_resourceLoad.Load<GameObject>("Prefab/UI/Panel/" + panelType.ToString()), transform);
                 panel = panelObject.GetComponent<AbstractBasePanel>();
-                panelDict.Add(panelType, panel);
+                _panelDict.Add(panelType, panel);
             }
         }
     }

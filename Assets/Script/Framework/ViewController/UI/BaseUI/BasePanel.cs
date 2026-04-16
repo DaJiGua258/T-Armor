@@ -3,6 +3,7 @@ using QFramework.System;
 using QFramework.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 
 namespace QFramework.ViewController.UI
@@ -40,6 +41,7 @@ namespace QFramework.ViewController.UI
 
         public void Hide()
         {
+            Canvas.ForceUpdateCanvases();
             OnHide();
             gameObject.SetActive(false);
         }

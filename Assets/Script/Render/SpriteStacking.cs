@@ -56,6 +56,11 @@ public class SpriteStacking : MonoBehaviour
         Init();
     }
 
+    void Start()
+    {
+        Init();
+    }
+
     void Update()
     {
         if (!Application.isPlaying || transform.hasChanged)

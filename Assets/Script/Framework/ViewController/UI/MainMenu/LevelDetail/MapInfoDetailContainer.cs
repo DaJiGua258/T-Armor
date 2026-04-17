@@ -34,9 +34,9 @@ namespace QFramework.ViewController.UI
         {
             var currentLevel = LevelSystem.LoadedLevelData;
             Debug.Log("seed: " + currentLevel.seed.Value);
-            _terrainItem.Info.text = LevelTypeModel.GetTerrainTypeName(currentLevel.environmentData.terrainType);
-            _moistureItem.Info.text = LevelTypeModel.GetMoistureTypeName(currentLevel.environmentData.moistureType);
-            _plantItem.Info.text = LevelTypeModel.GetPlantLevelTypeName(currentLevel.environmentData.plantLevelType);
+            _terrainItem.Info.text = LevelTypeModel.GetTerrainTypeName(currentLevel.EnvironmentData.terrainType);
+            _moistureItem.Info.text = LevelTypeModel.GetMoistureTypeName(currentLevel.EnvironmentData.moistureType);
+            _plantItem.Info.text = LevelTypeModel.GetPlantLevelTypeName(currentLevel.EnvironmentData.plantLevelType);
             // _danger.Info.text = currentLevel.DangerType.ToString();
         }
 

@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using QFramework.Event;
+using QFramework.System;
+using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.UI;
 using UnityEngine;
@@ -24,6 +26,7 @@ namespace QFramework.Manager
     public class MainUIManager : MonoSingleton<MainUIManager>, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+        private ILevelSystem _levelSystem => this.GetSystem<ILevelSystem>();
 
         // ----- 挂载节点 ------------------------------
         [SerializeField] private Transform _canvasWorldSpace;
@@ -261,6 +264,18 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterLevelSelect()
         {
+            if(_levelSystem.LevelDataCache.Count > 0)
+            {
+                NodeS = PlanetNodeList.GenerateFromLevelOrderAndContinue(
+                    PlanetGenerator,
+                    _levelSystem.LevelDataCache,
+                    4,
+                    10f);
+            }
+            else
+            {
+                NodeS = PlanetNodeList.InitNodes(PlanetGenerator);
+            }
             ShowPanelOnly(UIMainPanelType.LevelSelectPanel);
             UnlockCamera();
         }

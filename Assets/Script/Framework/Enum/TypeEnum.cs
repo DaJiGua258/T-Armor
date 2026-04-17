@@ -7,6 +7,7 @@ namespace QFramework.Enum
         Equipment,
         Item,
         Enemy,
+        Mission,
     }
 
     public enum WeaponTypeEnum
@@ -52,6 +53,16 @@ namespace QFramework.Enum
         Equipment_3,
         Equipment_4,
         Equipment_5,
+    }
+
+    public enum MissionTypeEnum
+    {
+        None,
+        Mission_1,
+        Mission_2,
+        Mission_3,
+        Mission_4,
+        Mission_5,
     }
 
 

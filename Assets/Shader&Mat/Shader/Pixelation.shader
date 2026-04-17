@@ -24,8 +24,15 @@ Shader "Custom/PostProcessing/Pixelation"
 
             half4 frag(Varyings input) : SV_Target
             {
-                float2 pixelCount = _ScreenParams.xy / _PixelSize;
-                float2 uv = floor(input.texcoord * pixelCount) / pixelCount;
+                // 转换到屏幕像素坐标
+                float2 screenCoord = input.texcoord * _ScreenParams.xy;
+
+                // 在屏幕像素空间 floor，保证块大小严格等于 _PixelSize
+                float2 snappedCoord = floor(screenCoord / _PixelSize) * _PixelSize;
+
+                // 采样像素块中心（+0.5 避免采样边界）
+                float2 uv = (snappedCoord + 0.5) / _ScreenParams.xy;
+
                 return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
             }
             ENDHLSL 

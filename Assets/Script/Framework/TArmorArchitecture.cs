@@ -14,6 +14,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterModel<IEnemeyConfigModel>(new EnemeyConfigModel());
         RegisterModel<IItemConfigModel>(new ItemConfigModel());
         RegisterModel<LevelTypeModel>(new LevelTypeModel());
+        RegisterModel<IMissionConfigModel>(new MissionConfigModel());
 
         // 系统注册
         RegisterSystem<IEnemyInstanceSystem>(new EnemyInstanceSystem());

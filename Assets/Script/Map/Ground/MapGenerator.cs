@@ -5,6 +5,8 @@ using QFramework.UtilityKit;
 using QFramework.Model;
 using QFramework.Utility;
 using QFramework;
+using QFramework.System;
+
 
 
 
@@ -45,16 +47,19 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         settings.gizmo ??= new GizmoSettings();
     }
     
-    public void GenerateMapByLoadAsset(TerrainType terrainType)
+    public void GenerateMapByLoadAsset(LevelDataModel levelData)
     {
         // 从文件加载数据
-        parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + terrainType.ToString());
-
+        parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + levelData.EnvironmentData.terrainType.ToString());
+        
         if (parameterAsset == null)
         {
             parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Plain);
             DebugUtility.LogWarning("MapGenerator: 未找到参数资产，使用默认参数。");
         }
+
+        // 根据关卡信息实时修改的参数
+        parameterAsset.seed = levelData.seed.Value;
 
         // 应用数据
         ApplyParametersFromAsset(parameterAsset);

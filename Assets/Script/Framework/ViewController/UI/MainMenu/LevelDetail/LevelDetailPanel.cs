@@ -1,3 +1,4 @@
+using QFramework.Command;
 using QFramework.Manager;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,6 +22,7 @@ namespace QFramework.ViewController.UI
             _deployBtn = transform.Find("DeployBtn/Container/Img").GetComponent<Button>();
             _deployBtn.onClick.AddListener(() =>
             {
+                this.SendCommand<LevelCommand.Add>();
                 GameManager.Instance.EnterGameScene();
             });
         }

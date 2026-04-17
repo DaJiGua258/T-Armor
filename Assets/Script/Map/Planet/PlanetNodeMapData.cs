@@ -6,8 +6,7 @@ using QFramework.Model;
 [System.Serializable]
 public class PlanetNodeMapData
 {
-    public Vector3 SurfaceNormal;
-    public Vector3 Uv3D;
+    // public Vector3 SurfaceNormal;
     public float HeightNoise;
     public float MoistureNoise;
     public float LandHeight01;
@@ -28,8 +27,8 @@ public class PlanetNodeMapData
     {
         // ----- 初始化 -------------------------
         PlanetNodeMapData data = new PlanetNodeMapData();
-        data.SurfaceNormal = surfaceNormal.normalized;
-        data.Uv3D = uv3d;
+        data.environmentData.SurfaceNormal = surfaceNormal.normalized;
+        // data.SurfaceNormal = surfaceNormal.normalized;
         data.HeightNoise = heightNoise;
         data.MoistureNoise = moistureNoise;
 
@@ -43,7 +42,7 @@ public class PlanetNodeMapData
         }
 
         // 计算光照方向与表面法线的点积，如果大于阈值，则认为光照方向与表面法线方向一致，否则认为光照方向与表面法线方向不一致  
-        data.IsSunlit = Vector3.Dot(data.SurfaceNormal, lightDir) >= sunlitDotThreshold; 
+        data.IsSunlit = Vector3.Dot(data.environmentData.SurfaceNormal, lightDir) >= sunlitDotThreshold; 
 
         // 计算湿度
         data.environmentData.moistureType = MoistureType.Dry;

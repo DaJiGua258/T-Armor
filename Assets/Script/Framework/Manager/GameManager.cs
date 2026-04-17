@@ -222,8 +222,7 @@ namespace QFramework.Manager
         /// </summary>
         private IEnumerator LoadSceneWithProgress(string sceneName, Action onComplete)
         {
-            Debug.Log("LoadSceneAsync: " + sceneName);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
 
             int step = 0;
@@ -232,7 +231,7 @@ namespace QFramework.Manager
                 step++;
                 float progress = Mathf.Clamp01(step / 4f);
                 TypeEventSystem.Global.Send<LoadingEvent.ProgressTo>(new LoadingEvent.ProgressTo() { Progress = progress });
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.1f);
             }   
             onComplete?.Invoke();
         }
@@ -277,7 +276,7 @@ namespace QFramework.Manager
             _camera.transform.position = new Vector3(playerPos.x, playerPos.y, -5f);
             _camera.InitCameraTarget(_player.transform);
 
-            _map.GenerateMapByLoadAsset(_levelSystem.LoadedLevelData.environmentData.terrainType);
+            _map.GenerateMapByLoadAsset(_levelSystem.LoadedLevelData);
             return true;
         }
 

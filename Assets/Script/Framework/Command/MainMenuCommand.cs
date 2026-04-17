@@ -16,7 +16,7 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                _levelSystem.SelectedLevel(_mapData);
+                _levelSystem.InitLevelEnv(_mapData);
             }
         }
     }

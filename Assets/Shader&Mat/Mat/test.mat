@@ -24,14 +24,14 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: eadf4e01598877849bc2fb2a44f1dd78, type: 3}
+        m_Texture: {fileID: 2800000, guid: c820a65f43ee41242bd2d207d20f958e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Angle: 0
     - _Blend: 1
-    - _LayerCount: 18
+    - _LayerCount: 9
     - _LayerOffset: 1
     - _NumSlices: 10
     - _OffsetX: 0
@@ -41,8 +41,9 @@ Material:
     - _SliceHeight: 0.03
     - _SliceIndex: 0
     - _SliceOffset: 0.95
-    - _YOffset: 0.02
+    - _YOffset: 0.12
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _StackDir: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

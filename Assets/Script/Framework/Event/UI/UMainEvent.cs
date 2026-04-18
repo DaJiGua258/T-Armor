@@ -3,13 +3,7 @@ using UnityEngine;
 
 namespace QFramework.Event
 {
-    public struct ShowLevelSelectEvent
-    {
-        
-    }
+    public struct ShowLevelSelectEvent { }
 
-    public struct UpdateMapInfo
-    {
-        
-    }
+    public struct UpdateMapInfo { }
 }

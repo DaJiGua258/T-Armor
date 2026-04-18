@@ -2,6 +2,7 @@ using UnityEngine;
 using QFramework.Utility;
 using QFramework.Enum;
 using QFramework.System;
+using QFramework.Command;
 
 namespace QFramework.ViewController.Player
 {
@@ -20,8 +21,9 @@ namespace QFramework.ViewController.Player
         [SerializeField] protected ParticleSystem _vfxShooting;
 
         [Header("武器属性")]
-         protected WeaponDataModel _weaponDataModel;
+        protected WeaponDataModel _weaponDataModel;
 
+        
 
 
 
@@ -42,12 +44,25 @@ namespace QFramework.ViewController.Player
         void Update()
         {
             _timer += Time.deltaTime;
+
+            if(_weaponDataModel.CurrentMagazine.Value <= 0 && !_weaponDataModel.IsReloading)
+            {
+                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel)); 
+            }
         }
 
         public void InitWeaponData(WeaponDataModel weaponDataModel)
         {
             _weaponDataModel = weaponDataModel;
             _weaponId = _weaponDataModel.InstanceId.Value;
+        }
+
+        public void Reload()
+        {
+            if(_weaponDataModel.CurrentMagazine.Value < _weaponDataModel.MaxMagazine && !_weaponDataModel.IsReloading)
+            {
+                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel));
+            }
         }
 
 
@@ -59,12 +74,13 @@ namespace QFramework.ViewController.Player
                 return;
             }
 
-            // 开火间隔
-            if(_timer < _weaponDataModel.ShootingInterval.Value)
+            // 开火间隔 & 弹匣有弹药
+            if(_timer < _weaponDataModel.ShootingInterval || 
+                _weaponDataModel.CurrentMagazine.Value <= 0 || 
+                _weaponDataModel.CurrentAmmo.Value <= 0)
                 return;
 
 
-            // 
             if (_pf_bullet == null || Muzzle == null)
             {
                 Debug.LogError("BulletPrefab or BulletSpawnPoint or Muzzle is null");
@@ -78,7 +94,7 @@ namespace QFramework.ViewController.Player
 
         public virtual void ShootDetal()
         {
-            
+            this.SendCommand(WeaponCommand.Shoot.Instance.Init(_weaponDataModel));
             // 计算发射方向：与武器朝向一致
             Vector3 shootDir = Muzzle.right; // local right 是2D武器的默认枪口方向 (一般为右)
             // 枪口世界坐标
@@ -88,7 +104,7 @@ namespace QFramework.ViewController.Player
             _vfxShooting.Play();
 
             Bullet bulletComponent = bullet.GetComponent<Bullet>();
-            bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed.Value);
+            bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed);
         }
     }
 }

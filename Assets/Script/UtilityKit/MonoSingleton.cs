@@ -32,6 +32,35 @@ namespace QFramework.UtilityKit
     }
 
     /// <summary>
+    /// 单例模式，用于在Awake中进行实例的替换
+    /// </summary>
+    public class DesMonoSingleton<T> : MonoBehaviour, IController where T : DesMonoSingleton<T>
+    {
+        public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+        protected IDebugUtility DebugUtility => this.GetUtility<IDebugUtility>();
+        protected IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();
+
+        private static T s_instance;
+        public static T Instance
+        {
+            get { return s_instance; }
+            set { s_instance = value; }
+        }
+
+        protected virtual void Awake()
+        {
+            if (Instance == null)
+            {
+                s_instance = (T)this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    /// <summary>
     /// 重写单例模式，用于在Awake中进行实例的替换
     /// </summary>
     public class OverrideMonoSingleton<T> : MonoBehaviour, IController where T : OverrideMonoSingleton<T>

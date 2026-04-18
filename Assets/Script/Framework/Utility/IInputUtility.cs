@@ -10,8 +10,9 @@ namespace QFramework.Utility
         public bool GetShootRightInput();  // 获取射击右键输入
         public bool GetPickUpItemInput();  // 获取拾取物品输入
         public bool GetDashInput();  // 获取冲刺输入
-
-        public bool GetESCInput();
+        public bool GetESCInput();  // 获取ESC输入
+        public bool GetLeftReloadInput();  // 获取左手武器输入
+        public bool GetRightReloadInput();  // 获取右手武器输入
     }
 
     public class InputUtility : IInputUtility
@@ -38,6 +39,9 @@ namespace QFramework.Utility
             return input;
         }
 
+        /// <summary>
+        /// 获取鼠标在世界坐标系中的位置
+        /// </summary>
         public Vector3 GetMousePos()
         {
             if(Camera.main == null)
@@ -80,6 +84,24 @@ namespace QFramework.Utility
         public bool GetESCInput()
         {
             return Input.GetKeyDown(KeyCode.Escape);
+        }
+
+        public bool GetLeftReloadInput()
+        {
+            if(Input.GetKey(KeyCode.R) && Input.GetMouseButtonDown(0))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool GetRightReloadInput()
+        {
+            if(Input.GetKey(KeyCode.R) && Input.GetMouseButtonDown(1))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

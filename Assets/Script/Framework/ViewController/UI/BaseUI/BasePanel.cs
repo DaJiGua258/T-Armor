@@ -21,10 +21,12 @@ namespace QFramework.ViewController.UI
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
 
         // ----- Model -------------------------
-        public LevelTypeModel LevelTypeModel => this.GetModel<LevelTypeModel>();
+        public ILevelTypeModel LevelTypeModel => this.GetModel<ILevelTypeModel>();
+        public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
         
         // ----- System -------------------------
         public IInvenotrySystem InvenotrySystem => this.GetSystem<IInvenotrySystem>();
+        public IPlayerSystem PlayerSystem => this.GetSystem<IPlayerSystem>();
         public ILevelSystem LevelSystem => this.GetSystem<ILevelSystem>();
 
         // ----- Utility -------------------------

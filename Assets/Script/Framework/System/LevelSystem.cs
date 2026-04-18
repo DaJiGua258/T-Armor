@@ -38,7 +38,7 @@ namespace QFramework.System
 
         protected override void OnInit()
         {
-            
+            LoadedLevelData = new LevelDataModel();
         }
 
         public void AddLoadLevel()

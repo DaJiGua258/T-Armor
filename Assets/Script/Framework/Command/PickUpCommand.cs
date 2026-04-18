@@ -127,6 +127,8 @@ namespace QFramework.Command
             protected override void OnExecute()
             {
                 WeaponDataModel currentWeaponData = null;
+
+                // 交换引用触发事件
                 if(_currentId == _playerSystem.PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value)
                 {
                     // 先在这里获取到当前持有的武器的引用

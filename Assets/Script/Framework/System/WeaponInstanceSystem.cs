@@ -72,14 +72,15 @@ namespace QFramework.System
     {
         private static int _weaponCounter = 0;
         public WeaponTypeEnum WeaponType;
-        public BindableProperty<int> MaxAmmo = new BindableProperty<int>();
-        public BindableProperty<int> CurrentAmmo = new BindableProperty<int>();
-        public BindableProperty<int> MaxMagazine = new BindableProperty<int>();
+        public int MaxAmmo;
+        public BindableProperty<int> CurrentAmmo = new BindableProperty<int>();  // 当前所有的弹药
+        public int MaxMagazine;
         public BindableProperty<int> CurrentMagazine = new BindableProperty<int>();
-        public BindableProperty<float> ReloadTime = new BindableProperty<float>();
-        public BindableProperty<int> BulletSpeed = new BindableProperty<int>();
-        public BindableProperty<int> BulletDamage = new BindableProperty<int>();
-        public BindableProperty<float> ShootingInterval = new BindableProperty<float>();
+        public float ReloadTime;
+        public int BulletSpeed;
+        public int BulletDamage;
+        public float ShootingInterval;
+        public bool IsReloading = false;
 
         public WeaponDataModel(WeaponConfig weaponConfig)
         {
@@ -88,43 +89,15 @@ namespace QFramework.System
             _weaponCounter++;
             
             this.WeaponType = weaponConfig.WeaponType;
-            this.MaxAmmo.Value = weaponConfig.MaxAmmo;
+            this.MaxAmmo = weaponConfig.MaxAmmo;
             this.CurrentAmmo.Value = weaponConfig.CurrentAmmo;
-            this.MaxMagazine.Value = weaponConfig.MaxMagazine;
+            this.MaxMagazine = weaponConfig.MaxMagazine;
             this.CurrentMagazine.Value = weaponConfig.CurrentMagazine;
-            this.ReloadTime.Value = weaponConfig.ReloadTime;
-            
-            this.BulletSpeed.Value = weaponConfig.BulletSpeed;
-            this.BulletDamage.Value = weaponConfig.BulletDamage;
-            this.ShootingInterval.Value = weaponConfig.ShootingInterval;
-        }
-
-        public void CopyFrom(WeaponDataModel otherWeaponData)
-        {
-            WeaponType = otherWeaponData.WeaponType;
-            MaxAmmo.Value = otherWeaponData.MaxAmmo.Value;
-            CurrentAmmo.Value = otherWeaponData.CurrentAmmo.Value;
-            MaxMagazine.Value = otherWeaponData.MaxMagazine.Value;
-            CurrentMagazine.Value = otherWeaponData.CurrentMagazine.Value;
-            ReloadTime.Value = otherWeaponData.ReloadTime.Value;
-
-            BulletSpeed.Value = otherWeaponData.BulletSpeed.Value;
-            BulletDamage.Value = otherWeaponData.BulletDamage.Value;
-            ShootingInterval.Value = otherWeaponData.ShootingInterval.Value;
-        }
-
-        public void SwapWith(WeaponDataModel otherWeaponData)
-        {
-            (WeaponType, otherWeaponData.WeaponType) = (otherWeaponData.WeaponType, WeaponType);
-            (MaxAmmo.Value, otherWeaponData.MaxAmmo.Value) = (otherWeaponData.MaxAmmo.Value, MaxAmmo.Value);
-            (CurrentAmmo.Value, otherWeaponData.CurrentAmmo.Value) = (otherWeaponData.CurrentAmmo.Value, CurrentAmmo.Value);
-            (MaxMagazine.Value, otherWeaponData.MaxMagazine.Value) = (otherWeaponData.MaxMagazine.Value, MaxMagazine.Value);
-            (CurrentMagazine.Value, otherWeaponData.CurrentMagazine.Value) = (otherWeaponData.CurrentMagazine.Value, CurrentMagazine.Value);
-            (ReloadTime.Value, otherWeaponData.ReloadTime.Value) = (otherWeaponData.ReloadTime.Value, ReloadTime.Value);
-
-            (BulletSpeed.Value, otherWeaponData.BulletSpeed.Value) = (otherWeaponData.BulletSpeed.Value, BulletSpeed.Value);
-            (BulletDamage.Value, otherWeaponData.BulletDamage.Value) = (otherWeaponData.BulletDamage.Value, BulletDamage.Value);
-            (ShootingInterval.Value, otherWeaponData.ShootingInterval.Value) = (otherWeaponData.ShootingInterval.Value, ShootingInterval.Value);
+            this.ReloadTime = weaponConfig.ReloadTime;
+            this.BulletSpeed = weaponConfig.BulletSpeed;
+            this.BulletDamage = weaponConfig.BulletDamage;
+            this.ShootingInterval = weaponConfig.ShootingInterval;
+            this.IsReloading = false;
         }
     }
 }

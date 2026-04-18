@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using QFramework;
+using QFramework.UtilityKit;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace QFramework.Utility
@@ -171,8 +173,11 @@ namespace QFramework.Utility
 
         public TimerUtility()
         {
-            var go = new GameObject(nameof(TimerRunner));
-            go.AddComponent<TimerRunner>()._timerEvent += Tick;
+            if (Application.isPlaying)
+            {
+                var go = new GameObject(nameof(TimerRunner));
+                go.AddComponent<TimerRunner>()._timerEvent += Tick;
+            }
         }
 
         // ── 基础接口 ────────────────────────────────────────
@@ -417,7 +422,7 @@ namespace QFramework.Utility
     }
 
     // ── MonoBehaviour 驱动 ───────────────────────────────────
-    public class TimerRunner : MonoBehaviour
+    public class TimerRunner : DesMonoSingleton<TimerRunner>
     {
         public event Action _timerEvent;
         private void Update() => _timerEvent?.Invoke();

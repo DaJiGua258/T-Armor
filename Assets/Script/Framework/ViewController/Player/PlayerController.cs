@@ -4,6 +4,7 @@ using QFramework.Model;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.FSM;
+using QFramework.Event;
 
 namespace QFramework.ViewController.Player
 {
@@ -12,6 +13,7 @@ namespace QFramework.ViewController.Player
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
         public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
 
+        [SerializeField] private Vector2 _targetPos;
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
 
@@ -92,31 +94,36 @@ namespace QFramework.ViewController.Player
                     }
                 }
             );
+
+            TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(
+                e => UpdateTargetPos(e.Target)
+            );
         }
 
         private void Update()
         {
             // 死亡后状态不更新
-            if(typeof(PlayerDeathState) == _fsm.CurrentStateType)
+            if(_fsm.CurrentStateType == typeof(PlayerDeathState))
             {
                 return;
             }
 
             _fsm.Update();
         
-            if(typeof(PlayerDeathState) != _fsm.CurrentStateType)
+            if(_fsm.CurrentStateType != typeof(PlayerDeathState))
             {
                 RotateBody();           // 旋转躯干
                 UpdateLegPostion();     // 更新腿部位置
                 WeaponInput();          // 武器输入
             }
-            
+
+            TypeEventSystem.Global.Send(new UpdatePos { Pos = transform.position });
         }
 
         private void FixedUpdate()
         {
             // 死亡后状态不更新
-            if(typeof(PlayerDeathState) == _fsm.CurrentStateType)
+            if(_fsm.CurrentStateType == typeof(PlayerDeathState))
             {
                 return;
             }
@@ -159,15 +166,30 @@ namespace QFramework.ViewController.Player
 
         public void WeaponInput()
         {
-            if(InputUtility.GetShootLeftInput())
+            // 左手输入
+            if(InputUtility.GetLeftReloadInput())
+            {
+                _weapon.WeaponLeft.Reload();
+            }
+            else if(InputUtility.GetShootLeftInput())
             {
                 _weapon.WeaponLeft.Shoot();
             }
             
-            if(InputUtility.GetShootRightInput())
+            // 右手输入
+            if(InputUtility.GetRightReloadInput())
+            {
+                _weapon.WeaponRight.Reload();
+            }
+            else if(InputUtility.GetShootRightInput())
             {
                 _weapon.WeaponRight.Shoot();
             }
+        }
+
+        public void UpdateTargetPos(Vector2 targetPos)
+        {
+            _targetPos = targetPos;
         }
 
         /// <summary>
@@ -178,7 +200,7 @@ namespace QFramework.ViewController.Player
             if (!_body)
                 return;
 
-            Vector3 hit = InputUtility.GetMousePos();
+            Vector3 hit = _targetPos;
             
             if(hit == Vector3.zero)
                 return;
@@ -203,7 +225,7 @@ namespace QFramework.ViewController.Player
             // 当Body旋转到目标朝向时，小于10度，则允许Weapon旋转
             if(MathTool.GetAngleDifference(currentZ, targetZ) < 10f && dist > 1f)
             {
-                _weapon.RotateWeapon(hit, _body, AimZOffsetDeg);
+                _weapon.RotateWeapon(hit, AimZOffsetDeg);
             }
 
             return;

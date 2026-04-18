@@ -45,7 +45,7 @@ namespace QFramework.ViewController.Player
         /// <summary>
         /// 旋转武器
         /// </summary>
-        public void RotateWeapon(Vector3 hitPos, Transform body, float aimZOffsetDeg)
+        public void RotateWeapon(Vector3 hitPos, float aimZOffsetDeg)
         {
             if (!WeaponLeft || !WeaponRight)
             {

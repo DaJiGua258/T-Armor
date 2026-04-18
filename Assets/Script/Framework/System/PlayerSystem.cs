@@ -34,12 +34,14 @@ namespace QFramework.System
             var weaponDataRight = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
             PlayerWeapon.WeaponDataLeft.Value = weaponDataLeft;
             PlayerWeapon.WeaponDataRight.Value = weaponDataRight;
+
         }
         
     }
 
     public class PlayerWeapon
     {
+        // 这里使用BindableProperty，后续武器交换时，通过交换引用触发事件
         public BindableProperty<WeaponDataModel> WeaponDataLeft = new BindableProperty<WeaponDataModel>();
         public BindableProperty<WeaponDataModel> WeaponDataRight = new BindableProperty<WeaponDataModel>();
     

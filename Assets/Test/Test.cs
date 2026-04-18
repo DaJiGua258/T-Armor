@@ -47,7 +47,7 @@ namespace QFramework.ViewController
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                this.SendCommand(new PlayerCommand.Damage(50));
+                // this.SendCommand(new PlayerCommand.Damage(50));
             }
 
             if(Input.GetKeyDown(KeyCode.B))

@@ -6065,9 +6065,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53fa24daacb7a234c86afee06f14b8cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphere: {fileID: 0}
-  globeRadius: 1
-  linePrefab: {fileID: 0}
+  targetImage: {fileID: 0}
+  duration: 1
+  easeType: 4
 --- !u!4 &1420101067
 Transform:
   m_ObjectHideFlags: 0

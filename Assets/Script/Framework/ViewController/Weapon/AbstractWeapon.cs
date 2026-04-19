@@ -45,10 +45,7 @@ namespace QFramework.ViewController.Player
         {
             _timer += Time.deltaTime;
 
-            if(_weaponDataModel.CurrentMagazine.Value <= 0 && !_weaponDataModel.IsReloading)
-            {
-                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel)); 
-            }
+            ReloadAuto();
         }
 
         public void InitWeaponData(WeaponDataModel weaponDataModel)
@@ -57,9 +54,23 @@ namespace QFramework.ViewController.Player
             _weaponId = _weaponDataModel.InstanceId.Value;
         }
 
-        public void Reload()
+        public void ReloadByInput()
         {
-            if(_weaponDataModel.CurrentMagazine.Value < _weaponDataModel.MaxMagazine && !_weaponDataModel.IsReloading)
+            if(!_weaponDataModel.IsReloading
+                && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
+                && _weaponDataModel.CurMagazine.Value > 0
+                && _weaponDataModel.CurMaxAmmo.Value > 0)
+            {
+                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel));
+            }
+        }
+
+        public void ReloadAuto()
+        { 
+            if(!_weaponDataModel.IsReloading
+                && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
+                && _weaponDataModel.CurMagazine.Value == 0
+                && _weaponDataModel.CurMaxAmmo.Value > 0)
             {
                 this.SendCommand(new WeaponCommand.Reload(_weaponDataModel));
             }
@@ -76,8 +87,7 @@ namespace QFramework.ViewController.Player
 
             // 开火间隔 & 弹匣有弹药
             if(_timer < _weaponDataModel.ShootingInterval || 
-                _weaponDataModel.CurrentMagazine.Value <= 0 || 
-                _weaponDataModel.CurrentAmmo.Value <= 0)
+                _weaponDataModel.CurMagazine.Value <= 0)
                 return;
 
 

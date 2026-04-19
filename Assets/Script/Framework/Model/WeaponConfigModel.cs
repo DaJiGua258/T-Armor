@@ -16,7 +16,7 @@ namespace QFramework.Model
         private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponModelsConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
             {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0f, 0, 0, 0f)},
-            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2f, 20, 10, 0.1f)},
+            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 0.1f, 20, 10, 0.01f)},
             {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 30, 2f, 20, 10, 0.025f)},
             {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2f, 20, 10, 0.25f)},
             {WeaponTypeEnum.RL, new WeaponConfig(WeaponTypeEnum.RL, 4, 30, 2f, 20, 10, 0.5f)},
@@ -45,11 +45,11 @@ namespace QFramework.Model
 
         // 备用弹药
         public int MaxAmmo;
-        public int CurrentAmmo;
+        public int CurAmmo;
 
         // 弹匣
         public int MaxMagazine;
-        public int CurrentMagazine;
+        public int CurMagazine;
 
         // 
         public float ReloadTime;
@@ -68,9 +68,9 @@ namespace QFramework.Model
         {            
             this.WeaponType = weaponType;
             this.MaxAmmo = maxMagazine * maxAmmoMultipler;
-            this.CurrentAmmo = maxMagazine * maxAmmoMultipler;
+            this.CurAmmo = maxMagazine * maxAmmoMultipler;
             this.MaxMagazine = maxMagazine;
-            this.CurrentMagazine = maxMagazine;
+            this.CurMagazine = maxMagazine;
             this.ReloadTime = reloadTime;
             this.BulletSpeed = bulletSpeed;
             this.BulletDamage = bulletDamage;

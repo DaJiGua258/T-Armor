@@ -11,7 +11,6 @@ namespace QFramework.ViewController.Player
     public class PlayerController : OverrideMonoSingleton<PlayerController>
     {
         private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
-        public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
 
         [SerializeField] private Vector2 _targetPos;
         [Header("武器引用")]
@@ -169,7 +168,7 @@ namespace QFramework.ViewController.Player
             // 左手输入
             if(InputUtility.GetLeftReloadInput())
             {
-                _weapon.WeaponLeft.Reload();
+                _weapon.WeaponLeft.ReloadByInput();
             }
             else if(InputUtility.GetShootLeftInput())
             {
@@ -179,7 +178,7 @@ namespace QFramework.ViewController.Player
             // 右手输入
             if(InputUtility.GetRightReloadInput())
             {
-                _weapon.WeaponRight.Reload();
+                _weapon.WeaponRight.ReloadByInput();
             }
             else if(InputUtility.GetShootRightInput())
             {

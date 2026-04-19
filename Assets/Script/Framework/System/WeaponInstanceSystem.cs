@@ -73,9 +73,9 @@ namespace QFramework.System
         private static int _weaponCounter = 0;
         public WeaponTypeEnum WeaponType;
         public int MaxAmmo;
-        public BindableProperty<int> CurrentAmmo = new BindableProperty<int>();  // 当前所有的弹药
+        public BindableProperty<int> CurMaxAmmo = new BindableProperty<int>();  // 当前所有的弹药
         public int MaxMagazine;
-        public BindableProperty<int> CurrentMagazine = new BindableProperty<int>();
+        public BindableProperty<int> CurMagazine = new BindableProperty<int>();
         public float ReloadTime;
         public int BulletSpeed;
         public int BulletDamage;
@@ -90,9 +90,9 @@ namespace QFramework.System
             
             this.WeaponType = weaponConfig.WeaponType;
             this.MaxAmmo = weaponConfig.MaxAmmo;
-            this.CurrentAmmo.Value = weaponConfig.CurrentAmmo;
+            this.CurMaxAmmo.Value = weaponConfig.CurAmmo;
             this.MaxMagazine = weaponConfig.MaxMagazine;
-            this.CurrentMagazine.Value = weaponConfig.CurrentMagazine;
+            this.CurMagazine.Value = weaponConfig.CurMagazine;
             this.ReloadTime = weaponConfig.ReloadTime;
             this.BulletSpeed = weaponConfig.BulletSpeed;
             this.BulletDamage = weaponConfig.BulletDamage;

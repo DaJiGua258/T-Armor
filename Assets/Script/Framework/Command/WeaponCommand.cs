@@ -42,8 +42,7 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                _weaponData.CurrentAmmo.Value--;  // 当前总弹药
-                _weaponData.CurrentMagazine.Value--;  // 当前弹匣弹药
+                _weaponData.CurMagazine.Value--;  // 当前弹匣弹药
 
             }
         }
@@ -59,16 +58,28 @@ namespace QFramework.Command
             
             protected override void OnExecute()
             {
+                if (_weaponData == null
+                    || _weaponData.IsReloading
+                    || _weaponData.CurMaxAmmo.Value <= 0
+                    || _weaponData.CurMagazine.Value >= _weaponData.MaxMagazine)
+                {
+                    return;
+                }
+
                 _weaponData.IsReloading = true;
-                _weaponData.CurrentMagazine.Value = 0;  // 当前弹匣弹药清零
-                
+
                 this.GetUtility<ITimerUtility>().AddOnce(() =>
                 {
-                    _weaponData.CurrentMagazine.Value = _weaponData.MaxMagazine;
+                    int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
+                    int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);
+
+                    _weaponData.CurMaxAmmo.Value -= reloadCount;
                     _weaponData.IsReloading = false;
+                    _weaponData.CurMagazine.Value += reloadCount;
                 },
                 _weaponData.ReloadTime
                 );
+
             }
         }
         

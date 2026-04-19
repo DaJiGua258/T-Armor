@@ -14,6 +14,10 @@ namespace QFramework.ViewController.UI
         private RectTransform _rectTransform;
         [SerializeField] private WeaponInfoItem leftWeaponInfo;
         [SerializeField] private WeaponInfoItem rightWeaponInfo;
+        private WeaponDataModel _leftData;
+        private WeaponDataModel _rightData;
+        private bool _leftReloadingLastFrame;
+        private bool _rightReloadingLastFrame;
 
 
 
@@ -30,11 +34,32 @@ namespace QFramework.ViewController.UI
             }
 
             TypeEventSystem.Global.Register<RegisterWeaponInfo>(e => RegisterWeaponInfo());
+
+            leftWeaponInfo.Tweener = leftWeaponInfo.Img
+                .DOFillAmount(1f, 0f)
+                .SetEase(Ease.Unset)
+                .SetAutoKill(false);
+            rightWeaponInfo.Tweener = rightWeaponInfo.Img
+                .DOFillAmount(1f, 0f)
+                .SetEase(Ease.Unset)
+                .SetAutoKill(false);
         }
 
         void Update()
         {
+            if (_leftData != null && _leftData.IsReloading != _leftReloadingLastFrame)
+            {
+                _leftReloadingLastFrame = _leftData.IsReloading;
+                if (_leftData.IsReloading) UpdateReloadTime(leftWeaponInfo, _leftData);
+                else UpdateWeaponInfo(leftWeaponInfo, _leftData);
+            }
 
+            if (_rightData != null && _rightData.IsReloading != _rightReloadingLastFrame)
+            {
+                _rightReloadingLastFrame = _rightData.IsReloading;
+                if (_rightData.IsReloading) UpdateReloadTime(rightWeaponInfo, _rightData);
+                else UpdateWeaponInfo(rightWeaponInfo, _rightData);
+            }
         }
 
 
@@ -44,63 +69,58 @@ namespace QFramework.ViewController.UI
         /// </summary>
         private void RegisterWeaponInfo()
         {
-            var left = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
-            var right = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
+            _leftData = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
+            _rightData = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
+            _leftReloadingLastFrame = _leftData.IsReloading;
+            _rightReloadingLastFrame = _rightData.IsReloading;
 
-            // 注册弹药数量事件
-            left.CurrentMagazine.Register(e => 
+            // 左手
+            _leftData.CurMagazine.Register(_ => 
             {
-                if(e == 0) UpdateReloadTime();
-                if(e == left.MaxMagazine) UpdateWeaponInfo();
+                if(!_leftData.IsReloading) UpdateWeaponInfo(leftWeaponInfo, _leftData);
             });
 
-            right.CurrentMagazine.Register(e => 
+            _leftData.CurMaxAmmo.Register(_ =>
             {
-                if(e == 0) UpdateReloadTime();
-                if(e == right.MaxMagazine) UpdateWeaponInfo();
+                if(!_leftData.IsReloading) UpdateWeaponInfo(leftWeaponInfo, _leftData);
             });
 
-            left.CurrentAmmo.Register(e => UpdateWeaponInfo());
-            right.CurrentAmmo.Register(e => UpdateWeaponInfo());
-
-
-            UpdateWeaponInfo();
-        }
-
-        private void UpdateWeaponInfo()
-        {
-            var left = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
-            var right = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
-
-            leftWeaponInfo.txt.text = left.CurrentAmmo.ToString();
-            rightWeaponInfo.txt.text = right.CurrentAmmo.ToString();
-
-        
-            leftWeaponInfo.img.DOFillAmount((float)left.CurrentMagazine.Value / left.MaxMagazine, 0f);
-            rightWeaponInfo.img.DOFillAmount((float)right.CurrentMagazine.Value / right.MaxMagazine, 0f);
-        }
-
-        private void UpdateReloadTime()
-        {
-            void Update(WeaponInfoItem info, WeaponDataModel data)
+            // 右手
+            _rightData.CurMagazine.Register(_ => 
             {
-                info.txt.text = "装填";
-                info.img.fillAmount = 0f;
-                info.img.DOFillAmount(1f, data.ReloadTime - 0.01f).SetEase(Ease.Linear);
-            }
-            
-            var left = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
-            var right = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
+                if(!_rightData.IsReloading) UpdateWeaponInfo(rightWeaponInfo, _rightData);
+            });
 
-            if(left.CurrentMagazine.Value == 0) Update(leftWeaponInfo, left);
-            if(right.CurrentMagazine.Value == 0) Update(rightWeaponInfo, right);
+            _rightData.CurMaxAmmo.Register(_ =>
+            {
+                if(!_rightData.IsReloading) UpdateWeaponInfo(rightWeaponInfo, _rightData);
+            });
+
+            UpdateWeaponInfo(leftWeaponInfo, _leftData);
+            UpdateWeaponInfo(rightWeaponInfo, _rightData);
+        }
+
+        private void UpdateWeaponInfo(WeaponInfoItem info, WeaponDataModel data)
+        {
+            info.Txt.text = (data.CurMaxAmmo.Value + data.CurMagazine.Value).ToString();
+            info.Img.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
+        }
+
+        private void UpdateReloadTime(WeaponInfoItem info, WeaponDataModel data)
+        {
+            info.Txt.text = "装填";
+            info.Img.fillAmount = 0f;
+            info.Tweener.ChangeEndValue(1f, data.ReloadTime - 0.01f, true)
+                .SetEase(Ease.Linear)
+                .Restart();
         }
     }
 
-    [Serializable]
+        [Serializable]
     public class WeaponInfoItem
     {
-        public Image img;
-        public Text txt;
+        public Image Img;
+        public Text Txt;
+        public Tweener Tweener;
     }
 }

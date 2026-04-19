@@ -2,26 +2,26 @@ using QFramework.Enum;
 using QFramework;
 using UnityEngine;
 using QFramework.UtilityKit;
+using DG.Tweening;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : OverrideMonoSingleton<CameraController>
 {
-
     [Header("跟随目标")]
     [SerializeField] private Transform _target;
 
     [Header("平滑跟随")]
-    [SerializeField] private float _followSmoothing = 8f;
+    [SerializeField] private float _followTime = 0.5f;
 
     [Header("光标偏移")]
     [SerializeField] private float _mouseOffsetThreshold = 3f;       // 光标距玩家超过此距离时开始偏移
     [SerializeField] private float _mouseMaxOffset = 4f;       // 镜头最大偏移量
-    [SerializeField] private float _mouseOffsetSmoothing = 5f; // 偏移平滑速度
-    [SerializeField] private float _mouseSmoothingThreshold = 0.5f; // 光标偏移小于此距离时，不进行平滑跟随
+    [SerializeField] private float _mouseOffsetTime = 0.25f; // 偏移平滑速度
 
     private Camera _cam;
     private Plane _plane;
     private Vector3 _currentOffset;
+    private Tweener _cameraTweener;
 
     protected override void Awake()
     {   
@@ -34,6 +34,10 @@ public class CameraController : OverrideMonoSingleton<CameraController>
     public void InitCameraTarget(Transform target)
     {
         _target = target;
+
+        _cameraTweener = transform.DOMove(transform.position, _followTime)
+                              .SetAutoKill(false)
+                              .SetEase(Ease.Linear);
     }
 
     void LateUpdate()
@@ -41,7 +45,7 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         if (!_target) return;
 
         Vector3 targetPos = _target.position;
-        Vector3 mouseWorld = GetMouseWorldPosition(targetPos);  //
+        Vector3 mouseWorld = InputUtility.GetMousePos();
 
 
         // 计算光标相对于玩家的方向与距离
@@ -58,7 +62,11 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         }
 
         // 平滑过渡偏移量
-        _currentOffset = Vector3.Lerp(_currentOffset, desiredOffset, _mouseOffsetSmoothing * Time.deltaTime);
+        // _currentOffset = Vector3.Lerp(_currentOffset, desiredOffset, _mouseOffsetTime * Time.deltaTime);
+        DOTween.To(() => _currentOffset, 
+                    x => _currentOffset = x, 
+                    desiredOffset, 
+                    _mouseOffsetTime).SetEase(Ease.Linear);
 
         // 目标镜头世界位置（保持 Z 不变）
         Vector3 desiredCamPos = new Vector3(
@@ -67,16 +75,7 @@ public class CameraController : OverrideMonoSingleton<CameraController>
             transform.position.z
         );
 
-        if(mouseDist > _mouseSmoothingThreshold)
-        {
-            transform.position = Vector3.Lerp(transform.position, desiredCamPos, _followSmoothing * Time.deltaTime);
-        }
-        else
-        {
-            transform.position = desiredCamPos;
-        }
-
-        
+        _cameraTweener.ChangeEndValue(desiredCamPos, true).Restart();
     }
 
     /// <summary>

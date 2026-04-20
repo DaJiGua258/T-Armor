@@ -12,7 +12,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _ZWRITEENABLED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -42,6 +43,7 @@ Material:
     - _SliceIndex: 0
     - _SliceOffset: 0.95
     - _YOffset: 0.03
+    - _ZWriteEnabled: 1
     m_Colors:
     - _Color: {r: 0.7610062, g: 0.7338529, b: 0.44750986, a: 1}
     - _MainColor: {r: 0.81761, g: 0.7618618, b: 0.48593795, a: 1}

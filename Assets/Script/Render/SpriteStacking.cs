@@ -42,11 +42,6 @@ public class SpriteStacking : MonoBehaviour
     /// </summary>
     public float ActiveYOffset => _yOffset;
 
-    /// <summary>
-    /// 当前精灵层数。
-    /// </summary>
-    public int ActiveLayerCount => LayerCount;
-
     private MeshFilter _meshFilter;
     private Material _stackingMaterial;
     private Renderer _cachedRenderer;

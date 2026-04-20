@@ -4,6 +4,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using QFramework.System;
+using QFramework.Model;
 
 namespace QFramework.ViewController.UI
 {
@@ -33,33 +34,44 @@ namespace QFramework.ViewController.UI
                 LayoutRebuilder.ForceRebuildLayoutImmediate(item);
             }
 
-            TypeEventSystem.Global.Register<RegisterWeaponInfo>(e => RegisterWeaponInfo());
+            TypeEventSystem.Global.Register<WeaponInfoEvent.Register>(e => RegisterWeaponInfo());
 
             leftWeaponInfo.Tweener = leftWeaponInfo.Img
                 .DOFillAmount(1f, 0f)
-                .SetEase(Ease.Unset)
                 .SetAutoKill(false);
             rightWeaponInfo.Tweener = rightWeaponInfo.Img
                 .DOFillAmount(1f, 0f)
-                .SetEase(Ease.Unset)
                 .SetAutoKill(false);
+
+            // leftWeaponInfo.CanvasTweener = leftWeaponInfo.CanvasGroup
+            //     .DOFade(1f, 0f)
+            //     .SetAutoKill(false);
+            // rightWeaponInfo.CanvasTweener = rightWeaponInfo.CanvasGroup
+            //     .DOFade(1f, 0f)
+            //     .SetAutoKill(false);
+
+             // Start() 初始化为隐藏（避免开局就显示）
+            // leftWeaponInfo.CanvasGroup.alpha = 0f;
+            // rightWeaponInfo.CanvasGroup.alpha = 0f;
+            // leftWeaponInfo.IsVisible = false;
+            // rightWeaponInfo.IsVisible = false;
         }
 
         void Update()
         {
-            if (_leftData != null && _leftData.IsReloading != _leftReloadingLastFrame)
-            {
-                _leftReloadingLastFrame = _leftData.IsReloading;
-                if (_leftData.IsReloading) UpdateReloadTime(leftWeaponInfo, _leftData);
-                else UpdateWeaponInfo(leftWeaponInfo, _leftData);
-            }
+            // if (_leftData != null && _leftData.IsReloading != _leftReloadingLastFrame)
+            // {
+            //     _leftReloadingLastFrame = _leftData.IsReloading;
+            //     if (_leftData.IsReloading) UpdateReloadTime(leftWeaponInfo, _leftData);
+            //     else UpdateWeaponInfo(leftWeaponInfo, _leftData);
+            // }
 
-            if (_rightData != null && _rightData.IsReloading != _rightReloadingLastFrame)
-            {
-                _rightReloadingLastFrame = _rightData.IsReloading;
-                if (_rightData.IsReloading) UpdateReloadTime(rightWeaponInfo, _rightData);
-                else UpdateWeaponInfo(rightWeaponInfo, _rightData);
-            }
+            // if (_rightData != null && _rightData.IsReloading != _rightReloadingLastFrame)
+            // {
+            //     _rightReloadingLastFrame = _rightData.IsReloading;
+            //     if (_rightData.IsReloading) UpdateReloadTime(rightWeaponInfo, _rightData);
+            //     else UpdateWeaponInfo(rightWeaponInfo, _rightData);
+            // }
         }
 
 
@@ -71,29 +83,23 @@ namespace QFramework.ViewController.UI
         {
             _leftData = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
             _rightData = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
-            _leftReloadingLastFrame = _leftData.IsReloading;
-            _rightReloadingLastFrame = _rightData.IsReloading;
+            // _leftReloadingLastFrame = _leftData.IsReloading;
+            // _rightReloadingLastFrame = _rightData.IsReloading;
 
             // 左手
-            _leftData.CurMagazine.Register(_ => 
-            {
-                if(!_leftData.IsReloading) UpdateWeaponInfo(leftWeaponInfo, _leftData);
-            });
+            _leftData.CurMagazine.Register(_ => UpdateWeaponInfo(leftWeaponInfo, _leftData));
 
             _leftData.CurMaxAmmo.Register(_ =>
             {
-                if(!_leftData.IsReloading) UpdateWeaponInfo(leftWeaponInfo, _leftData);
+                if(_leftData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(leftWeaponInfo, _leftData);
             });
 
             // 右手
-            _rightData.CurMagazine.Register(_ => 
-            {
-                if(!_rightData.IsReloading) UpdateWeaponInfo(rightWeaponInfo, _rightData);
-            });
+            _rightData.CurMagazine.Register(_ => UpdateWeaponInfo(rightWeaponInfo, _rightData));
 
             _rightData.CurMaxAmmo.Register(_ =>
             {
-                if(!_rightData.IsReloading) UpdateWeaponInfo(rightWeaponInfo, _rightData);
+                if(_rightData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(rightWeaponInfo, _rightData);
             });
 
             UpdateWeaponInfo(leftWeaponInfo, _leftData);
@@ -104,6 +110,8 @@ namespace QFramework.ViewController.UI
         {
             info.Txt.text = (data.CurMaxAmmo.Value + data.CurMagazine.Value).ToString();
             info.Img.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
+            
+            // TouchWeaponInfoVisibility(info);
         }
 
         private void UpdateReloadTime(WeaponInfoItem info, WeaponDataModel data)
@@ -114,6 +122,32 @@ namespace QFramework.ViewController.UI
                 .SetEase(Ease.Linear)
                 .Restart();
         }
+
+        private void TouchWeaponInfoVisibility(WeaponInfoItem info)
+        {
+            // 每次触发都重置“2秒后淡出”
+            if (info.HideDelayTween != null && info.HideDelayTween.IsActive())
+            {
+                info.HideDelayTween.Kill();
+            }
+            // 仅在当前隐藏时淡入一次，连续开火不重复淡入
+            if (!info.IsVisible)
+            {
+                info.CanvasTweener
+                    .ChangeEndValue(1f, 0.15f, true)
+                    .SetEase(Ease.OutQuad)
+                    .Restart();
+                info.IsVisible = true;
+            }
+            info.HideDelayTween = DOVirtual.DelayedCall(2f, () =>
+            {
+                info.CanvasTweener
+                    .ChangeEndValue(0f, 0.2f, true)
+                    .SetEase(Ease.InQuad)
+                    .Restart();
+                info.IsVisible = false;
+            });
+        }
     }
 
         [Serializable]
@@ -121,6 +155,12 @@ namespace QFramework.ViewController.UI
     {
         public Image Img;
         public Text Txt;
+        public CanvasGroup CanvasGroup;
+
         public Tweener Tweener;
+        public Tweener CanvasTweener;
+
+        [NonSerialized] public Tween HideDelayTween;
+        [NonSerialized] public bool IsVisible;
     }
 }

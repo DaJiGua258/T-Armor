@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace QFramework.Utility
@@ -13,6 +14,7 @@ namespace QFramework.Utility
         public bool GetESCInput();  // 获取ESC输入
         public bool GetLeftReloadInput();  // 获取左手武器输入
         public bool GetRightReloadInput();  // 获取右手武器输入
+        public bool GetSprintInput();  // 获取冲刺输入
     }
 
     public class InputUtility : IInputUtility
@@ -101,6 +103,16 @@ namespace QFramework.Utility
             {
                 return true;
             }
+            return false;
+        }
+
+        public bool GetSprintInput()
+        {
+            if(GetMovementDir().sqrMagnitude > 0.01f && Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                return true;
+            }
+
             return false;
         }
     }

@@ -1,16 +1,33 @@
 using QFramework.System;
+using QFramework.ViewController.UI;
 using UnityEngine;
 
 namespace QFramework.Event
 {
     #region  ---- GameHUD --------------------
 
-    public struct RegisterWeaponInfo { }
+    public class WeaponInfoEvent
+    {
+        public struct Register { } // 【注册武器事件】事件
 
-    public struct UpdatePos 
-    { 
-        public Vector2 Pos; 
+        public struct UpdateBarLeft
+        {
+            public WeaponDataModel data;
+        }
+
+        public struct UpdateBarRight
+        {
+            public WeaponDataModel data;
+        }
+
+
+        public struct UpdatePos 
+        { 
+            public Vector2 Pos; 
+        }
     }
+
+    
     
 
     #endregion

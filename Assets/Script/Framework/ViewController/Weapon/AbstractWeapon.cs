@@ -3,6 +3,7 @@ using QFramework.Utility;
 using QFramework.Enum;
 using QFramework.System;
 using QFramework.Command;
+using QFramework.Model;
 
 namespace QFramework.ViewController.Player
 {
@@ -56,7 +57,7 @@ namespace QFramework.ViewController.Player
 
         public void ReloadByInput()
         {
-            if(!_weaponDataModel.IsReloading
+            if(_weaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
                 && _weaponDataModel.CurMagazine.Value > 0
                 && _weaponDataModel.CurMaxAmmo.Value > 0)
@@ -67,7 +68,7 @@ namespace QFramework.ViewController.Player
 
         public void ReloadAuto()
         { 
-            if(!_weaponDataModel.IsReloading
+            if(_weaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
                 && _weaponDataModel.CurMagazine.Value == 0
                 && _weaponDataModel.CurMaxAmmo.Value > 0)
@@ -86,8 +87,8 @@ namespace QFramework.ViewController.Player
             }
 
             // 开火间隔 & 弹匣有弹药
-            if(_timer < _weaponDataModel.ShootingInterval || 
-                _weaponDataModel.CurMagazine.Value <= 0)
+            if(_timer < 60f / _weaponDataModel.Rpm  // 60秒 / 每分钟子弹数 = 开火间隔
+                ||  _weaponDataModel.WeaponState == WeaponStateEnum.Reloading)
                 return;
 
 

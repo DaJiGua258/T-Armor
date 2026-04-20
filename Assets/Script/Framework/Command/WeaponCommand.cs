@@ -1,5 +1,6 @@
 using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Model;
 using QFramework.System;
 using QFramework.Utility;
 using QFramework.ViewController.Player;
@@ -23,7 +24,7 @@ namespace QFramework.Command
                 _playerSystem.InitPlayerWeapon();
                 
                 // 通知注册UI事件
-                TypeEventSystem.Global.Send(new RegisterWeaponInfo());
+                TypeEventSystem.Global.Send(new WeaponInfoEvent.Register());
             }
         }
 
@@ -42,8 +43,9 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
+                _weaponData.WeaponState = WeaponStateEnum.Shooting;
                 _weaponData.CurMagazine.Value--;  // 当前弹匣弹药
-
+                _weaponData.WeaponState = WeaponStateEnum.Idle;
             }
         }
 
@@ -59,23 +61,24 @@ namespace QFramework.Command
             protected override void OnExecute()
             {
                 if (_weaponData == null
-                    || _weaponData.IsReloading
+                    || _weaponData.WeaponState == WeaponStateEnum.Reloading
                     || _weaponData.CurMaxAmmo.Value <= 0
                     || _weaponData.CurMagazine.Value >= _weaponData.MaxMagazine)
                 {
                     return;
                 }
 
-                _weaponData.IsReloading = true;
+                _weaponData.WeaponState = WeaponStateEnum.Reloading;
 
-                this.GetUtility<ITimerUtility>().AddOnce(() =>
-                {
-                    int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
+                int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
                     int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);
 
                     _weaponData.CurMaxAmmo.Value -= reloadCount;
-                    _weaponData.IsReloading = false;
                     _weaponData.CurMagazine.Value += reloadCount;
+
+                this.GetUtility<ITimerUtility>().AddOnce(() =>
+                {
+                    _weaponData.WeaponState = WeaponStateEnum.Idle;
                 },
                 _weaponData.ReloadTime
                 );

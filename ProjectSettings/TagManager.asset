@@ -18,9 +18,9 @@ TagManager:
   - AimTarget
   - 
   - 
-  - 
-  - 
-  - 
+  - Groud
+  - LowAir
+  - ' HighAir'
   - 
   - 
   - 
@@ -43,4 +43,22 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Shadow_Ground
+    uniqueID: 1383908171
+    locked: 0
+  - name: Ground
+    uniqueID: 2087646765
+    locked: 0
+  - name: Shadow_LowAir
+    uniqueID: 905982941
+    locked: 0
+  - name: LowAir
+    uniqueID: 678707489
+    locked: 0
+  - name: Shadow_HighAir
+    uniqueID: 3197954705
+    locked: 0
+  - name: HighAir
+    uniqueID: 1548230307
     locked: 0

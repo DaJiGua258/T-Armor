@@ -5,12 +5,14 @@ using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.FSM;
 using QFramework.Event;
+using DG.Tweening;
+using QFramework.Command;
 
 namespace QFramework.ViewController.Player
 {
     public class PlayerController : OverrideMonoSingleton<PlayerController>
     {
-        private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();
+        public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
 
         [SerializeField] private Vector2 _targetPos;
         [Header("武器引用")]
@@ -80,11 +82,12 @@ namespace QFramework.ViewController.Player
             _fsm.AddState(new PlayerIdelState(this, _fsm));
             _fsm.AddState(new PlayerMoveState(this, _fsm));
             _fsm.AddState(new PlayerDashState(this, _fsm));
+            _fsm.AddState(new PlayerSprintState(this, _fsm));
             _fsm.AddState(new PlayerDeathState(this, _fsm));
             _fsm.StartState<PlayerIdelState>();
 
             // 死亡状态注册
-            _playerModel.CurrentHealth.RegisterOnValueChanged(
+            PlayerModel.CurrentHealth.RegisterOnValueChanged(
                 (value) =>
                 {
                     if(value <= 0)
@@ -114,9 +117,10 @@ namespace QFramework.ViewController.Player
                 RotateBody();           // 旋转躯干
                 UpdateLegPostion();     // 更新腿部位置
                 WeaponInput();          // 武器输入
+                CheckFuel();
             }
 
-            TypeEventSystem.Global.Send(new UpdatePos { Pos = transform.position });
+            TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdatePos { Pos = transform.position });
         }
 
         private void FixedUpdate()
@@ -135,9 +139,10 @@ namespace QFramework.ViewController.Player
         /// </summary>
         private void ParamsInit()
         {
-            MoveSpeed = _playerModel.Speed.Value;
+            MoveSpeed = PlayerModel.Speed.Value;
         }
 
+        #region ----- 状态动作 -------------------------
 
         /// <summary>
         /// 移动
@@ -151,9 +156,9 @@ namespace QFramework.ViewController.Player
                 _rigid.velocity = new Vector3(input.x, input.y, 0) * MoveSpeed;
         }
 
-        public void Dash()
+        public void Dash(Vector2 dir)
         {
-            _rigid.velocity = InputUtility.GetMovementDir() * MoveSpeed * 3f;
+            _rigid.velocity = dir * MoveSpeed * 3f;
         }
 
 
@@ -162,6 +167,19 @@ namespace QFramework.ViewController.Player
             if (_rigid != null)
                 _rigid.velocity = Vector2.zero;
         }
+
+        public void Sprint()
+        {
+            Vector2 curVel = _rigid.velocity.normalized;
+            Vector2 input = InputUtility.GetMovementDir();
+
+            _rigid.velocity = Vector2.Lerp(curVel, input, PlayerModel.SprintSmooth * Time.deltaTime);
+            _rigid.velocity *= MoveSpeed * 1.5f;
+        }
+
+        #endregion
+
+        #region ----- 常态检测 -------------------------
 
         public void WeaponInput()
         {
@@ -190,6 +208,17 @@ namespace QFramework.ViewController.Player
         {
             _targetPos = targetPos;
         }
+
+        private void CheckFuel()
+        {
+            if(_fsm.CurrentStateType == typeof(PlayerIdelState)
+                || _fsm.CurrentStateType == typeof(PlayerMoveState))
+            {
+                this.SendCommand(PlayerCommand.AddFuel.Instance.Init(PlayerModel.FuelRecovery * Time.deltaTime));
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// 旋转躯干
@@ -256,6 +285,19 @@ namespace QFramework.ViewController.Player
         void UpdateLegPostion()
         {
             
+        }
+
+        public string GetCurrentState()
+        {
+            return _fsm.CurrentState switch
+            {
+                PlayerIdelState => "Idel",
+                PlayerMoveState => "Move",
+                PlayerDashState => "Dash",
+                PlayerSprintState => "Sprint",
+                PlayerDeathState => "Death",
+                _ => "Unknown"
+            };
         }
     }
 }

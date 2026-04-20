@@ -15,11 +15,11 @@ namespace QFramework.Model
         /// </summary>
         private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponModelsConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
-            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0f, 0, 0, 0f)},
-            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 0.1f, 20, 10, 0.01f)},
-            {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 30, 2f, 20, 10, 0.025f)},
-            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2f, 20, 10, 0.25f)},
-            {WeaponTypeEnum.RL, new WeaponConfig(WeaponTypeEnum.RL, 4, 30, 2f, 20, 10, 0.5f)},
+            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
+            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 10, 600)},
+            {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 60, 2, 20, 10, 840)},
+            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2, 20, 10, 180)},
+            {WeaponTypeEnum.RL, new WeaponConfig(WeaponTypeEnum.RL, 4, 30, 2, 20, 10, 120)},
         };
 
         protected override void OnInit()
@@ -55,7 +55,7 @@ namespace QFramework.Model
         public float ReloadTime;
         public int BulletSpeed;
         public int BulletDamage;
-        public float ShootingInterval;
+        public int Rpm;
 
         public WeaponConfig(
             WeaponTypeEnum weaponType, 
@@ -64,7 +64,7 @@ namespace QFramework.Model
             float reloadTime, 
             int bulletSpeed, 
             int bulletDamage, 
-            float shootingInterval)
+            int rpm)
         {            
             this.WeaponType = weaponType;
             this.MaxAmmo = maxMagazine * maxAmmoMultipler;
@@ -74,7 +74,8 @@ namespace QFramework.Model
             this.ReloadTime = reloadTime;
             this.BulletSpeed = bulletSpeed;
             this.BulletDamage = bulletDamage;
-            this.ShootingInterval = shootingInterval;
+            this.Rpm = rpm;
+
         }
     
     }

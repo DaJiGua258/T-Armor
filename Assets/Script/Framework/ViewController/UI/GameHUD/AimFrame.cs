@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using DG.Tweening;
 using QFramework;
 using QFramework.Event;
+using QFramework.Manager;
+using QFramework.UtilityKit;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -114,6 +116,21 @@ namespace QFramework.ViewController.UI
             { 
                 Target = targetPos 
             });
+
+            if(_targetCollider == null)
+            {
+                TypeEventSystem.Global.Send(new GetAimFramePos() 
+                { 
+                    Pos = _rectTransform.anchoredPosition
+                });
+            }
+            else
+            {
+                TypeEventSystem.Global.Send(new GetAimFramePos()
+                {
+                    Pos = UITool.WorldToCanvasPoint(UIManager.Instance.Canvas.transform as RectTransform, targetPos)
+                });
+            }
         }
 
         /// <summary>

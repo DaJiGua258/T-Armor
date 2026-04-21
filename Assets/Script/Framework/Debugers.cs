@@ -10,6 +10,9 @@ public class Debugers : MonoBehaviour, IController
 {
     public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
     public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
+    public IEnemyInstanceSystem EnemyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
+    [Header("敌人数据")]
+    [SerializeField] private int _enemyId;
 
     [SerializeField] private Text _text;
     private bool _isInit = false;
@@ -47,6 +50,21 @@ public class Debugers : MonoBehaviour, IController
         $"Fuel: {PlayerModel.CurrentFuel.Value} / {PlayerModel.MaxFuel.Value}\n" +
         $"Speed: {PlayerModel.Speed.Value}\n" +
         $"State: {_playerController.GetCurrentState()}\n";
+
+        info += "\n";
+        
+        if(_enemyId != 0)
+        {
+            var enemyData = EnemyInstanceSystem.GetData(_enemyId);  
+            info += $"Enemy Health: {enemyData.CurrentHealth.Value} / {enemyData.MaxHealth.Value}\n";
+            info += $"Enemy State: {enemyData.EnemyState}\n";
+            info += $"Enemy Speed: {enemyData.Speed.Value}\n";
+            info += $"Enemy Size: {enemyData.enemySize.Value}\n";
+            info += $"Enemy Max Health: {enemyData.MaxHealth.Value}\n";
+            info += $"Enemy Current Health: {enemyData.CurrentHealth.Value}\n";
+            info += $"Enemy Instance Id: {enemyData.InstanceId.Value}\n";
+            info += $"Enemy Type: {enemyData.TypeEnum}\n";
+        }
 
         _text.text = info;
     }

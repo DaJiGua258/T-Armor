@@ -24,7 +24,7 @@ public class ImageFillTween : MonoBehaviour, IController
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            this.SendCommand<PlayerCommand.Damage>(PlayerCommand.Damage.Instance.Init(10));
+            // this.SendCommand<PlayerCommand.Damage>(PlayerCommand.Damage.Instance.Init(10));
         }
     }
 

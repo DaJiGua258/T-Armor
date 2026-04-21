@@ -27,8 +27,11 @@ namespace QFramework.Event
         }
     }
 
-    
-    
+    public struct GetAimFramePos
+    {
+        public Vector2 Pos;
+    }
+
 
     #endregion
 

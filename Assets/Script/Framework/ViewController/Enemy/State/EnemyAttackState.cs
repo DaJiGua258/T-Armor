@@ -19,29 +19,25 @@ namespace QFramework.ViewController.Enemy
         /// <summary>仅当玩家在攻击范围内时才允许进入攻击状态。</summary>
         public override bool OnCondition()
         {
-            return Entity.IsPlayerInRange(Entity.AttackRange);
+            return Entity.IsTargetInRange(Entity.AttackRange);
         }
 
         public override void OnEnter()
         {
-            _attackTimer = _attackCooldown;
-            Entity.StopMovement();
+            if(!Entity.IsTargetInRange(Entity.AttackRange))
+            {
+                FSM.ChangeState<EnemyMoveState>();
+            }
+
+            _attackTimer += Time.deltaTime;
+            if(_attackTimer < _attackCooldown) return;
+            
+            
         }
 
         public override void OnUpdate()
         {
-            if (!Entity.IsPlayerInRange(Entity.DetectionRange))
-            {
-                FSM.ChangeState<EnemyIdleState>();
-                return;
-            }
 
-            _attackTimer += Time.deltaTime;
-            if (_attackTimer >= _attackCooldown)
-            {
-                _attackTimer = 0f;
-                Entity.PerformAttack();
-            }
         }
     }
 }

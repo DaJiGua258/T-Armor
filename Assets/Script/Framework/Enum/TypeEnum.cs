@@ -38,7 +38,7 @@ namespace QFramework.Enum
     public enum EnemyTypeEnum
     {
         None,
-        Enemy1,
+        Worker,
         Enemy2,
         Enemy3,
         Enemy4,

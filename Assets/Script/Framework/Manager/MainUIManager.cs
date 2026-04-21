@@ -49,16 +49,6 @@ namespace QFramework.Manager
         public Vector3 StartCameraPosition;
         public Quaternion StartCameraRotation;
 
-        public static void ForceRebuildFromRoot(RectTransform root)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(root);
-            
-            foreach (RectTransform child in root)
-            {
-                ForceRebuildFromRoot(child);
-            }
-        }
-
 
         protected override void Awake()
         {
@@ -186,7 +176,7 @@ namespace QFramework.Manager
             }
             
             panel.Show();
-            ForceRebuildFromRoot(panel.GetComponent<RectTransform>());
+            UITool.ForceRebuildFormRoot(panel.GetComponent<RectTransform>());
             CurrentPanel = type;
         }
 
@@ -198,7 +188,7 @@ namespace QFramework.Manager
             if (_panelDict.TryGetValue(type, out var panel))
             {
                 panel.Show();
-                ForceRebuildFromRoot(panel.GetComponent<RectTransform>());
+                UITool.ForceRebuildFormRoot(panel.GetComponent<RectTransform>());
             }
             
             CurrentPanel = type;

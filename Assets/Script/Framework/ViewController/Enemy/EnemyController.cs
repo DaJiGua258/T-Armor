@@ -22,7 +22,7 @@ namespace QFramework.ViewController.Enemy
         [SerializeField] private Rigidbody2D _rigidbody;
 
         [Header("玩家引用（可留空，运行时自动查找）")]
-        [SerializeField] private Transform _playerTransform;
+        [SerializeField] private Transform _target;
 
         // ── 对外只读属性，供 State 类访问 ─────────────────────────────────────
         public float DetectionRange => _detectionRange;
@@ -31,22 +31,20 @@ namespace QFramework.ViewController.Enemy
         // ── 状态机 ────────────────────────────────────────────────────────────
         private StateMachine<EnemyController> _fsm;
 
-        // ── 生命周期 ──────────────────────────────────────────────────────────
 
         void Start()
         {
+            // ----- 添加实例 -------------------------
             enemyId = this.SendCommand(new EnemyCommand.Add(enemyEnum, enemyId));
 
-            if (_playerTransform == null)
+            if (_target == null)
             {
                 var player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null) _playerTransform = player.transform;
+                if (player != null) _target = player.transform;
             }
-
-            if (_rigidbody == null)
-                _rigidbody = GetComponent<Rigidbody2D>();
-
-            BuildFSM();
+            
+            // ----- 初始化状态机 -------------------------
+            InitFSM();
         }
 
         void Update()
@@ -61,48 +59,56 @@ namespace QFramework.ViewController.Enemy
 
         // ── FSM 装配 ──────────────────────────────────────────────────────────
 
-        private void BuildFSM()
+        private void InitFSM()
         {
             _fsm = new StateMachine<EnemyController>();
             _fsm.AddState(new EnemyIdleState(this, _fsm));
             _fsm.AddState(new EnemyMoveState(this, _fsm));
             //     .AddState(new EnemyAttackState(this, _fsm));
-            // _fsm.StartState<EnemyIdleState>();
+
+            // ----- 启动状态机 -------------------------
+            _fsm.StartState<EnemyIdleState>();   
         }
 
         // ── 供 State 调用的辅助方法 ───────────────────────────────────────────
-
-        /// <summary>判断玩家是否在指定范围内。</summary>
-        public bool IsPlayerInRange(float range)
+        public bool IsTargetInRange(float range)
         {
-            if (_playerTransform == null) return false;
-            return Vector2.Distance(transform.position, _playerTransform.position) <= range;
+            if (_target == null) return false;
+
+            float dis = Vector2.Distance(transform.position, _target.position);
+            if(dis <= range)
+            {
+                return true;
+            }
+            return false;
         }
 
-        /// <summary>向给定方向施加速度（由 MoveState 驱动）。</summary>
-        public void MoveToward(Vector2 direction)
+        public void MoveToward()
         {
-            if (_rigidbody != null)
-                _rigidbody.velocity = direction * _moveSpeed;
+            Vector2 direction = (_target.position - transform.position).normalized;
+            _rigidbody.velocity = direction * _moveSpeed;
+            Rotate(direction);
         }
 
-        /// <summary>停止移动。</summary>
+        public void Rotate(Vector2 direction)
+        {
+            float z = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, z);
+        }
+
         public void StopMovement()
         {
-            if (_rigidbody != null)
-                _rigidbody.velocity = Vector2.zero;
+            _rigidbody.velocity = Vector2.zero;
         }
 
-        /// <summary>执行一次攻击（由 AttackState 驱动）。</summary>
-        public void PerformAttack()
+        public void Attack()
         {
-            this.SendCommand(new EnemyCommand.Damage(enemyId, 0));
+            // this.SendCommand(new EnemyCommand.Damage(enemyId, 0));
         }
 
-        /// <summary>受到伤害的外部入口（可由子弹/碰撞调用）。</summary>
         public void TakeDamage(int damage)
         {
-            this.SendCommand(new EnemyCommand.Damage(enemyId, damage));
+            // this.SendCommand(new EnemyCommand.Damage(enemyId, damage));
         }
     }
 }

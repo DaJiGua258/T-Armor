@@ -26,7 +26,7 @@ namespace QFramework.Manager
         // 存储已创建的面板实例
         private Dictionary<UIPanelType, AbstractBasePanel> _panelDict = new();
 
-        [SerializeField] private Canvas _canvas;
+        public Canvas Canvas;
 
         
         // Canvas 下的层级节点
@@ -47,7 +47,7 @@ namespace QFramework.Manager
         {
             base.Awake();
 
-            _canvas = GetComponent<Canvas>();
+            Canvas = GetComponent<Canvas>();
             DragSlot = transform.Find("DragSlot").gameObject;
 
             // 初始化
@@ -74,7 +74,7 @@ namespace QFramework.Manager
         {
             void AddPanel(UIPanelType type)
             {
-                if (_canvas.transform.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) 
+                if (Canvas.transform.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) 
                     _panelDict.Add(type, panel);
             }
 

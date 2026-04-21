@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using QFramework.Enum;
+using UnityEngine;
 
 namespace QFramework.Model
 {
@@ -14,7 +15,7 @@ namespace QFramework.Model
         // 敌人配置列表
         private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new Dictionary<EnemyTypeEnum, EnemeyConfig>()
         {
-            {EnemyTypeEnum.Enemy1, new EnemeyConfig(5, 100, 100, 10)},
+            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 100, 100, 10)},
             {EnemyTypeEnum.Enemy2, new EnemeyConfig(10, 200, 200, 20)},
             {EnemyTypeEnum.Enemy3, new EnemeyConfig(15, 300, 300, 30)},
         };
@@ -27,6 +28,11 @@ namespace QFramework.Model
         // 只读类方法
         public EnemeyConfig GetEnemyFromCache(EnemyTypeEnum enemyEnum)
         {
+            if(enemyEnum == EnemyTypeEnum.None)
+            {
+                Debug.LogError("敌人枚举为空");
+                return null;
+            }
             return _enemeyModelsConfig[enemyEnum];
         }
     }

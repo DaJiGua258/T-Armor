@@ -9,8 +9,8 @@ namespace QFramework.System
 {
     public interface IMissionSystem : ISystem
     {
-
-        public void AddMissionProgress(MissionDataModel mission, int value);
+        public MissionDataModel GetPreByIndex(int index);
+        public void AddProgress(MissionDataModel mission, int value);
         public void InitMission(LevelMissionTypeEnum levelMissionType);
         public MissionDataModel PrimaryMission { get; }
         public List<MissionDataModel> PrerequiredMissions { get; }
@@ -28,6 +28,9 @@ namespace QFramework.System
             
         }
 
+        /// <summary>
+        /// 初始化关卡任务
+        /// </summary>
         public void InitMission(LevelMissionTypeEnum levelMissionType)
         {
             if(levelMissionType == LevelMissionTypeEnum.None)
@@ -39,19 +42,20 @@ namespace QFramework.System
             var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
 
             // ----- 初始化主要任务 -------------------------
-            PrimaryMission = InitMission(levelConfig.PrimaryMissionType);
+            PrimaryMission = InitMission(levelConfig.PrimaryMissionType, MissionState.NotStarted);
+            PrimaryMission.MissionState.Value = MissionState.NotStarted;
 
             // ----- 初始化前置任务 -------------------------
             foreach(var mission in levelConfig.PrerequiredMissionTypes)
             {
-                PrerequiredMissions.Add(InitMission(mission));
+                PrerequiredMissions.Add(InitMission(mission, MissionState.InProgress));
             }
         }
 
         /// <summary>
         /// 依据类型初始化任务
         /// </summary>
-        public MissionDataModel InitMission(MissionTypeEnum missionType)
+        public MissionDataModel InitMission(MissionTypeEnum missionType, MissionState state)
         {
             // 
             var mission = new MissionDataModel(missionType);
@@ -65,24 +69,30 @@ namespace QFramework.System
                 mission.StepList.Add(new BindableProperty<int>(0));  // 初始化任务进度
             }
 
+            mission.MissionState.Value = state;
+
             return mission;
         }
 
+        /// <summary>
+        /// 判断前置任务是否全部完成
+        /// </summary>
         public bool IsPreMissionFinished()
         {
-            bool isAllFinished = true;
             foreach(var mission in PrerequiredMissions)
             {
                 if(mission.MissionState.Value != MissionState.Completed)
                 {
-                    isAllFinished = false;
-                    break;
+                    return false;
                 }
             }
-            return isAllFinished;
+
+            PrimaryMission.MissionState.Value = MissionState.InProgress;
+
+            return true;
         }
 
-        public void AddMissionProgress(MissionDataModel mission, int value)
+        public void AddProgress(MissionDataModel mission, int value)
         {
             if(mission.MissionState.Value == MissionState.Completed)
             {
@@ -102,10 +112,30 @@ namespace QFramework.System
                 mission.StepIndex.Value++;
             }
 
+            // 如果当前任务阶段索引大于等于配置中的总阶段数，则任务完成
             if(mission.StepIndex.Value > mission.MissionConfig.MissionSteps.Length - 1)
             {
                 mission.MissionState.Value = MissionState.Completed;
             }
+
+            // 判断前置任务是否全部完成
+            IsPreMissionFinished();
+        }
+
+        /// <summary>
+        /// 通过Id返回前置任务
+        /// </summary>
+        public MissionDataModel GetPreByIndex(int index)
+        {
+            foreach(var mission in PrerequiredMissions)
+            {
+                if(mission.InstanceId.Value == index)
+                {
+                    return mission;
+                }
+            }
+
+            return null;
         }
     }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using QFramework.Command;
 using QFramework.Model;
 using QFramework.System;
+using QFramework.UtilityKit;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,10 +21,11 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
+            // 初始化主要任务和前置任务
             InitPrimaryItem();
-            // InitPreItem();
+            InitPreItem();
 
-            
+            // 刷新布局
             StartCoroutine(RefreshLayOut());
         }
 
@@ -31,31 +33,43 @@ namespace QFramework.ViewController.UI
         {
             if(Input.GetKeyDown(KeyCode.Space))
             {
-                this.SendCommand(new MissionCommand.Add(1));
+                this.SendCommand(new MissionCommand.AddPri(1));
+            }
+
+            if(Input.GetKeyDown(KeyCode.R))
+            {
+                this.SendCommand(new MissionCommand.AddPre(0, 1));
+            }
+
+            if(Input.GetKeyDown(KeyCode.T))
+            {
+                this.SendCommand(new MissionCommand.AddPre(1, 1));
             }
         }
 
         IEnumerator RefreshLayOut()
         {
             yield return null;
-            LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
+            UITool.ForceRebuildFormRoot(transform as RectTransform);
         }
 
-        private void RegisterMissionEvent(MissionDataModel mission )
+        private void RegisterMissionEvent(MissionItem item, MissionDataModel mission)
         {
-            mission.StepIndex.Register(value => UpdateInfo(_primaryMissionItem, mission));
+            // 任务【阶段索引】变化事件
+            mission.StepIndex.Register(value => UpdateInfo(item, mission));
+
+            // 任务【阶段进度】变化事件
             foreach(var step in mission.StepList)
             {
-                step.Register(value => UpdateInfo(_primaryMissionItem, mission));
+                step.Register(value => UpdateInfo(item, mission));
             }
 
-            mission.MissionState.Register(value => 
-            {
-                if(value == MissionState.Completed)
-                {
-                    UpdateFinishedInfo(_primaryMissionItem);
-                }
-            });
+            // 任务状态变化事件
+            mission.MissionState.Register(value => UpdateByState(item, value));
+
+            // ----- 初始化更新一次任务信息 -------------------------
+            UpdateInfo(item, mission);
+            UpdateByState(item, mission.MissionState.Value);
         }
 
         private void InitPrimaryItem()
@@ -67,8 +81,7 @@ namespace QFramework.ViewController.UI
             var mission = MissionSystem.PrimaryMission;
 
             // ----- 注册与初始化任务事件 -------------------------
-            RegisterMissionEvent(mission);
-            UpdateInfo(_primaryMissionItem, mission);
+            RegisterMissionEvent(_primaryMissionItem, mission);
         }
 
         public void InitPreItem()
@@ -85,8 +98,7 @@ namespace QFramework.ViewController.UI
                 var mission = MissionSystem.PrerequiredMissions[i];
 
                 // ----- 注册与初始化任务事件 -------------------------
-                RegisterMissionEvent(mission);
-                UpdateInfo(_preMissionItems[i], mission);
+                RegisterMissionEvent(_preMissionItems[i], mission);
             }
         }
 
@@ -115,17 +127,35 @@ namespace QFramework.ViewController.UI
                 // 获取当前进度
                 var curProgress = mission.StepList[i].Value;
 
-                item.TipText.text += $"{tip} ({curProgress}/{progress})\n";
+                item.TipText.text += $"{tip} ({curProgress}/{progress})";
 
-                
+                if(i + 1 <= mission.StepIndex.Value)
+                {
+                    item.TipText.text += "\n";
+                }
             }
 
             StartCoroutine(RefreshLayOut());
-        }      
+        } 
 
-        private void UpdateFinishedInfo(MissionItem item)
+
+
+        private void UpdateByState(MissionItem item, MissionState state)
         {
-            item.TipText.text = "已完成";
+            if(state == MissionState.Completed)
+            {
+                item.TipText.text = "已完成";
+            }
+            else if(state == MissionState.InProgress)
+            {
+                item.TipText.transform.parent.gameObject.SetActive(true);
+            }
+            else if(state == MissionState.NotStarted)
+            {
+                item.TipText.transform.parent.gameObject.SetActive(false);
+            }
+
+            StartCoroutine(RefreshLayOut());
         }  
     }
 

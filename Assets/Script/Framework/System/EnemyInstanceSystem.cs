@@ -11,6 +11,7 @@ namespace QFramework.System
         public int AddEnemy(EnemyTypeEnum enemyEnum);
 
         public void DamageEnemy(int id, int damage);
+        public EnemeyDataModel GetData(int id);
     }
 
     public class EnemyInstanceSystem : AbstractSystem, IEnemyInstanceSystem
@@ -45,6 +46,11 @@ namespace QFramework.System
         public void DamageEnemy(int id, int damage)
         {
             _enemyDataCache[id].CurrentHealth.Value -= damage;
+        }
+
+        public EnemeyDataModel GetData(int id)
+        {
+            return _enemyDataCache[id];
         }
     }
 

@@ -22,7 +22,8 @@ namespace Framework.ViewController.UI
             {
                 case CursorType.Normal:
                     Vector2 hotSpot = new Vector2(_normalCursor.width / 2, _normalCursor.height / 2);
-                    Cursor.SetCursor(_normalCursor, hotSpot, CursorMode.Auto);
+                    // Cursor.SetCursor(_normalCursor, hotSpot, CursorMode.Auto);
+                    Cursor.visible = false;
                     break;
             }
         }

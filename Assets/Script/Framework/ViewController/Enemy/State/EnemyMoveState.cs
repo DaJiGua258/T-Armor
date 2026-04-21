@@ -19,23 +19,20 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
-            PickRandomTarget();
+            
+
+
         }
 
         public override void OnUpdate()
         {
-            if (Entity.IsPlayerInRange(Entity.DetectionRange))
-            {
-                FSM.ChangeState<EnemyAttackState>();
-                return;
-            }
-
-            MoveToTarget();
-
-            if (Vector2.Distance(Entity.transform.position, _targetPos) < _arrivedThreshold)
+            // 追逐过程中，超出范围返回待机状态
+            if(!Entity.IsTargetInRange(Entity.DetectionRange))
             {
                 FSM.ChangeState<EnemyIdleState>();
             }
+
+            Entity.MoveToward();
         }
 
         public override void OnExit()
@@ -43,17 +40,5 @@ namespace QFramework.ViewController.Enemy
             Entity.StopMovement();
         }
 
-        private void PickRandomTarget()
-        {
-            Vector2 origin = Entity.transform.position;
-            Vector2 offset = Random.insideUnitCircle * _patrolRadius;
-            _targetPos = origin + offset;
-        }
-
-        private void MoveToTarget()
-        {
-            Vector2 dir = (_targetPos - (Vector2)Entity.transform.position).normalized;
-            Entity.MoveToward(dir);
-        }
     }
 }

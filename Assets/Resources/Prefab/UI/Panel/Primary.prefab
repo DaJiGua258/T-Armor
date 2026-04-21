@@ -324,7 +324,7 @@ GameObject:
   - component: {fileID: 2232467989940165988}
   - component: {fileID: 1940056171570661142}
   - component: {fileID: 7095244365106644351}
-  - component: {fileID: 8695005045719362288}
+  - component: {fileID: 3616997302151906777}
   m_Layer: 5
   m_Name: Txt
   m_TagString: Untagged
@@ -393,7 +393,7 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "\u6D4B\u8BD5\u6D4B\u8BD5\u6D4B\u8BD5\u6D4B\u8BD5\u6D4B\u8BD5"
---- !u!114 &8695005045719362288
+--- !u!114 &3616997302151906777
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -18,25 +18,24 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
-            _idleDuration = Random.Range(1f, 3f);
+            _idleDuration = 2f;
             _idleTimer = 0f;
-
-            Entity.StopMovement();
         }
 
         public override void OnUpdate()
         {
-            if (Entity.IsPlayerInRange(Entity.DetectionRange))
-            {
-                FSM.ChangeState<EnemyAttackState>();
-                return;
-            }
-
             _idleTimer += Time.deltaTime;
-            if (_idleTimer >= _idleDuration)
+            if(_idleTimer < _idleDuration) return;
+
+            // ----- 冷却时间结束后执行 -------------------------
+
+            if(Entity.IsTargetInRange(Entity.DetectionRange))
             {
                 FSM.ChangeState<EnemyMoveState>();
             }
+
+            _idleDuration = 2f;
         }
+
     }
 }

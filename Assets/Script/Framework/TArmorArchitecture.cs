@@ -21,6 +21,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterSystem<IWeaponInstanceSystem>(new WeaponInstanceSystem());
         RegisterSystem<IPickUpItemInstanceSystem>(new PickUpItemInstanceSystem());
         RegisterSystem<IInvenotrySystem>(new InvenotrySystem());
+        RegisterSystem<IMissionSystem>(new MissionSystem());
 
         // 玩家系统（引用武器，改装槽系统）
         RegisterSystem<IPlayerSystem>(new PlayerSystem());

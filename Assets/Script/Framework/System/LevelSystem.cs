@@ -6,6 +6,7 @@ using System;
 using UnityEngine;
 using QFramework.Enum;
 using QFramework;
+using QFramework.UtilityKit;
 
 namespace QFramework.System
 {
@@ -20,30 +21,28 @@ namespace QFramework.System
 
     public class LevelSystem : AbstractSystem, ILevelSystem
     {
-        private IMissionConfigModel _missionConfigModel => this.GetModel<IMissionConfigModel>();
-        // 已经通过的关卡缓存
+        private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
+        // ----- 已经通过的关卡缓存 -------------------------
         public List<LevelDataModel> LevelDataCache { get; private set; } = new List<LevelDataModel>();
-        public LevelDataModel LoadedLevelData { get; private set; }  // 当前已加载的【关卡数据】
 
-        public List<LevelMissionDataModel> MissionDataCache { get; private set; } = new List<LevelMissionDataModel>()
-        {
-            new LevelMissionDataModel(
-                "Level_1",  // 关卡名称
-                "Level_1 Description",  // 关卡描述
-                MissionTypeEnum.Mission_1,  // 主要任务
-                new List<MissionTypeEnum>() { MissionTypeEnum.Mission_2, MissionTypeEnum.Mission_3 }  // 前置任务
-            ),
-        };
+        // ----- 当前选中的关卡数据 -------------------------
+        public LevelDataModel LoadedLevelData { get; private set; }
+
+        
 
 
         protected override void OnInit()
         {
             LoadedLevelData = new LevelDataModel();
+            _missionSystem.InitMission(LoadedLevelData.LevelMissionType);
         }
 
         public void AddLoadLevel()
         {
             LevelDataCache.Add(LoadedLevelData);
+
+            // 加入关卡后，才进行真正的数据加载
+            _missionSystem.InitMission(LoadedLevelData.LevelMissionType);
         }
 
     
@@ -56,78 +55,27 @@ namespace QFramework.System
             LoadedLevelData.EnvironmentData.plantLevelType = nodeData.environmentData.plantLevelType;
             LoadedLevelData.EnvironmentData.SurfaceNormal = nodeData.environmentData.SurfaceNormal;
 
+            // 通过种子获取关卡任务类型
+            LevelMissionTypeEnum levelMissionType = (LevelMissionTypeEnum)SeedRandom
+                .Range(1, global::System.Enum.GetNames(typeof(LevelMissionTypeEnum)).Length);
+
             this.SendEvent<UpdateMapInfo>(new UpdateMapInfo());
         }
-
-        public void InitLevelMission()
-        {
-            var levelMission = LoadedLevelData.LevelMissionData;
-            
-            levelMission.PrimaryMission = 
-                new MissionDataModel(_missionConfigModel.GetConfig(levelMission.PrimaryMissionType));
-
-
-            foreach(var missionType in levelMission.PrerequiredMissionTypes)
-            {
-                levelMission.PrerequiredMissions.Add(
-                    new MissionDataModel(_missionConfigModel.GetConfig(missionType))
-                );
-            }
-
-        }
-
     }   
 
     public class LevelDataModel
     {
-        public BindableProperty<int> seed = new BindableProperty<int>();  // 地图种子
-        public EnvironmentData EnvironmentData = new EnvironmentData();
-        public LevelMissionDataModel LevelMissionData;  // 关卡任务数据
-
-        /// <summary>
-        /// 前置任务是否全部完成
-        /// </summary>
-        public bool IsPreMissionFinished()
-        {
-            bool isAllFinished = true;
-            foreach(var mission in LevelMissionData.PrerequiredMissions)
-            {
-                if(mission.MissionState != MissionState.Completed)
-                {
-                    isAllFinished = false;
-                    break;
-                }
-            }
-            return isAllFinished;
-        }
-
-        
-    }
-
-    public class LevelMissionDataModel
-    {
+        // ----- 关卡信息 -------------------------
         public string LevelName;  // 关卡名称
         public string LevelDescription;  // 关卡描述
+        public LevelMissionTypeEnum LevelMissionType = LevelMissionTypeEnum.None;  // 关卡任务类型
 
-        public MissionTypeEnum PrimaryMissionType;
-        public MissionDataModel PrimaryMission;  // 主要任务
-        
-        public List<MissionTypeEnum> PrerequiredMissionTypes = new();
-        public List<MissionDataModel> PrerequiredMissions = new();  // 前置任务列表
-
-        public LevelMissionDataModel(
-            string levelName,
-            string levelDescription,
-            MissionTypeEnum primaryMissionType,
-            List<MissionTypeEnum> prerequiredMissionTypes
-        )
-        {
-            LevelName = levelName;
-            LevelDescription = levelDescription;
-            PrimaryMissionType = primaryMissionType;
-            PrerequiredMissionTypes = prerequiredMissionTypes;
-        }
+        // ----- 地图信息 -------------------------
+        public BindableProperty<int> seed = new BindableProperty<int>();  // 地图种子
+        public EnvironmentData EnvironmentData = new EnvironmentData();
     }
+
+    
 
     [Serializable]
     public class EnvironmentData
@@ -138,41 +86,7 @@ namespace QFramework.System
         public PlantLevelType plantLevelType;
     }
 
-    /// <summary>
-    /// 单个任务运行时数据
-    /// </summary>
-    public class MissionDataModel : InstanceType
-    {
-        // ----- 运行时数据 -------------------------
-        private static int _missionCounter = 0;
-        public MissionTypeEnum MissionType;
-        public MissionState MissionState;  // 当前任务状态
-
-
-        // ----- 只读的任务信息 -------------------------
-        public Sprite MissionIcon;
-        public string MissionName;  // 任务名称
-        public string[] TipText;  // 任务提示文本
-        public string MissionDescription;  // 任务描述
-
-        // 任务实例对象（生成玩家可交互的游戏物体，如建筑等）
-        public GameObject MissionInstanceObject;
-
-
-        public MissionDataModel(MissionConfig missionConfig)
-        {
-            this.InstanceId.Value = GetInstanceId((int)MissionType, _missionCounter);
-            _missionCounter++;
-
-            MissionType = missionConfig.MissionType;
-            MissionIcon = missionConfig.MissionIcon;
-            MissionName = missionConfig.MissionName;
-            TipText = missionConfig.TipText;
-            MissionDescription = missionConfig.MissionDescription;
-            MissionInstanceObject = missionConfig.MissionInstanceObject;
-            MissionState = MissionState.NotStarted;
-        }
-    }
+    
         
 
 }

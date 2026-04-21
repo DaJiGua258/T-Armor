@@ -65,5 +65,12 @@ namespace QFramework.Enum
         Mission_5,
     }
 
+        public enum LevelMissionTypeEnum
+    {
+        None,
+        LevelMission_1,
+        LevelMission_2,
+    }
+
 
 }

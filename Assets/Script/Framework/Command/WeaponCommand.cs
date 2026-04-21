@@ -71,14 +71,16 @@ namespace QFramework.Command
                 _weaponData.WeaponState = WeaponStateEnum.Reloading;
 
                 int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
-                    int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);
+                int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);
 
-                    _weaponData.CurMaxAmmo.Value -= reloadCount;
-                    _weaponData.CurMagazine.Value += reloadCount;
+                    
+                _weaponData.CurMaxAmmo.Value -= reloadCount;  // 触发换弹UI更新
+                    
 
                 this.GetUtility<ITimerUtility>().AddOnce(() =>
                 {
                     _weaponData.WeaponState = WeaponStateEnum.Idle;
+                    _weaponData.CurMagazine.Value += reloadCount;  // 触发弹药数UI更新
                 },
                 _weaponData.ReloadTime
                 );

@@ -47,7 +47,7 @@ namespace QFramework.System
     
         public PlayerWeapon()
         {
-            UnityEngine.Debug.Log("PlayerWeapon Constructor");
+
         }
     }
 }

@@ -28,7 +28,7 @@ namespace QFramework.ViewController.UI
         public IInvenotrySystem InvenotrySystem => this.GetSystem<IInvenotrySystem>();
         public IPlayerSystem PlayerSystem => this.GetSystem<IPlayerSystem>();
         public ILevelSystem LevelSystem => this.GetSystem<ILevelSystem>();
-
+        public IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
         // ----- Utility -------------------------
         public IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();
         public IInputUtility InputUtility => this.GetUtility<IInputUtility>();

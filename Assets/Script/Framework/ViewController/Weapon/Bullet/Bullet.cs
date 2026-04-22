@@ -6,6 +6,8 @@ using UnityEngine;
 using QFramework.Utility;
 using QFramework.ViewController.Enemy;
 using Unity.VisualScripting;
+using QFramework.Command;
+using QFramework.Event;
 
 namespace QFramework.ViewController.Player
 {
@@ -18,17 +20,18 @@ namespace QFramework.ViewController.Player
         [SerializeField] private Transform _bulletMesh;
         [SerializeField] private GameObject _pf_bulletExplosionVFX;
         private bool _hasExploded;
-
+        private int _damage;
         void FixedUpdate()
         {
             DetectByRay();
         }
 
-        public void InitBullet(Vector3 direction, int bulletSpeed)
+        public void InitBullet(Vector3 direction, int bulletSpeed, int damage)
         {
             _rb.velocity = direction.normalized * bulletSpeed;
             _hasExploded = false;
             _bulletMesh.gameObject.SetActive(true);
+            _damage = damage;
         }
 
 
@@ -57,6 +60,14 @@ namespace QFramework.ViewController.Player
                 else if (hit.collider.gameObject.CompareTag("Enemy"))
                 {
                     BulletExplosion();
+                    int enemyId = hit.collider.TryGetComponent<EnemyController>(out var enemy) ? enemy.enemyId : -1;
+                    if(enemy != null)
+                    {
+                        enemy.SetDeathObjectPos(transform.position);
+                    }
+
+                    this.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, _damage));
+                    TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
                 }
             }
         }

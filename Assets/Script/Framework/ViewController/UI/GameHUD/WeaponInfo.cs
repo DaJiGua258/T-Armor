@@ -13,8 +13,8 @@ namespace QFramework.ViewController.UI
     {
         
         private RectTransform _rectTransform;
-        [SerializeField] private WeaponInfoItem leftWeaponInfo;
-        [SerializeField] private WeaponInfoItem rightWeaponInfo;
+        [SerializeField] private InfoItemSlider leftWeaponInfo;
+        [SerializeField] private InfoItemSlider rightWeaponInfo;
         private WeaponDataModel _leftData;
         private WeaponDataModel _rightData;
         private bool _leftReloadingLastFrame;
@@ -106,7 +106,7 @@ namespace QFramework.ViewController.UI
             UpdateWeaponInfo(rightWeaponInfo, _rightData);
         }
 
-        private void UpdateWeaponInfo(WeaponInfoItem info, WeaponDataModel data)
+        private void UpdateWeaponInfo(InfoItemSlider info, WeaponDataModel data)
         {
             info.Txt.text = (data.CurMaxAmmo.Value + data.CurMagazine.Value).ToString();
             info.Img.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
@@ -114,7 +114,7 @@ namespace QFramework.ViewController.UI
             // TouchWeaponInfoVisibility(info);
         }
 
-        private void UpdateReloadTime(WeaponInfoItem info, WeaponDataModel data)
+        private void UpdateReloadTime(InfoItemSlider info, WeaponDataModel data)
         {
             info.Txt.text = "装填";
             info.Img.fillAmount = 0f;
@@ -123,7 +123,7 @@ namespace QFramework.ViewController.UI
                 .Restart();
         }
 
-        private void TouchWeaponInfoVisibility(WeaponInfoItem info)
+        private void TouchWeaponInfoVisibility(InfoItemSlider info)
         {
             // 每次触发都重置“2秒后淡出”
             if (info.HideDelayTween != null && info.HideDelayTween.IsActive())
@@ -151,7 +151,7 @@ namespace QFramework.ViewController.UI
     }
 
         [Serializable]
-    public class WeaponInfoItem
+    public class InfoItemSlider
     {
         public Image Img;
         public Text Txt;

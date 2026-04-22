@@ -1,5 +1,6 @@
 using System.Collections;
 using QFramework;
+using QFramework.Event;
 using QFramework.Model;
 using QFramework.System;
 using QFramework.ViewController.Player;
@@ -33,8 +34,10 @@ public class Debugers : MonoBehaviour, IController
     IEnumerator Init()
     {
         yield return new WaitForSeconds(2f);
-         _playerController = GameObject.FindAnyObjectByType<PlayerController>().GetComponent<PlayerController>();
-         _isInit = true;
+        _playerController = GameObject.FindAnyObjectByType<PlayerController>().GetComponent<PlayerController>();
+        _isInit = true;
+
+        TypeEventSystem.Global.Register<DebugEvent.GetEnemyId>(e => GetEnemyId(e.Id));
     }
 
 
@@ -67,5 +70,10 @@ public class Debugers : MonoBehaviour, IController
         }
 
         _text.text = info;
+    }
+
+    private void GetEnemyId(int id)
+    {
+        _enemyId = id;
     }
 }

@@ -27,6 +27,10 @@ namespace QFramework.Event
         }
     }
 
+    
+    /// <summary>
+    /// 获取瞄准框位置事件
+    /// </summary>
     public struct GetAimFramePos
     {
         public Vector2 Pos;

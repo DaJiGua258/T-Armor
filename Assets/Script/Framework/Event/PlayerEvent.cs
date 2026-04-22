@@ -4,9 +4,7 @@ namespace QFramework.Event
 {
     public class PlayerEvent
     {
-        /// <summary>
-        /// 注册事件：更新目标世界空间位置
-        /// </summary>
+        /// <summary> 玩家目标位置事件 /// </summary>
         public struct UpdateTarget
         {
             public Vector2 Target;

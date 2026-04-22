@@ -36,21 +36,23 @@ namespace QFramework.Command
         public class Damage : AbstractCommand
         {
             private IEnemyInstanceSystem _enemeyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
-            
+            public static Damage Instance = new();
             private int _id;
             private int _damage;
             
+            private Damage() { }
 
-            public Damage(int id, int damage)
+            public Damage Init(int id, int damage)
             {
                 _id = id;
                 _damage = damage;
+
+                return this;
             }
 
             protected override void OnExecute()
             {
                 _enemeyInstanceSystem.DamageEnemy(_id, _damage);
-                Debug.Log("敌人受到伤害：" + _damage);
             }
         }
 

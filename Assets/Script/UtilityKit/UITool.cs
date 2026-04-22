@@ -43,5 +43,14 @@ namespace QFramework.UtilityKit
                 out Vector2 localPoint);
             return localPoint;
         }
+
+        public static float GetCanvasLength(float worldLength, Camera cam, Canvas canvas)
+        {
+            // 计算屏幕高度对应的像素与世界单位的比例
+            float pixelsPerUnit = Screen.height / (2f * cam.orthographicSize);
+            
+            // 转换为像素长度，再转换回 Canvas 单位
+            return (worldLength * pixelsPerUnit) / canvas.scaleFactor;
+        }
     }
 }

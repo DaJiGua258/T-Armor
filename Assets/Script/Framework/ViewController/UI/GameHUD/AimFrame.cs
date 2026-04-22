@@ -14,7 +14,7 @@ namespace QFramework.ViewController.UI
         [Header("UI 设置")]
         private RectTransform _rectTransform;
         [SerializeField] private float _frameScale = 1.2f;
-        [SerializeField] private Vector2 _defaultFrameSize = new Vector2(100, 100);
+        [SerializeField] private Vector2 _defaultFrameSize = new Vector2(200, 200);
 
         [Header("检测设置")]
         [SerializeField] private float _aimRadius = 2f;      // 圆形探测的半径
@@ -48,12 +48,13 @@ namespace QFramework.ViewController.UI
             Vector2 mouseWorldPos = InputUtility.GetMousePos();
             
             // 执行圆形投射
-            int count = Physics2D.CircleCastNonAlloc(
+            int count = Physics2D.BoxCastNonAlloc(
                 mouseWorldPos,
-                _aimRadius,
-                _castDirection,
+                new Vector2(_aimRadius, _aimRadius),
+                0,
+                Vector2.zero,
                 _raycastResults,
-                _castDistance,
+                0,
                 _layerMask
             );
 
@@ -89,7 +90,8 @@ namespace QFramework.ViewController.UI
             {
                 // 没目标时，跟随鼠标，恢复默认大小
                 _rectTransform.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
-                _rectTransform.sizeDelta = _defaultFrameSize;
+                float length = UITool.GetCanvasLength(_aimRadius, Camera.main, UIManager.Instance.Canvas);
+                _rectTransform.sizeDelta = new Vector2(length, length);
                 return;
             }
 
@@ -107,30 +109,31 @@ namespace QFramework.ViewController.UI
         /// </summary>
         private void SendEvent()
         {
-            Vector2 targetPos = 
-                (_targetCollider != null) 
+            Vector2 targetPos = (_targetCollider != null) 
                 ? (Vector2)_targetCollider.transform.position 
                 : InputUtility.GetMousePos();
 
-            TypeEventSystem.Global.Send(new PlayerEvent.UpdateTarget() 
-            { 
-                Target = targetPos 
-            });
-
-            if(_targetCollider == null)
-            {
-                TypeEventSystem.Global.Send(new GetAimFramePos() 
-                { 
-                    Pos = _rectTransform.anchoredPosition
-                });
-            }
-            else
+            // 目标存在时，执行返回目标世界空间的事件
+            if(_targetCollider != null) 
             {
                 TypeEventSystem.Global.Send(new GetAimFramePos()
                 {
                     Pos = UITool.WorldToCanvasPoint(UIManager.Instance.Canvas.transform as RectTransform, targetPos)
                 });
             }
+            else  // 目标不存在时，执行返回瞄准框的事件
+            {
+                TypeEventSystem.Global.Send(new GetAimFramePos() 
+                { 
+                    Pos = _rectTransform.anchoredPosition
+                });
+            }
+
+            // 执行【返回目标世界空间位置到玩家控制器】事件
+            TypeEventSystem.Global.Send(new PlayerEvent.UpdateTarget() 
+            { 
+                Target = targetPos 
+            });
         }
 
         /// <summary>
@@ -141,23 +144,7 @@ namespace QFramework.ViewController.UI
             Vector2 origin = InputUtility.GetMousePos();
             Gizmos.color = (_targetCollider != null) ? Color.green : Color.red;
 
-            // 画出起始圆圈
-            Gizmos.DrawWireSphere(origin, _aimRadius);
-
-            // 如果有投射距离，画出终点圆圈和连线
-            if (_castDistance > 0.01f)
-            {
-                Vector2 endPos = origin + _castDirection.normalized * _castDistance;
-                Gizmos.DrawLine(origin, endPos);
-                Gizmos.DrawWireSphere(endPos, _aimRadius);
-            }
-            
-            // 如果选中了目标，画一条线指向目标中心
-            if (_targetCollider != null)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(origin, _targetCollider.transform.position);
-            }
+            Gizmos.DrawWireCube(origin, new Vector2(_aimRadius, _aimRadius));
         }
     }
 }

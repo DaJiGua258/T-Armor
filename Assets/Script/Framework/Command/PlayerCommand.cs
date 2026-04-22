@@ -27,8 +27,6 @@ namespace QFramework.Command
             }
         }
 
-        
-
         public class Heal : AbstractCommand
         {
             private IPlayerModel _playerModel => this.GetModel<IPlayerModel>();

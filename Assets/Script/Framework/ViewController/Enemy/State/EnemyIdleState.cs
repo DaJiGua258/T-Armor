@@ -18,7 +18,7 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
-            _idleDuration = 2f;
+            _idleDuration = 1f;
             _idleTimer = 0f;
         }
 
@@ -29,12 +29,15 @@ namespace QFramework.ViewController.Enemy
 
             // ----- 冷却时间结束后执行 -------------------------
 
-            if(Entity.IsTargetInRange(Entity.DetectionRange))
+            if(Entity.IsInDetectRange())
             {
                 FSM.ChangeState<EnemyMoveState>();
             }
 
-            _idleDuration = 2f;
+            if(Entity.IsInAttackMaxRange())
+            {
+                FSM.ChangeState<EnemyAttackState>();
+            }
         }
 
     }

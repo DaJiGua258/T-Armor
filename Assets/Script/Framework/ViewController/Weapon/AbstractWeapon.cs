@@ -115,7 +115,7 @@ namespace QFramework.ViewController.Player
             _vfxShooting.Play();
 
             Bullet bulletComponent = bullet.GetComponent<Bullet>();
-            bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed);
+            bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed, _weaponDataModel.BulletDamage);
         }
     }
 }

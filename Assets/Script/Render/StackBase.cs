@@ -5,7 +5,7 @@ public enum HeightLevel { Ground = 0, LowAir = 1, HighAir = 2 }
 
 public class StackBase : StackingCore
 {
-    [Header("障碍物参数")]
+    [Header("缩放参数")]
     public bool  CanSetScale;
     public float SizeMultiplier = 1f;
     public float SizeHeight     = 1f;

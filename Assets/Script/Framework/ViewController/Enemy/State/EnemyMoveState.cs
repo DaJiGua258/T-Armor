@@ -10,29 +10,30 @@ namespace QFramework.ViewController.Enemy
     /// </summary>
     public class EnemyMoveState : AbstractState<EnemyController>
     {
-        private Vector2 _targetPos;
         private float _arrivedThreshold = 0.2f;
         private float _patrolRadius = 5f;
+        private float _curAttackRange = 1;
 
         public EnemyMoveState(EnemyController owner, StateMachine<EnemyController> fsm)
             : base(owner, fsm) { }
 
         public override void OnEnter()
         {
-            
-
-
+            // ----- 随机生成攻击范围 -------------------------
+            _curAttackRange = Random.Range((float)Entity.AttackMinRange, (float)Entity.AttackMaxRange);
         }
 
         public override void OnUpdate()
         {
             // 追逐过程中，超出范围返回待机状态
-            if(!Entity.IsTargetInRange(Entity.DetectionRange))
-            {
+            if(!Entity.IsInDetectRange()) 
                 FSM.ChangeState<EnemyIdleState>();
-            }
 
-            Entity.MoveToward();
+            if(Entity.IsInSpecifiedRange(_curAttackRange)) 
+                FSM.ChangeState<EnemyAttackState>();
+  
+
+            Entity.MoveToward(Entity.Target.position);
         }
 
         public override void OnExit()

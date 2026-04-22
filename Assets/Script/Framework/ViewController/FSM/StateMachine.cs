@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace QFramework.ViewController.FSM
 {
@@ -61,7 +62,11 @@ namespace QFramework.ViewController.FSM
 
             if (_currentStateType == t) return;
 
-            if (!_states.TryGetValue(t, out var next)) return;
+            if (!_states.TryGetValue(t, out var next)) 
+            {
+                Debug.LogError($"[FSM] 状态 {t.Name} 尚未注册，请先调用 AddState。");
+                return;
+            }
 
             if (!next.OnCondition()) return;
 

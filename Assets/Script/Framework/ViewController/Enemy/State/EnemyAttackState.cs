@@ -10,6 +10,7 @@ namespace QFramework.ViewController.Enemy
     /// </summary>
     public class EnemyAttackState : AbstractState<EnemyController>
     {
+        private float _curAttackRange = 1;
         private float _attackCooldown = 1.5f;
         private float _attackTimer;
 
@@ -19,25 +20,29 @@ namespace QFramework.ViewController.Enemy
         /// <summary>仅当玩家在攻击范围内时才允许进入攻击状态。</summary>
         public override bool OnCondition()
         {
-            return Entity.IsTargetInRange(Entity.AttackRange);
+            return Entity.IsInAttackMaxRange();
         }
 
         public override void OnEnter()
         {
-            if(!Entity.IsTargetInRange(Entity.AttackRange))
-            {
-                FSM.ChangeState<EnemyMoveState>();
-            }
-
-            _attackTimer += Time.deltaTime;
-            if(_attackTimer < _attackCooldown) return;
-            
             
         }
 
         public override void OnUpdate()
         {
+            // ----- 如果不在攻击范围内，则返回待机状态 -------------------------
+            if(!Entity.IsInAttackMaxRange()) 
+                FSM.ChangeState<EnemyIdleState>();
 
+            // ----- 攻击 -------------------------
+            Entity.Rotate(Entity.Target.position);
+
+            _attackTimer += Time.deltaTime;
+            if(_attackTimer > _attackCooldown)
+            {
+                Entity.Attack();
+                _attackTimer = 0f;
+            }
         }
     }
 }

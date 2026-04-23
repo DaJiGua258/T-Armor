@@ -58,7 +58,7 @@ namespace QFramework.Enum
     public enum MissionTypeEnum
     {
         None,
-        Mission_1,
+        Pre_EnemyKill,
         Mission_2,
         Mission_3,
         Mission_4,
@@ -68,7 +68,7 @@ namespace QFramework.Enum
         public enum LevelMissionTypeEnum
     {
         None,
-        LevelMission_1,
+        LevMis_CleaArea,
         LevelMission_2,
     }
 

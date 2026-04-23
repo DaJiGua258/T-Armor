@@ -6,5 +6,10 @@ namespace QFramework.Event
         {
             public int Id;
         }
+
+        public struct GetEnemyState
+        {
+            public string State;
+        }
     }
 }

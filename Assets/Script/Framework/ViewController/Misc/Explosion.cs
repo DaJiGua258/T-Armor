@@ -5,8 +5,9 @@ namespace QFramework.ViewController.Misc
 {
     public class Explosion : MonoBehaviour
     {
-        public int Radius;
+        public float Radius;
         public int Force;
+        public float Torque;
         public LayerMask LayerMask;
         public Collider2D[] Results;
 
@@ -15,11 +16,12 @@ namespace QFramework.ViewController.Misc
             AddForce();
         }
 
-        public void Init(int radius, int force)
-        {
-            Radius = radius;
-            Force = force;
-        }
+        // public void Init(int radius, int force, int torque)
+        // {
+        //     Radius = radius;
+        //     Force = force;
+        //     Torque = torque;
+        // }
 
         private void AddForce()
         {
@@ -29,7 +31,7 @@ namespace QFramework.ViewController.Misc
                 if(item.CompareTag("Enemy"))
                 {
                     item.TryGetComponent<EnemyController>(out var enemy);
-                    enemy.ForcePush(transform.position, Force);
+                    enemy.ForcePush(transform.position, Force, Torque);
                 }
             }
         }   

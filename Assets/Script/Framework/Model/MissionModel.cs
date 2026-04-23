@@ -15,16 +15,17 @@ namespace QFramework.Model
         public Dictionary<LevelMissionTypeEnum, LevelMissionConfig> LevelMissionConfigCache = new()
         {
             {
-                LevelMissionTypeEnum.LevelMission_1,  // 保存关卡信息
+                LevelMissionTypeEnum.LevMis_CleaArea,  // 保存关卡信息
                 new(
-
-                    MissionTypeEnum.Mission_1, // 主要任务
-                    new() { 
+                    new()
+                    {
+                        // 主任务（None 表示当前关卡无主任务）
+                        MissionTypeEnum.Pre_EnemyKill,
 
                         // 前置任务
-                        MissionTypeEnum.Mission_2,  
-                        MissionTypeEnum.Mission_3 
-                        }
+                        MissionTypeEnum.Pre_EnemyKill,
+                        MissionTypeEnum.Pre_EnemyKill
+                    }
                 )
             },
 
@@ -32,19 +33,29 @@ namespace QFramework.Model
 
         public Dictionary<MissionTypeEnum, MissionConfig> MissionConfigCache = new Dictionary<MissionTypeEnum, MissionConfig>()
         {
+            // 占位符
+            {
+                MissionTypeEnum.None, new MissionConfig(
+                    MissionTypeEnum.None,
+                    null,
+                    "None",
+                    new MissionStep[] { },
+                    "None",
+                    null
+                )
+            },
+            
             // 任务1
-            {MissionTypeEnum.Mission_1, new MissionConfig(
-                MissionTypeEnum.Mission_1,
-                null,
-                "Mission_1",
-                    new MissionStep[] 
-                    {
-                         new MissionStep("Mission_1_tip_1", 1), 
-                         new MissionStep("Mission_1_tip_2", 5), 
-                         new MissionStep("Mission_1_tip_3", 2) 
-                    },
-                "Mission_1_description",
-                null)},
+            {
+                MissionTypeEnum.Pre_EnemyKill, new MissionConfig(
+                    MissionTypeEnum.Pre_EnemyKill,
+                    null,
+                    "消灭敌人",
+                    new MissionStep[] { new MissionStep("在当前区域消灭敌人", 20) },
+                    "Mission_1_description",
+                    null
+                )
+            },
 
             // 任务2
             {MissionTypeEnum.Mission_2, new MissionConfig(
@@ -136,23 +147,21 @@ namespace QFramework.Model
 
     public class LevelMissionConfig
     {
-        public MissionTypeEnum PrimaryMissionType;
-        public List<MissionTypeEnum> PrerequiredMissionTypes = new();
+        public List<MissionTypeEnum> MissionTypes = new();
 
         public LevelMissionConfig(
-            MissionTypeEnum primaryMissionType,
-            List<MissionTypeEnum> prerequiredMissionTypes)
+            List<MissionTypeEnum> missionTypes)
         {
-            PrimaryMissionType = primaryMissionType;
-            PrerequiredMissionTypes = prerequiredMissionTypes;
+            MissionTypes = missionTypes;
         }
     }   
 
     public enum MissionState
     {
         None,
-        NotStarted,
-        InProgress,
+        NotStarted,  // 任务未开始（主要针对首要任务）
+        InProgress, 
+        Pause,  // 任务暂停（如未在任务范围内）
         Completed,
         Failed,
     }

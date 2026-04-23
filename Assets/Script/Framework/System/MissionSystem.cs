@@ -9,18 +9,16 @@ namespace QFramework.System
 {
     public interface IMissionSystem : ISystem
     {
-        public MissionDataModel GetPreByIndex(int index);
         public void AddProgress(MissionDataModel mission, int value);
         public void InitMission(LevelMissionTypeEnum levelMissionType);
-        public MissionDataModel PrimaryMission { get; }
-        public List<MissionDataModel> PrerequiredMissions { get; }
+        public List<MissionDataModel> Missions { get; }
     }
 
     public class MissionSystem : AbstractSystem, IMissionSystem
     {
+        private const int PrimaryMissionIndex = 0;
         private IMissionConfigModel _missionConfigModel => this.GetModel<IMissionConfigModel>();
-        public MissionDataModel PrimaryMission { get; private set; }  // 主要任务
-        public List<MissionDataModel> PrerequiredMissions { get; private set; } = new();  // 前置任务列表
+        public List<MissionDataModel> Missions { get; private set; } = new();
 
         
         protected override void OnInit()
@@ -35,30 +33,29 @@ namespace QFramework.System
         {
             if(levelMissionType == LevelMissionTypeEnum.None)
             {
-                levelMissionType = LevelMissionTypeEnum.LevelMission_1;
+                levelMissionType = LevelMissionTypeEnum.LevMis_CleaArea;
                 UnityEngine.Debug.LogWarning("LevelMissionType is None, use LevelMission_1");
             }
 
             var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
+            Missions.Clear();
 
-            // ----- 初始化主要任务 -------------------------
-            PrimaryMission = InitMission(levelConfig.PrimaryMissionType, MissionState.NotStarted);
-            PrimaryMission.MissionState.Value = MissionState.NotStarted;
-
-            // ----- 初始化前置任务 -------------------------
-            foreach(var mission in levelConfig.PrerequiredMissionTypes)
+            for(int missionIndex = 0; missionIndex < levelConfig.MissionTypes.Count; missionIndex++)
             {
-                PrerequiredMissions.Add(InitMission(mission, MissionState.InProgress));
+                var missionType = levelConfig.MissionTypes[missionIndex];
+                var initState = MissionState.NotStarted;
+                Missions.Add(InitMission(missionType, initState, missionIndex));
             }
         }
 
         /// <summary>
         /// 依据类型初始化任务
         /// </summary>
-        public MissionDataModel InitMission(MissionTypeEnum missionType, MissionState state)
+        public MissionDataModel InitMission(MissionTypeEnum missionType, MissionState state, int missionIndex)
         {
             // 
             var mission = new MissionDataModel(missionType);
+            mission.MissionIndex = missionIndex;
 
             // 引用只读数据
             mission.MissionConfig = _missionConfigModel.GetConfig(missionType);
@@ -79,24 +76,35 @@ namespace QFramework.System
         /// </summary>
         public bool IsPreMissionFinished()
         {
-            foreach(var mission in PrerequiredMissions)
+            for(int missionIndex = 1; missionIndex < Missions.Count; missionIndex++)
             {
+                var mission = Missions[missionIndex];
                 if(mission.MissionState.Value != MissionState.Completed)
                 {
                     return false;
                 }
             }
 
-            PrimaryMission.MissionState.Value = MissionState.InProgress;
+            if(Missions.Count <= PrimaryMissionIndex)
+            {
+                return false;
+            }
+
+            var priMission = Missions[PrimaryMissionIndex];
+            if(priMission.MissionType != MissionTypeEnum.None &&
+               priMission.MissionState.Value == MissionState.NotStarted)
+            {
+                priMission.MissionState.Value = MissionState.InProgress;
+            }
 
             return true;
         }
 
         public void AddProgress(MissionDataModel mission, int value)
         {
-            if(mission.MissionState.Value == MissionState.Completed)
+            if(mission.MissionState.Value == MissionState.Completed || mission.MissionState.Value == MissionState.Pause)
             {
-                UnityEngine.Debug.LogWarning("Mission is completed, cannot add progress");
+                UnityEngine.Debug.LogWarning("任务状态异常（已完成或暂停），无法添加进度");
                 return;
             }
 
@@ -122,30 +130,15 @@ namespace QFramework.System
             IsPreMissionFinished();
         }
 
-        /// <summary>
-        /// 通过Id返回前置任务
-        /// </summary>
-        public MissionDataModel GetPreByIndex(int index)
-        {
-            foreach(var mission in PrerequiredMissions)
-            {
-                if(mission.InstanceId.Value == index)
-                {
-                    return mission;
-                }
-            }
-
-            return null;
-        }
     }
 
     /// <summary>
     /// 单个任务运行时数据
     /// </summary>
-    public class MissionDataModel : InstanceType
+    public class MissionDataModel
     {
         // ----- 运行时数据 -------------------------
-        private static int _missionCounter = 0;
+        public int MissionIndex = -1;
         public MissionTypeEnum MissionType;
         public BindableProperty<MissionState> MissionState;  // 当前任务状态
         public List<BindableProperty<int>> StepList = new();  // 任务阶段进度，依据索引访问当前任务进度

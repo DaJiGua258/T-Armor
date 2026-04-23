@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using QFramework.Command;
+using QFramework.Enum;
 using QFramework.Model;
 using QFramework.System;
 using QFramework.UtilityKit;
@@ -12,6 +13,8 @@ namespace QFramework.ViewController.UI
 {
     public class MissionPanel : AbstractBasePanel
     {
+        private const int PrimaryMissionIndex = 0;
+
         [SerializeField] private GameObject _pf_priItem;
         [SerializeField] private MissionItem _primaryMissionItem;
 
@@ -31,20 +34,20 @@ namespace QFramework.ViewController.UI
 
         void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Space))
-            {
-                this.SendCommand(new MissionCommand.AddPri(1));
-            }
+            // if(Input.GetKeyDown(KeyCode.Space))
+            // {
+            //     this.SendCommand(new MissionCommand.Update(0, 1));
+            // }
 
-            if(Input.GetKeyDown(KeyCode.R))
-            {
-                this.SendCommand(new MissionCommand.AddPre(0, 1));
-            }
+            // if(Input.GetKeyDown(KeyCode.R))
+            // {
+            //     this.SendCommand(new MissionCommand.Update(1, 1));
+            // }
 
-            if(Input.GetKeyDown(KeyCode.T))
-            {
-                this.SendCommand(new MissionCommand.AddPre(1, 1));
-            }
+            // if(Input.GetKeyDown(KeyCode.T))
+            // {
+            //     this.SendCommand(new MissionCommand.Update(2, 1));
+            // }
         }
 
         IEnumerator RefreshLayOut()
@@ -65,20 +68,31 @@ namespace QFramework.ViewController.UI
             }
 
             // 任务状态变化事件
-            mission.MissionState.Register(value => UpdateByState(item, value));
+            mission.MissionState.Register(value => UpdateByState(item, value, mission));
 
             // ----- 初始化更新一次任务信息 -------------------------
             UpdateInfo(item, mission);
-            UpdateByState(item, mission.MissionState.Value);
+            UpdateByState(item, mission.MissionState.Value, mission);
         }
 
         private void InitPrimaryItem()
         {
+            if(MissionSystem.Missions.Count <= PrimaryMissionIndex)
+            {
+                return;
+            }
+
+            var priMission = MissionSystem.Missions[PrimaryMissionIndex];
+            if(priMission.MissionType == MissionTypeEnum.None)
+            {
+                return;
+            }
+
             var missionObj = Instantiate(_pf_priItem, transform);
 
 
             _primaryMissionItem = new MissionItem(missionObj.transform);
-            var mission = MissionSystem.PrimaryMission;
+            var mission = priMission;
 
             // ----- 注册与初始化任务事件 -------------------------
             RegisterMissionEvent(_primaryMissionItem, mission);
@@ -86,19 +100,23 @@ namespace QFramework.ViewController.UI
 
         public void InitPreItem()
         {
-            // 统计前置任务数量
-            int preCount = MissionSystem.PrerequiredMissions.Count;
+            int missionCount = MissionSystem.Missions.Count;
 
             // 遍历初始化前置任务
-            for(int i = 0; i < preCount; i++)
+            for(int missionIndex = 1; missionIndex < missionCount; missionIndex++)
             {
+                var mission = MissionSystem.Missions[missionIndex];
+                if(mission.MissionType == MissionTypeEnum.None)
+                {
+                    continue;
+                }
+
                 var missionObj = Instantiate(_pf_preItem, transform);
-                _preMissionItems.Add(new MissionItem(missionObj.transform));
-                
-                var mission = MissionSystem.PrerequiredMissions[i];
+                var preItem = new MissionItem(missionObj.transform);
+                _preMissionItems.Add(preItem);
 
                 // ----- 注册与初始化任务事件 -------------------------
-                RegisterMissionEvent(_preMissionItems[i], mission);
+                RegisterMissionEvent(preItem, mission);
             }
         }
 
@@ -140,7 +158,7 @@ namespace QFramework.ViewController.UI
 
 
 
-        private void UpdateByState(MissionItem item, MissionState state)
+        private void UpdateByState(MissionItem item, MissionState state, MissionDataModel mission)
         {
             if(state == MissionState.Completed)
             {
@@ -149,10 +167,16 @@ namespace QFramework.ViewController.UI
             else if(state == MissionState.InProgress)
             {
                 item.TipText.transform.parent.gameObject.SetActive(true);
+                UpdateInfo(item, mission); // 更新任务信息，否则数据不变化，UI不刷新；
             }
             else if(state == MissionState.NotStarted)
             {
                 item.TipText.transform.parent.gameObject.SetActive(false);
+            }
+            else if(state == MissionState.Pause)
+            {
+                item.TipText.transform.parent.gameObject.SetActive(true);
+                item.TipText.text = "返回任务地点";
             }
 
             StartCoroutine(RefreshLayOut());

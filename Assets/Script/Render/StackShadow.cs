@@ -8,7 +8,6 @@ public class StackShadow : StackingCore
     public float SizeMultiplier = 1f;
 
     [Header("影子设置")]
-    public StackBase Base;
     public Vector2 ShadowOffset2D = new Vector2(0.1f, 0.1f);
 
     // 影子在同层 base 后面的偏移量
@@ -29,22 +28,17 @@ public class StackShadow : StackingCore
 
     protected override void Update()
     {
-        if (Base == null) return;
         SyncPosition();
     }
 
     private void SyncPosition()
     {
-        if (Base == null) return;
-
-        var parentPos = Base.transform.parent != null
-            ? Base.transform.parent.position
-            : Base.transform.position;
+        var hierarchyPos = GetHierarchyReferencePosition();
 
         var pos = transform.position;
-        pos.x = parentPos.x + ShadowOffset2D.x;
-        pos.y = Base.AirHeight > 0f ? parentPos.y - Base.AirHeight + ShadowOffset2D.y : parentPos.y + ShadowOffset2D.y;
-        pos.z = Base.GetZSort(Base.HeightLevelZOffset, ShadowZOffset);
+        pos.x = hierarchyPos.x + ShadowOffset2D.x;
+        pos.y = hierarchyPos.y + ShadowOffset2D.y;
+        pos.z = GetZSort(HeightLevelZOffset, ShadowZOffset, hierarchyPos.y);
         transform.position = pos;
     }
 

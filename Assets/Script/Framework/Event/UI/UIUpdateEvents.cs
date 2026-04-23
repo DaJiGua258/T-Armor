@@ -25,6 +25,9 @@ namespace QFramework.Event
         { 
             public Vector2 Pos; 
         }
+
+        // 目标更新时，触发的目标Bar更新事件
+        public struct UpdateEnemyInfo { }
     }
 
     

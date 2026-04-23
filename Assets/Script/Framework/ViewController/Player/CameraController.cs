@@ -35,9 +35,9 @@ public class CameraController : OverrideMonoSingleton<CameraController>
     {
         _target = target;
 
-        // _cameraTweener = transform.DOMove(transform.position, _followTime)
-        //                       .SetAutoKill(false)
-        //                       .SetEase(Ease.Linear);
+        _cameraTweener = transform.DOMove(transform.position, _followTime)
+                              .SetAutoKill(false)
+                              .SetEase(Ease.Linear);
     }
 
     void LateUpdate()
@@ -62,12 +62,12 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         }
 
         // 平滑过渡偏移量
-        _currentOffset = Vector3.Lerp(_currentOffset, desiredOffset, _mouseOffsetTime * Time.deltaTime);
+        // _currentOffset = Vector3.Lerp(_currentOffset, desiredOffset, _mouseOffsetTime * Time.deltaTime);
         
-        // DOTween.To(() => _currentOffset, 
-        //             x => _currentOffset = x, 
-        //             desiredOffset, 
-        //             _mouseOffsetTime).SetEase(Ease.Linear);
+        DOTween.To(() => _currentOffset, 
+                    x => _currentOffset = x, 
+                    desiredOffset, 
+                    _mouseOffsetTime).SetEase(Ease.Linear);
 
         // 目标镜头世界位置（保持 Z 不变）
         Vector3 desiredCamPos = new Vector3(
@@ -76,9 +76,9 @@ public class CameraController : OverrideMonoSingleton<CameraController>
             transform.position.z
         );
 
-        // _cameraTweener.ChangeEndValue(desiredCamPos, true).Restart();
+        _cameraTweener.ChangeEndValue(desiredCamPos, true).Restart();
 
-        transform.position = desiredCamPos;
+        // transform.position = desiredCamPos;
     }
 
     /// <summary>

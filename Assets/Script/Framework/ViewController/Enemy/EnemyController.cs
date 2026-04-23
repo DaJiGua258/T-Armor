@@ -25,7 +25,7 @@ namespace QFramework.ViewController.Enemy
 
         [Header("移动")]
         [SerializeField] private float _moveSpeed = 3f;
-        [SerializeField] private Rigidbody2D _rigidbody;
+        public Rigidbody2D Rigidbody;
 
         [Header("玩家引用（可留空，运行时自动查找）")]
         public Transform Target;
@@ -36,11 +36,11 @@ namespace QFramework.ViewController.Enemy
         private static Material s_meshMaterial;
 
         public Transform Mesh;
-        public Transform DeathObejct;
+        public Transform DeathVFX;
         public Transform Muzzle;
         public Collider2D Collider;
         [Header("特殊引用")]
-        public LightningBolt Light;
+        public ElecShock Light;
 
         private StateMachine<EnemyController> _fsm;
         private Tweener _tweener;
@@ -73,6 +73,11 @@ namespace QFramework.ViewController.Enemy
             {
                 _fsm.ChangeState<EnemyDeathState>();
             }
+
+            if(!IsGrounded())
+            {
+                _fsm.ChangeState<EnemyFallState>();
+            }
         }
 
         void FixedUpdate()
@@ -89,6 +94,7 @@ namespace QFramework.ViewController.Enemy
             _fsm.AddState(new EnemyMoveState(this, _fsm));
             _fsm.AddState(new EnemyAttackState(this, _fsm));
             _fsm.AddState(new EnemyDeathState(this, _fsm));
+            _fsm.AddState(new EnemyFallState(this, _fsm));
 
             // ----- 启动状态机 -------------------------
             _fsm.StartState<EnemyIdleState>();   
@@ -97,9 +103,9 @@ namespace QFramework.ViewController.Enemy
         private void InitTransofrm()
         {
             Mesh = transform.Find("Mesh");
-            DeathObejct = transform.Find("DeathObject");
+            DeathVFX = transform.Find("DeathVFX");
             Muzzle = transform.Find("Weapon/Muzzle");
-
+            Rigidbody = transform.GetComponent<Rigidbody2D>();
             Collider = transform.GetComponent<Collider2D>();
         }
 
@@ -154,7 +160,7 @@ namespace QFramework.ViewController.Enemy
         public void MoveToward(Vector3 targetPos)
         {
             Vector2 direction = (targetPos - transform.position).normalized;
-            _rigidbody.velocity = direction * _moveSpeed;
+            Rigidbody.velocity = direction * _moveSpeed;
             Rotate(targetPos);
         }
 
@@ -167,12 +173,30 @@ namespace QFramework.ViewController.Enemy
 
         public void StopMovement()
         {
-            _rigidbody.velocity = Vector2.zero;
+            Rigidbody.velocity = Vector2.zero;
+        }
+
+        public bool IsGrounded()
+        {
+            // 使用 sqrMagnitude (平方长度) 比 Distance (开方运算) 性能更高
+            // 这里需要用2维，z轴一直被使用，会导致无法计算到0.1f以下
+            Vector2 pos = Mesh.transform.localPosition;
+            if (pos.sqrMagnitude <= 0.1f) // 0.01f 的平方
+            {
+                
+                Mesh.transform.localPosition = Vector2.zero;
+                return true;
+            }
+            return false;   
         }
 
         #endregion
 
         #region ----- 死亡相关 -------------------------
+        public bool IsDead()
+        {
+            return _fsm.CurrentStateType == typeof(EnemyDeathState);
+        }
 
         public void InitDeathObject()
         {
@@ -188,22 +212,23 @@ namespace QFramework.ViewController.Enemy
 
         public void LockDeathObject()
         {
-            DeathObejct.gameObject.transform.rotation = Quaternion.identity;
+            DeathVFX.gameObject.transform.rotation = Quaternion.identity;
         }
 
         public void ActiveDeathMesh()
         {
-            DeathObejct.gameObject.SetActive(true);
             Mesh.GetComponent<MeshRenderer>().material = s_deathMaterial;
             Collider.enabled = false;
+            DeathVFX.gameObject.SetActive(true);
         }
+
 
         public void SetDeathObjectPos(Vector3 offset)
         {
             var pos = transform.position;
             offset = (offset - pos).normalized;
-            pos += offset * 0.05f;
-            DeathObejct.gameObject.transform.position = pos;
+            pos += offset * 0.1f;
+            DeathVFX.gameObject.transform.position = pos;
         }
 
         #endregion
@@ -220,7 +245,7 @@ namespace QFramework.ViewController.Enemy
             Light.Draw(Target);
             if(Target.TryGetComponent<PlayerController>(out PlayerController c))
             {
-                this.SendCommand(PlayerCommand.Damage.Instance.Init(1));
+                this.SendCommand(PlayerCommand.Damage.Instance.Init(EnemyInstanceSystem.GetData(enemyId).Damage));
             }
             // var obj = Instantiate(_pf_bullet, Muzzle.position, Muzzle.rotation);
 
@@ -230,11 +255,27 @@ namespace QFramework.ViewController.Enemy
 
         #region ----- 杂项 -------------------------
 
-        public void ForcePush(Vector2 forcePos, int force)
+        public void ForcePush(Vector2 forcePos, int force, float torque)
         {
             var dir = (Vector2)transform.position - forcePos;
-            _rigidbody.AddForce(dir.normalized * force, ForceMode2D.Impulse);
-            _rigidbody.AddTorque(force);
+            Rigidbody.AddForce(dir.normalized * force, ForceMode2D.Impulse);
+
+            // 随机产生 1 或 -1
+            float torDir = (Random.value > 0.5f) ? 1f : -1f;
+            Rigidbody.AddTorque(torque * torDir, ForceMode2D.Impulse);
+        }
+
+        public string GetCurrentState()
+        {
+            return _fsm.CurrentState switch
+            {
+                EnemyIdleState => "Idle",
+                EnemyMoveState => "Move",
+                EnemyAttackState => "Attack",
+                EnemyDeathState => "Death",
+                EnemyFallState => "Fall",
+                _ => "Unknown"
+            };
         }
 
         #endregion

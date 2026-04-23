@@ -101,11 +101,10 @@ MonoBehaviour:
   UseLocalZSort: 1
   OrderParent: {fileID: 8112340409587144721}
   ZSortOffset: -40
+  HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 1
   SizeHeight: 12
-  HeightLevel: 0
-  AirHeight: 0
 --- !u!1 &5092046782409548582
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,11 +206,10 @@ MonoBehaviour:
   UseLocalZSort: 1
   OrderParent: {fileID: 8112340409587144721}
   ZSortOffset: 1
+  HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 0.75
   SizeHeight: 3
-  HeightLevel: 0
-  AirHeight: 0
 --- !u!1 &7494403134742495345
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,7 +317,7 @@ Transform:
   m_GameObject: {fileID: 8561050130956124244}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: -0.6000004, z: 3.1150002}
+  m_LocalPosition: {x: 0, y: -0.6000004, z: 3.0750003}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -392,9 +390,9 @@ MonoBehaviour:
   UseLocalZSort: 1
   OrderParent: {fileID: 8112340409587144721}
   ZSortOffset: 0
+  HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 1
-  Base: {fileID: 213323804191433465}
   ShadowOffset2D: {x: 0, y: -0.6}
 --- !u!1 &8764104178346276893
 GameObject:

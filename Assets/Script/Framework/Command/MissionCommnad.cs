@@ -5,50 +5,54 @@ namespace QFramework.Command
 {
     public class MissionCommand
     {
-        public class AddPri : AbstractCommand
+        public class Add : AbstractCommand
         {
             private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
+            private int _missionIndex;
             private int _value;
 
-            public AddPri(int value)
+            public Add(int missionIndex, int value)
             {
+                _missionIndex = missionIndex;
                 this._value = value;
             }
 
+            
+
             protected override void OnExecute()
             {
-                if(_missionSystem.PrimaryMission.MissionState.Value == MissionState.NotStarted)
+                if(_missionIndex < 0 || _missionIndex >= _missionSystem.Missions.Count)
                 {
-                    UnityEngine.Debug.LogWarning("Primary mission is not not started, cannot add progress");
+                    UnityEngine.Debug.LogWarning("任务索引异常，无法添加进度");
                     return;
                 }
 
-                var mission = _missionSystem.PrimaryMission;
-
+                var mission = _missionSystem.Missions[_missionIndex];
                 _missionSystem.AddProgress(mission, _value);
             }
         }
 
-        public class AddPre : AbstractCommand
+        public class SetState : AbstractCommand
         {
             private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
-            private int _value;
-            private int _index;
+            private int _missionIndex;
+            private MissionState _state;
 
-            public AddPre(int index, int value)
+            public SetState(int missionIndex, MissionState state)
             {
-                this._value = value;
-                this._index = index;
+                _missionIndex = missionIndex;
+                _state = state;
             }
 
             protected override void OnExecute()
             {
-                // var mission = _missionSystem.GetPreByIndex(_index);
-                var mission = _missionSystem.PrerequiredMissions[_index];   
-                if(mission != null)
+                if(_missionIndex < 0 || _missionIndex >= _missionSystem.Missions.Count)
                 {
-                    _missionSystem.AddProgress(mission, _value);
+                    UnityEngine.Debug.LogWarning("任务索引异常，无法设置任务状态");
+                    return;
                 }
+
+                _missionSystem.Missions[_missionIndex].MissionState.Value = _state;
             }
         }
     }

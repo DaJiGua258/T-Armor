@@ -12,7 +12,7 @@ namespace QFramework.ViewController.Player
         public override void OnEnter()
         {
             Entity.StopMovement();
-
+            Entity.PlayDeathVFX();
             GameManager.Instance.SetGameResultState(GameResultState.GameOver);
             UIManager.Instance.ShowPanel(UIPanelType.GameOverPanel);
         }

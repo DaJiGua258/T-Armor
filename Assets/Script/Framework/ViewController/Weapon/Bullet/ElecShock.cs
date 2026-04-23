@@ -6,12 +6,15 @@ using System.Collections;
 namespace QFramework.ViewController
 {
     [RequireComponent(typeof(LineRenderer))]
-    public class LightningBolt : MonoBehaviour
+    public class ElecShock : MonoBehaviour
     {
         public Transform Target;      // 目标
         public int Segments = 10;     // 闪电的分段数
         public float Jitter = 0.5f;   // 抖动幅度
         public float Duration = 0.1f;
+
+        [SerializeField] private ParticleSystem _start;
+        [SerializeField] private ParticleSystem _end;
 
         private LineRenderer _lineRenderer;
         private float _timer;
@@ -27,11 +30,18 @@ namespace QFramework.ViewController
             
         }
 
-        public void DrawLightning()
+        public void DrawElec()
         {
             _lineRenderer.positionCount = Segments + 1;
             Vector3 startPos = transform.position;
             Vector3 endPos = Target.position;
+
+            _start.transform.position = startPos;
+            _end.transform.position = endPos;
+
+            _start.Play();
+            _end.Play();
+
 
             for (int i = 0; i <= Segments; i++)
             {
@@ -50,16 +60,20 @@ namespace QFramework.ViewController
 
         public IEnumerator StartDraw()
         {
-            float elapsed = 0f;
+            // float elapsed = 0f;
 
-            while (elapsed < Duration)
-            {
-                elapsed += Time.deltaTime;
+            // while (elapsed < Duration)
+            // {
+            //     elapsed += Time.deltaTime;
 
-                DrawLightning();
+            //     DrawLightning();
 
-                yield return null; // 等待下一帧，直到达到 0.1s
-            }
+            //     yield return null; // 等待下一帧，直到达到 0.1s
+            // }
+
+            DrawElec();
+
+            yield return new WaitForSeconds(0.1f);
 
             _lineRenderer.positionCount = 0;
         }

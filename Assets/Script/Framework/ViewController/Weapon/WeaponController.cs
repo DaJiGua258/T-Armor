@@ -19,16 +19,16 @@ namespace QFramework.ViewController.Player
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         public AbstractWeapon WeaponLeft;  // 武器脚本
         public AbstractWeapon WeaponRight;
-        private Transform _weaponSlotLeft;
-        private Transform _weaponSlotRight;
+        [SerializeField] private Transform _weaponSlotLeft;
+        [SerializeField] private Transform _weaponSlotRight;
 
         private IPlayerSystem _playerSystem => this.GetSystem<IPlayerSystem>();
         
 
         void Awake()
         {
-            _weaponSlotLeft = transform.Find("Body/WeaponSlotLeft");
-            _weaponSlotRight = transform.Find("Body/WeaponSlotRight");
+            // _weaponSlotLeft = transform.Find("Body/WeaponSlotLeft");
+            // _weaponSlotRight = transform.Find("Body/WeaponSlotRight");
             
             WeaponLeft = _weaponSlotLeft.GetComponentInChildren<AbstractWeapon>();
             WeaponRight = _weaponSlotRight.GetComponentInChildren<AbstractWeapon>();

@@ -1,4 +1,5 @@
 using QFramework.ViewController.FSM;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
@@ -12,6 +13,7 @@ namespace QFramework.ViewController.Enemy
         {
             Entity.StopMovement();
             Entity.ActiveDeathMesh();
+
         }
 
         public override void OnUpdate()

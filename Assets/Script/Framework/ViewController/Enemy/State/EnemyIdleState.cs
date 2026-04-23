@@ -18,6 +18,7 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
+            Entity.StopMovement();
             _idleDuration = 1f;
             _idleTimer = 0f;
         }

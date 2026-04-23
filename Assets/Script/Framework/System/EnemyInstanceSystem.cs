@@ -33,9 +33,7 @@ namespace QFramework.System
             var enemyConfig = _enemeyConfigModel.GetEnemyFromCache(enemyEnum);
             EnemeyDataModel enemyData = new EnemeyDataModel(enemyConfig);
             int currentId = enemyData.InstanceId.Value + _enemyCounter;
-
             _enemyDataCache.Add(currentId, enemyData);
-            _enemyCounter++;
             return currentId;
         }
 
@@ -61,12 +59,11 @@ namespace QFramework.System
     public class EnemeyDataModel : InstanceType
     {
         private static int _enemyCounter = 0;
-
-        public EnemyState EnemyState;
         public BindableProperty<int> enemySize = new BindableProperty<int>();
         public BindableProperty<int> MaxHealth = new BindableProperty<int>();
         public BindableProperty<int> CurrentHealth = new BindableProperty<int>();
         public BindableProperty<int> Speed = new BindableProperty<int>();
+        public int Damage;
 
         /// <summary>
         /// 依据传入的敌人枚举，选取敌人配置，进行实例化
@@ -81,6 +78,7 @@ namespace QFramework.System
             this.MaxHealth.Value = enemeyConfig.MaxHealth;
             this.CurrentHealth.Value = enemeyConfig.CurrentHealth;
             this.Speed.Value = enemeyConfig.Speed;
+            this.Damage = enemeyConfig.Damage;
         }
     }
 

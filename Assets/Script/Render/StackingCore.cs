@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+public enum HeightLevel { Ground = 0, LowAir = 1, HighAir = 2 }
+
 [ExecuteAlways]
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public abstract class StackingCore : MonoBehaviour
@@ -17,6 +19,9 @@ public abstract class StackingCore : MonoBehaviour
     public Transform OrderParent;
     public float ZSortOffset = 0f;
 
+    [Header("高度层级")]
+    public HeightLevel HeightLevel = global::HeightLevel.Ground;
+
     protected const float YToZScale = 0.1f;
 
     // 高度层 Z 基础偏移，越小越靠前渲染
@@ -27,6 +32,14 @@ public abstract class StackingCore : MonoBehaviour
     protected MeshFilter  MeshFilter;
     protected Renderer    CachedRenderer;
     protected Material    StackingMaterial;
+
+    public float HeightLevelZOffset => HeightLevel switch
+    {
+        global::HeightLevel.Ground  => ZOffsetGround,
+        global::HeightLevel.LowAir  => ZOffsetLowAir,
+        global::HeightLevel.HighAir => ZOffsetHighAir,
+        _                   => ZOffsetGround,
+    };
 
     protected virtual void OnEnable()  => Init();
     protected virtual void Start()     => Init();
@@ -85,16 +98,28 @@ public abstract class StackingCore : MonoBehaviour
         return mesh;
     }
 
+    protected Vector3 GetHierarchyReferencePosition()
+    {
+        return transform.parent != null ? transform.parent.position : transform.position;
+    }
+
+    protected float ResolveSortSourceY(float? sourceYOverride = null)
+    {
+        if (sourceYOverride.HasValue)
+            return sourceYOverride.Value;
+
+        if (OrderParent != null)
+            return UseLocalZSort ? OrderParent.position.y + transform.localPosition.y : OrderParent.position.y;
+
+        return transform.position.y;
+    }
+
     /// <param name="heightLevelOffset">高度层基础 Z 偏移，由派生类传入</param>
     /// <param name="shadowOffset">影子额外后推偏移</param>
-    public float GetZSort(float heightLevelOffset = 0f, float shadowOffset = 0f)
+    /// <param name="sourceYOverride">可选排序来源 Y（用于共享层级计算）</param>
+    public float GetZSort(float heightLevelOffset = 0f, float shadowOffset = 0f, float? sourceYOverride = null)
     {
-        float sourceY;
-        if (OrderParent != null)
-            sourceY = UseLocalZSort ? OrderParent.position.y + transform.localPosition.y : OrderParent.position.y;
-        else
-            sourceY = transform.position.y;
-
+        float sourceY = ResolveSortSourceY(sourceYOverride);
         return heightLevelOffset + (sourceY + ZSortOffset) * YToZScale + shadowOffset;
     }
 

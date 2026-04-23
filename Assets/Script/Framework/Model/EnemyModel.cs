@@ -15,9 +15,9 @@ namespace QFramework.Model
         // 敌人配置列表
         private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new Dictionary<EnemyTypeEnum, EnemeyConfig>()
         {
-            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 100, 100, 10)},
-            {EnemyTypeEnum.Enemy2, new EnemeyConfig(10, 200, 200, 20)},
-            {EnemyTypeEnum.Enemy3, new EnemeyConfig(15, 300, 300, 30)},
+            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 100, 100, 10, 5)},
+            {EnemyTypeEnum.Enemy2, new EnemeyConfig(10, 200, 200, 20, 20)},
+            {EnemyTypeEnum.Enemy3, new EnemeyConfig(15, 300, 300, 30, 30)},
         };
 
         protected override void OnInit()
@@ -51,17 +51,19 @@ namespace QFramework.Model
         public int MaxHealth;
         public int CurrentHealth;
         public int Speed;
+        public int Damage;
         public EnemyState EnemyState;
 
         /// <summary>
         /// 初始化敌人配置
         /// </summary>
-        public EnemeyConfig(int enemySize, int maxHealth, int currentHealth, int speed)
+        public EnemeyConfig(int enemySize, int maxHealth, int currentHealth, int speed, int damage)
         {
             this.enemySize = enemySize;
             this.MaxHealth = maxHealth;
             this.CurrentHealth = currentHealth;
             this.Speed = speed;
+            this.Damage = damage;
         }
     }
 

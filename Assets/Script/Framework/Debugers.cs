@@ -3,6 +3,7 @@ using QFramework;
 using QFramework.Event;
 using QFramework.Model;
 using QFramework.System;
+using QFramework.ViewController.Enemy;
 using QFramework.ViewController.Player;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ public class Debugers : MonoBehaviour, IController
     public IEnemyInstanceSystem EnemyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
     [Header("敌人数据")]
     [SerializeField] private int _enemyId;
-
+    [SerializeField] private string _enemyState;
     [SerializeField] private Text _text;
     private bool _isInit = false;
 
@@ -38,6 +39,7 @@ public class Debugers : MonoBehaviour, IController
         _isInit = true;
 
         TypeEventSystem.Global.Register<DebugEvent.GetEnemyId>(e => GetEnemyId(e.Id));
+        TypeEventSystem.Global.Register<DebugEvent.GetEnemyState>(e => GetEnemyState(e.State));
     }
 
 
@@ -60,7 +62,7 @@ public class Debugers : MonoBehaviour, IController
         {
             var enemyData = EnemyInstanceSystem.GetData(_enemyId);  
             info += $"Enemy Health: {enemyData.CurrentHealth.Value} / {enemyData.MaxHealth.Value}\n";
-            info += $"Enemy State: {enemyData.EnemyState}\n";
+            info += $"Enemy State: {_enemyState}\n";
             info += $"Enemy Speed: {enemyData.Speed.Value}\n";
             info += $"Enemy Size: {enemyData.enemySize.Value}\n";
             info += $"Enemy Max Health: {enemyData.MaxHealth.Value}\n";
@@ -75,5 +77,10 @@ public class Debugers : MonoBehaviour, IController
     private void GetEnemyId(int id)
     {
         _enemyId = id;
+    }
+
+    private void GetEnemyState(string state)
+    {
+        _enemyState = state;
     }
 }

@@ -55,23 +55,34 @@ namespace QFramework.ViewController.Player
             {
                 if(hit.collider.gameObject.CompareTag("Env"))
                 {
-                    BulletExplosion();
+                    BulletExplosion(hit.point);
                 }
                 else if (hit.collider.gameObject.CompareTag("Enemy"))
                 {
-                    BulletExplosion();
+                    BulletExplosion(hit.point);
                     int enemyId = hit.collider.TryGetComponent<EnemyController>(out var enemy) ? enemy.enemyId : -1;
                     if(enemy != null)
                     {
-                        enemy.SetDeathObjectPos(transform.position);
-                    }
+                        enemy.SetDeathObjectPos(hit.point);
 
-                    this.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, _damage));
-                    TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
+                        // 造成伤害, 并更新UI
+                        this.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, _damage));
+                        TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdateEnemyInfo());
+
+                        if(enemy.EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
+                        {   
+                            // 当前敌人被这个子弹击杀，触发击杀敌人事件
+                            TypeEventSystem.Global.Send(new MissionEvent.KillEnemyEvent());
+                        }
+                       
+
+                        // Debug
+                        TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
+                    }
                 }
             }
         }
-        private void BulletExplosion()
+        private void BulletExplosion(Vector3 hitPos)
         {
             if (_hasExploded) return;
             _hasExploded = true;
@@ -86,7 +97,7 @@ namespace QFramework.ViewController.Player
             Vector3 explosionRotation = transform.rotation.eulerAngles;
             explosionRotation.z += 180f;
 
-            GameObject explosionVFX = ob.GetObject(_pf_bulletExplosionVFX, transform.position, Quaternion.Euler(explosionRotation));
+            GameObject explosionVFX = ob.GetObject(_pf_bulletExplosionVFX, hitPos, Quaternion.Euler(explosionRotation));
 
                     // 添加一次性定时器, 1秒后将子弹爆炸特效推入对象池
             timer.AddOnce(

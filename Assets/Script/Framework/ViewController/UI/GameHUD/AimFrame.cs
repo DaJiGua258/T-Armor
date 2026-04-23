@@ -4,6 +4,7 @@ using QFramework;
 using QFramework.Event;
 using QFramework.Manager;
 using QFramework.UtilityKit;
+using QFramework.ViewController.Enemy;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -26,7 +27,11 @@ namespace QFramework.ViewController.UI
         private RaycastHit2D[] _raycastResults = new RaycastHit2D[10];
 
         [Header("目标信息 (仅查看)")]
+        [SerializeField] private int _enemyId = -1;
         [SerializeField] private Collider2D _targetCollider;
+        [SerializeField] private Collider2D _lastTargetCollider;
+        [Header("UI 引用")]
+        [SerializeField] private EnemyInfo _enemyInfo;
 
         void Awake()
         {
@@ -134,6 +139,26 @@ namespace QFramework.ViewController.UI
             { 
                 Target = targetPos 
             });
+
+            
+
+            // ----- 获取敌人信息类的事件，避免重复执行 -------------------------
+            if(_targetCollider == null)
+            {
+                _enemyInfo.SetEnemyId(-1);
+                _lastTargetCollider = null;
+                return;
+            }
+            
+            if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
+
+            int enemyId = _targetCollider.TryGetComponent<EnemyController>(out var enemy) ? enemy.enemyId : -1;
+                _enemyInfo.SetEnemyId(enemyId);
+                Debug.Log("Update Enemy Info: " + enemyId);
+            
+            TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
+
+            _lastTargetCollider = _targetCollider;
         }
 
         /// <summary>

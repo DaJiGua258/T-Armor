@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine;
+using QFramework;
 using QFramework.Model;
 using QFramework.Utility;
 using QFramework.UtilityKit;
@@ -28,8 +29,9 @@ namespace QFramework.ViewController.Player
         [Header("脚部引用")]
         public Transform LegFl; // 前左
         public Transform LegFr; // 前右
-        public Transform LegBr; // 后右
         public Transform LegBl; // 后左
+        public Transform LegBr; // 后右
+
 
         [Header("腿部调整参数")]
         public float FB;
@@ -50,23 +52,27 @@ namespace QFramework.ViewController.Player
         [SerializeField] private float _legOffsetWeightMulti = 1f;          // 权重倍率
         private Vector3 lastBodyPosition;           // 上一次身体位置
         private Vector3 inertiaOffset;              // 惯性偏移
+
+        [Header("其他引用")]
+        [SerializeField] private PlayerDeathVFXController _deathVFX;
         [Header("状态机")]
         private StateMachine<PlayerController> _fsm;
+        
 
 
         protected override void Awake()
         {
             base.Awake();
 
-            if (!_body) _body = transform.Find("Body");
+            // if (!_body) _body = transform.Find("Body");
 
             
-            // 获取脚部
-            Transform legs = transform.Find("Legs");
-            if (!LegFl) LegFl = legs.Find("FL");
-            if (!LegFr) LegFr = legs.Find("FR");
-            if (!LegBr) LegBr = legs.Find("BR");
-            if (!LegBl) LegBl = legs.Find("BL");
+            // // 获取脚部
+            // Transform legs = transform.Find("Legs");
+            // if (!LegFl) LegFl = legs.Find("FL");
+            // if (!LegFr) LegFr = legs.Find("FR");
+            // if (!LegBr) LegBr = legs.Find("BR");
+            // if (!LegBl) LegBl = legs.Find("BL");
 
             _weapon = GetComponent<WeaponController>();
             _rigid = GetComponent<Rigidbody2D>();
@@ -90,12 +96,12 @@ namespace QFramework.ViewController.Player
             PlayerModel.CurrentHealth.RegisterOnValueChanged(
                 (value) =>
                 {
-                    if(value <= 0)
+                    if (value <= 0)
                     {
                         _fsm.ChangeState<PlayerDeathState>();
                     }
                 }
-            );
+            ).UnRegisterWhenGameObjectDestroyed(this);
 
             TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(
                 e => UpdateTargetPos(e.Target)
@@ -175,6 +181,12 @@ namespace QFramework.ViewController.Player
 
             _rigid.velocity = Vector2.Lerp(curVel, input, PlayerModel.SprintSmooth * Time.deltaTime);
             _rigid.velocity *= MoveSpeed * 1.5f;
+        }
+
+        public void PlayDeathVFX()
+        {
+            if (_deathVFX == null) return;
+            _deathVFX.PlayVFX();
         }
 
         #endregion

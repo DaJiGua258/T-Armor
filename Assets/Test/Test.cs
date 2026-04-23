@@ -22,10 +22,10 @@ public class ImageFillTween : MonoBehaviour, IController
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // this.SendCommand<PlayerCommand.Damage>(PlayerCommand.Damage.Instance.Init(10));
-        }
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     this.SendCommand<PlayerCommand.Damage>(PlayerCommand.Damage.Instance.Init(10));
+        // }
     }
 
 

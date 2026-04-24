@@ -21,6 +21,12 @@ public class MapGeneratorSettings
     [Header("障碍参数")]
     public ObstacleSettings obstacle = new ObstacleSettings();
 
+    [Header("任务点参数")]
+    public MissionPlacementSettings mission = new MissionPlacementSettings();
+
+    [Header("环境物体参数")]
+    public EnvironmentSettings environment = new EnvironmentSettings();
+
     [Header("Gizmos")]
     public GizmoSettings gizmo = new GizmoSettings();
 }
@@ -62,9 +68,6 @@ public class TerrainSettings
 [Serializable]
 public class ObstacleSettings
 {
-    [Range(0f, 1f)]
-    public float obstacleThreshold = 0.45f;
-
     public Color obstacleColor = new Color(0.5f, 0.86f, 1f, 1f);
 
     [FormerlySerializedAs("_pf_obstacle1x1")]
@@ -76,6 +79,90 @@ public class ObstacleSettings
 
     [Tooltip("障碍物挂载父节点，为空时挂在本 GameObject 下")]
     public Transform obstacleParent;
+}
+
+[Serializable]
+public class MissionPlacementSettings
+{
+    [Tooltip("任务物体挂载父节点，为空时挂在本 GameObject 下")]
+    public Transform missionObject;
+
+    [Tooltip("是否优先选择低噪声区域放置任务点")]
+    public bool preferLowestNoise = true;
+
+    [Tooltip("任务点占地区域向外额外留白格数")]
+    [Min(0)]
+    public int extraMarginCells = 0;
+}
+
+[Serializable]
+public class EnvironmentSettings
+{
+    [Tooltip("是否启用环境物体生成")]
+    public bool enabled = true;
+
+    [Tooltip("环境物体挂载父节点，为空时挂在本 GameObject 下")]
+    public Transform environmentParent;
+
+    [Tooltip("环境物体生成规则")]
+    public EnvironmentPrefabRule[] rules;
+
+    [Min(0.1f)]
+    [Tooltip("Poisson 最小采样间距（单位：格）")]
+    public float poissonRadius = 2.2f;
+
+    [Range(1, 64)]
+    [Tooltip("Poisson 每个活动点最大尝试次数")]
+    public int maxSamplesPerPoint = 24;
+
+    [Range(0f, 1f)]
+    [Tooltip("候选点总体生成概率")]
+    public float spawnChance = 0.75f;
+
+    [Range(0f, 1f)]
+    [Tooltip("允许生成的噪声最小值")]
+    public float validNoiseMin = 0.15f;
+
+    [Range(0f, 1f)]
+    [Tooltip("允许生成的噪声最大值")]
+    public float validNoiseMax = 0.75f;
+
+    [Min(0)]
+    [Tooltip("与地图边缘保持的最小格数")]
+    public int edgePaddingCells = 1;
+
+    [Min(0f)]
+    [Tooltip("与障碍占位格保持的最小距离（单位：格）")]
+    public float avoidObstaclePadding = 0.25f;
+
+    [Min(0f)]
+    [Tooltip("与任务点保持的最小距离（单位：世界坐标）")]
+    public float avoidMissionRadius = 2.5f;
+
+    [Range(0f, 0.49f)]
+    [Tooltip("在所属格子内的随机偏移比例（0=不偏移，0.49=接近格子边缘）")]
+    public float cellJitterRatio = 0.25f;
+
+    [Tooltip("环境随机种子偏移，和地图 seed 叠加后得到环境 seed")]
+    public int seedOffset = 9973;
+}
+
+[Serializable]
+public class EnvironmentPrefabRule
+{
+    public GameObject prefab;
+
+    [Min(0f)]
+    public float weight = 1f;
+
+    [Range(0f, 1f)]
+    public float spawnChance = 1f;
+
+    [Range(0f, 1f)]
+    public float noiseMin = 0f;
+
+    [Range(0f, 1f)]
+    public float noiseMax = 1f;
 }
 
 [Serializable]

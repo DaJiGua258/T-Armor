@@ -13,7 +13,7 @@ namespace QFramework.ViewController.Enemy
         {
             Entity.StopMovement();
             Entity.ActiveDeathMesh();
-
+            Entity.Collider.enabled = false;
         }
 
         public override void OnUpdate()

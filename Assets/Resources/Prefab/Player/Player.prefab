@@ -691,6 +691,8 @@ GameObject:
   - component: {fileID: 3935147323868678724}
   - component: {fileID: 6662755748636056035}
   - component: {fileID: 4393500015187427533}
+  - component: {fileID: 3329110660897782084}
+  - component: {fileID: 8840190825209837735}
   m_Layer: 0
   m_Name: DeathVFX
   m_TagString: Untagged
@@ -730,9 +732,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2eb1c75bbcc9338499e5fdb67fbe958e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SpriteSheet: {fileID: 0}
+  SpriteSize: 32
   UseLocalZSort: 1
   OrderParent: {fileID: 310450809131904736}
   ZSortOffset: -2
+  HeightLevel: 0
 --- !u!114 &4393500015187427533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -750,6 +755,56 @@ MonoBehaviour:
   _vfx_explosionTiny3: {fileID: 5690723662652763531}
   _vfx_explosionSmall: {fileID: 8652254741767539189}
   _vfx_crashFire: {fileID: 3051395394256478117}
+--- !u!33 &3329110660897782084
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6320850123345649415}
+  m_Mesh: {fileID: 0}
+--- !u!23 &8840190825209837735
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6320850123345649415}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6504291283580859724
 GameObject:
   m_ObjectHideFlags: 0

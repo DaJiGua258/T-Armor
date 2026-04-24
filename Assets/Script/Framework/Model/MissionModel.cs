@@ -113,7 +113,7 @@ namespace QFramework.Model
         public string MissionDescription;  // 任务描述
 
         // 任务实例对象（生成玩家可交互的游戏物体，如建筑等）
-        public GameObject MissionInstanceObject;
+        public string PrefabPath;
 
         public MissionConfig(
             MissionTypeEnum missionType, 
@@ -121,7 +121,7 @@ namespace QFramework.Model
             string missionName, 
             MissionStep[] missionSteps, 
             string missionDescription, 
-            GameObject missionInstanceObject)
+            string prefabPath)
         {
             MissionType = missionType;
             MissionIcon = missionIcon;
@@ -129,7 +129,7 @@ namespace QFramework.Model
             // TipText = tipText;
             MissionSteps = missionSteps;
             MissionDescription = missionDescription;
-            MissionInstanceObject = missionInstanceObject;
+            PrefabPath = "Prefab/Mission/" + missionType.ToString();
         }
     }
     public struct MissionStep

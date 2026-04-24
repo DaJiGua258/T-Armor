@@ -71,6 +71,7 @@ namespace QFramework.UtilityKit
         public IDebugUtility DebugUtility => this.GetUtility<IDebugUtility>();
         public IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();
         public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
+        
 
         protected virtual void Awake()
         {

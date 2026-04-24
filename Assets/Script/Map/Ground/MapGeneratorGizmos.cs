@@ -28,6 +28,7 @@ public partial class MapGenerator
 
         if (gizmo.showTerrainGizmos && _grid != null && terrain.layers != null)
         {
+            float obstacleNoiseThreshold = GetObstacleNoiseThreshold();
             for (int y = 0; y < mapSize; y++)
             {
                 for (int x = 0; x < mapSize; x++)
@@ -43,8 +44,7 @@ public partial class MapGenerator
                         Gizmos.DrawCube(cellLocal, cubeSize);
                     }
                     else if (gizmo.showObstacleZoneGizmos
-                             && l == CellData.LAYER_NONE
-                             && _grid[x, y].noise <= obstacle.obstacleThreshold)
+                             && _grid[x, y].noise > obstacleNoiseThreshold)
                     {
                         Gizmos.color = new Color(0.65f, 0.15f, 0.85f, 1f);
                         Gizmos.DrawCube(cellLocal, cubeSize);

@@ -18,7 +18,7 @@ MonoBehaviour:
   persistence: 0.466
   lacunarity: 3.15
   seed: 7
-  noiseOffset: {x: 0, y: 0}
+  noiseOffset: {x: -9.4, y: 0}
   useFalloff: 1
   curve:
     serializedVersion: 2
@@ -70,17 +70,17 @@ MonoBehaviour:
     - {fileID: 11400000, guid: b45b759afd3541242933619910603b00, type: 2}
     - {fileID: 11400000, guid: 62156ad0c4964f046bb572c155c53a3a, type: 2}
   layers:
-  - threshold: 0.324
+  - threshold: 0.43
     tint: {r: 0.47798735, g: 0.39897382, b: 0.24199985, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.416
+  - threshold: 0.63
     tint: {r: 0.4509804, g: 0.34117648, b: 0.22745098, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.654
+  - threshold: 0.69
     tint: {r: 0.36078432, g: 0.27450982, b: 0.18039216, a: 1}
     tileSet:
       fullVariants: []

@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 8482001784776433978}
   - component: {fileID: 8482001784776433979}
   - component: {fileID: 8482001784776433972}
-  - component: {fileID: 8482001784776433973}
   - component: {fileID: -6118486900564437799}
+  - component: {fileID: 1994317336766092078}
   m_Layer: 0
   m_Name: Obstacle2x2
   m_TagString: Env
@@ -85,26 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &8482001784776433973
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8482001784776433974}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8c9225deaa20dd49a828675dca21b74, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CanSetScale: 1
-  SizeMultiplier: 4
-  SizeHieght: 6
-  SpriteSheet: {fileID: 2800000, guid: b7b86c5cb72820547ad9e47a97ff629b, type: 3}
-  SpriteSize: 32
-  UseLocalZSort: 1
-  OrderParent: {fileID: 0}
-  ZSortOffset: 0
 --- !u!61 &-6118486900564437799
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -150,3 +130,24 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &1994317336766092078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8482001784776433974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e87843f1718510478f44782ca45628d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SpriteSheet: {fileID: 2800000, guid: b7b86c5cb72820547ad9e47a97ff629b, type: 3}
+  SpriteSize: 32
+  UseLocalZSort: 1
+  OrderParent: {fileID: 0}
+  ZSortOffset: 0
+  HeightLevel: 0
+  CanSetScale: 1
+  SizeMultiplier: 4
+  SizeHeight: 6

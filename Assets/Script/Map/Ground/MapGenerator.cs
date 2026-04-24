@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using QFramework.UtilityKit;
@@ -6,6 +6,7 @@ using QFramework.Model;
 using QFramework.Utility;
 using QFramework;
 using QFramework.System;
+using QFramework.ViewController.Mission;
 
 
 
@@ -18,6 +19,7 @@ using UnityEditor;
 public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 {
     private IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
+    private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
     [Header("参数存档")]
     [Tooltip("用于保存当前生成参数的 ScriptableObject 资源")]
     public MapGeneratorParametersSO parameterAsset;
@@ -35,6 +37,8 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
     private FalloffSettings falloff => settings.falloff;
     private TerrainSettings terrain => settings.terrain;
     private ObstacleSettings obstacle => settings.obstacle;
+    private MissionPlacementSettings mission => settings.mission;
+    private EnvironmentSettings environment => settings.environment;
     private GizmoSettings gizmo => settings.gizmo;
 
     private void EnsureSettingsObjects()
@@ -44,6 +48,8 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         settings.falloff ??= new FalloffSettings();
         settings.terrain ??= new TerrainSettings();
         settings.obstacle ??= new ObstacleSettings();
+        settings.mission ??= new MissionPlacementSettings();
+        settings.environment ??= new EnvironmentSettings();
         settings.gizmo ??= new GizmoSettings();
     }
     
@@ -54,7 +60,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         
         if (parameterAsset == null)
         {
-            parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Plain);
+            parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Highlands);
             DebugUtility.LogWarning("MapGenerator: 未找到参数资产，使用默认参数。");
         }
 
@@ -77,6 +83,8 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         BuildGrid();
         PaintTilemaps();
         SpawnObstacles();
+        SpawnMissionInstances();
+        SpawnEnvironmentObjects();
     }
 
     [ContextMenu("清空地图")]
@@ -89,15 +97,19 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
                 cfg.tilemap?.ClearAllTiles();
         }
 
-        Transform parent = obstacle.obstacleParent != null ? obstacle.obstacleParent : transform;
-        for (int i = parent.childCount - 1; i >= 0; i--)
+        Transform obstacleParent = obstacle.obstacleParent != null ? obstacle.obstacleParent : transform;
+        ClearChildren(obstacleParent);
+
+        Transform missionParent = mission.missionObject != null ? mission.missionObject : transform;
+        if (missionParent != obstacleParent)
         {
-            GameObject child = parent.GetChild(i).gameObject;
-#if UNITY_EDITOR
-            DestroyImmediate(child);
-#else
-            Destroy(child);
-#endif
+            ClearChildren(missionParent);
+        }
+        
+        Transform environmentParent = environment.environmentParent != null ? environment.environmentParent : transform;
+        if (environmentParent != obstacleParent && environmentParent != missionParent)
+        {
+            ClearChildren(environmentParent);
         }
 
         _grid = null;
@@ -126,7 +138,6 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         parameterAsset.defaultTileSet = terrain.defaultTileSet;
         parameterAsset.enableShapePostProcess = terrain.enableShapePostProcess;
         parameterAsset.postProcessIterations = terrain.postProcessIterations;
-        parameterAsset.obstacleThreshold = obstacle.obstacleThreshold;
         parameterAsset.obstacleColor = obstacle.obstacleColor;
         parameterAsset.Pf_obstacle1x1 = obstacle.pfObstacle1x1;
         parameterAsset.Pf_obstacle2x2 = obstacle.pfObstacle2x2;
@@ -189,7 +200,6 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         terrain.defaultTileSet = source.defaultTileSet;
         terrain.enableShapePostProcess = source.enableShapePostProcess;
         terrain.postProcessIterations = source.postProcessIterations;
-        obstacle.obstacleThreshold = source.obstacleThreshold;
         obstacle.obstacleColor = source.obstacleColor;
         obstacle.pfObstacle1x1 = source.Pf_obstacle1x1;
         obstacle.pfObstacle2x2 = source.Pf_obstacle2x2;
@@ -245,6 +255,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         {
             LayerConfig cfg = terrain.layers[l];
             if (cfg.tilemap == null) continue;
+            bool isBottomLayer = l == terrain.layers.Length - 1;
 
             cfg.tilemap.color = cfg.tint;
             TileSet ts = TileResolveService.ResolveTileSet(cfg, terrain.defaultTileSet);
@@ -256,11 +267,18 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             {
                 for (int x = 0; x < mapSize; x++)
                 {
+                    if (isBottomLayer)
+                    {
+                        TileBase bottomTile = TileResolveService.PickFull(ts, x, y);
+                        if (bottomTile != null) cfg.tilemap.SetTile(new Vector3Int(x, y, 0), bottomTile);
+                        continue;
+                    }
+
                     int cellLayer = _grid[x, y].layerIndex;
                     if (cellLayer < 0 || cellLayer > l) continue;
 
                     TileBase tile;
-                    if (cellLayer < l || cellLayer == terrain.layers.Length - 1)
+                    if (cellLayer < l)
                     {
                         tile = TileResolveService.PickFull(ts, x, y);
                     }
@@ -289,10 +307,11 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
     internal List<ObstaclePlacement> ComputeObstaclePlacements()
     {
         if (_grid == null) return new List<ObstaclePlacement>();
+        float obstacleNoiseThreshold = GetObstacleNoiseThreshold();
         List<ObstaclePlacement> placements = ObstaclePlacementService.CalculatePlacements(
             _grid,
             mapSize,
-            obstacle.obstacleThreshold,
+            obstacleNoiseThreshold,
             new[] { 3, 2, 1 });
 
         for (int i = 0; i < placements.Count; i++)
@@ -304,6 +323,14 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 
         _gizmoObstacles = placements;
         return placements;
+    }
+
+    internal float GetObstacleNoiseThreshold()
+    {
+        if (terrain.layers == null || terrain.layers.Length == 0)
+            return 1f;
+
+        return terrain.layers[terrain.layers.Length - 1].threshold;
     }
 
     private GameObject GetObstaclePrefab(int size)
@@ -326,6 +353,279 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         GameObject obj = Instantiate(prefab, parent);
         obj.transform.position = pos;
         obj.transform.localRotation = Quaternion.Euler(randomRotation);
+    }
+
+    private void SpawnMissionInstances()
+    {
+        if (_grid == null)
+        {
+            return;
+        }
+
+        List<MissionDataModel> missions = _missionSystem?.Missions;
+        if (missions == null || missions.Count == 0)
+        {
+            return;
+        }
+
+        Tilemap tilemap = GetReferenceTilemap();
+        if (tilemap == null)
+        {
+            DebugUtility.LogWarning("MapGenerator: 缺少参考 Tilemap，无法生成任务点。");
+            return;
+        }
+
+        Transform parent = mission.missionObject != null ? mission.missionObject : transform;
+        for (int i = 0; i < missions.Count; i++)
+        {
+            MissionDataModel missionData = missions[i];
+            if (missionData == null || missionData.MissionConfig == null)
+            {
+                continue;
+            }
+
+            string prefabPath = missionData.MissionConfig.PrefabPath;
+            if (string.IsNullOrWhiteSpace(prefabPath))
+            {
+                DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 预制体路径为空，跳过生成。");
+                continue;
+            }
+
+            GameObject prefab = _resourceLoad.Load<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                DebugUtility.LogWarning($"MapGenerator: 未找到任务预制体 {prefabPath}，跳过生成。");
+                continue;
+            }
+
+            GameObject missionObject = Instantiate(prefab, parent);
+            var missionInstance = missionObject.GetComponent<AbstractMissionInstance>();
+            if (missionInstance == null)
+            {
+                DebugUtility.LogWarning($"MapGenerator: 预制体 {prefabPath} 缺少 AbstractMissionInstance，跳过生成。");
+                DestroySpawnedObject(missionObject);
+                continue;
+            }
+
+            missionInstance.Init(missionData);
+            Vector2Int footprint = ComputeMissionFootprint(missionInstance.AreaSize, tilemap);
+            if (!TryFindMissionPlacement(footprint, out Vector2Int origin))
+            {
+                DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 没有可放置区域，跳过生成。");
+                DestroySpawnedObject(missionObject);
+                continue;
+            }
+
+            missionObject.transform.position = CellRectCenter(origin.x, origin.y, footprint.x, footprint.y);
+            MarkMissionOccupied(origin.x, origin.y, footprint.x, footprint.y);
+        }
+    }
+
+    private void SpawnEnvironmentObjects()
+    {
+        if (_grid == null || !environment.enabled) return;
+        if (environment.rules == null || environment.rules.Length == 0) return;
+
+        int seed = noise.seed + environment.seedOffset;
+        List<Vector2> candidates = GenerateEnvironmentPoissonPoints(
+            mapSize,
+            environment.poissonRadius,
+            environment.maxSamplesPerPoint,
+            environment.edgePaddingCells,
+            seed);
+        if (candidates.Count == 0) return;
+
+        Transform parent = environment.environmentParent != null ? environment.environmentParent : transform;
+        List<Vector3> missionPositions = CollectMissionPositions();
+        var rng = new System.Random(seed);
+
+        foreach (Vector2 candidate in candidates)
+        {
+            if ((float)rng.NextDouble() > environment.spawnChance) continue;
+
+            int cx = Mathf.Clamp(Mathf.FloorToInt(candidate.x), 0, mapSize - 1);
+            int cy = Mathf.Clamp(Mathf.FloorToInt(candidate.y), 0, mapSize - 1);
+            CellData cell = _grid[cx, cy];
+            if (cell.occupied) continue;
+            if (cell.noise < environment.validNoiseMin || cell.noise > environment.validNoiseMax) continue;
+            if (!IsFarEnoughFromOccupiedCells(candidate, environment.avoidObstaclePadding)) continue;
+
+            EnvironmentPrefabRule rule = PickEnvironmentRule(cell.noise, rng);
+            if (rule == null || rule.prefab == null) continue;
+            if ((float)rng.NextDouble() > rule.spawnChance) continue;
+
+            Vector3 worldPosition = GetJitteredEnvironmentWorldPosition(cx, cy, rng);
+            if (environment.avoidMissionRadius > 0f && IsNearMission(worldPosition, missionPositions, environment.avoidMissionRadius))
+                continue;
+
+            GameObject obj = Instantiate(rule.prefab, parent);
+            obj.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+        }
+    }
+
+    private Vector2Int ComputeMissionFootprint(Vector2 areaSize, Tilemap tilemap)
+    {
+        float cellWidth = Mathf.Max(0.0001f, Mathf.Abs(tilemap.cellSize.x));
+        float cellHeight = Mathf.Max(0.0001f, Mathf.Abs(tilemap.cellSize.y));
+        int width = Mathf.Max(1, Mathf.CeilToInt(Mathf.Abs(areaSize.x) / cellWidth));
+        int height = Mathf.Max(1, Mathf.CeilToInt(Mathf.Abs(areaSize.y) / cellHeight));
+        int margin = Mathf.Max(0, mission.extraMarginCells);
+        return new Vector2Int(width + margin * 2, height + margin * 2);
+    }
+
+    private bool TryFindMissionPlacement(Vector2Int footprint, out Vector2Int origin)
+    {
+        origin = new Vector2Int(-1, -1);
+        int width = Mathf.Max(1, footprint.x);
+        int height = Mathf.Max(1, footprint.y);
+
+        bool found = false;
+        float bestNoise = float.MaxValue;
+        Vector2Int bestOrigin = origin;
+
+        for (int y = 0; y <= mapSize - height; y++)
+        {
+            for (int x = 0; x <= mapSize - width; x++)
+            {
+                if (!CanPlaceMissionAt(x, y, width, height))
+                {
+                    continue;
+                }
+
+                if (!mission.preferLowestNoise)
+                {
+                    origin = new Vector2Int(x, y);
+                    return true;
+                }
+
+                float avgNoise = GetAverageNoise(x, y, width, height);
+                if (!found || avgNoise < bestNoise)
+                {
+                    found = true;
+                    bestNoise = avgNoise;
+                    bestOrigin = new Vector2Int(x, y);
+                }
+            }
+        }
+
+        if (!found)
+        {
+            return false;
+        }
+
+        origin = bestOrigin;
+        return true;
+    }
+
+    private bool CanPlaceMissionAt(int originX, int originY, int width, int height)
+    {
+        for (int dy = 0; dy < height; dy++)
+        {
+            for (int dx = 0; dx < width; dx++)
+            {
+                int x = originX + dx;
+                int y = originY + dy;
+                if (x < 0 || y < 0 || x >= mapSize || y >= mapSize)
+                {
+                    return false;
+                }
+
+                CellData cell = _grid[x, y];
+                if (cell.layerIndex == CellData.LAYER_NONE)
+                {
+                    return false;
+                }
+
+                if (cell.occupied)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private float GetAverageNoise(int originX, int originY, int width, int height)
+    {
+        float total = 0f;
+        int count = 0;
+        for (int dy = 0; dy < height; dy++)
+        {
+            for (int dx = 0; dx < width; dx++)
+            {
+                total += _grid[originX + dx, originY + dy].noise;
+                count++;
+            }
+        }
+
+        return count == 0 ? float.MaxValue : total / count;
+    }
+
+    private void MarkMissionOccupied(int originX, int originY, int width, int height)
+    {
+        for (int dy = 0; dy < height; dy++)
+        {
+            for (int dx = 0; dx < width; dx++)
+            {
+                _grid[originX + dx, originY + dy].occupied = true;
+            }
+        }
+    }
+
+    private Vector3 CellRectCenter(int x, int y, int width, int height)
+    {
+        Tilemap tm = GetReferenceTilemap();
+        if (tm != null)
+        {
+            Vector3 localCenter = tm.GetCellCenterLocal(new Vector3Int(x, y, 0));
+            localCenter.x += (width - 1) * 0.5f * tm.cellSize.x;
+            localCenter.y += (height - 1) * 0.5f * tm.cellSize.y;
+            return tm.transform.TransformPoint(localCenter);
+        }
+
+        return new Vector3(x + width * 0.5f, y + height * 0.5f, 0f);
+    }
+
+    private Vector3 CellSpaceToWorld(Vector2 cellPos)
+    {
+        Tilemap tm = GetReferenceTilemap();
+        if (tm != null)
+        {
+            int ix = Mathf.FloorToInt(cellPos.x);
+            int iy = Mathf.FloorToInt(cellPos.y);
+            float fx = cellPos.x - ix;
+            float fy = cellPos.y - iy;
+
+            Vector3 local = tm.GetCellCenterLocal(new Vector3Int(ix, iy, 0));
+            local.x += fx * tm.cellSize.x;
+            local.y += fy * tm.cellSize.y;
+            return tm.transform.TransformPoint(local);
+        }
+
+        return new Vector3(cellPos.x + 0.5f, cellPos.y + 0.5f, 0f);
+    }
+
+    private Vector3 GetJitteredEnvironmentWorldPosition(int cellX, int cellY, System.Random rng)
+    {
+        Tilemap tm = GetReferenceTilemap();
+        float jitterRatio = Mathf.Clamp(environment.cellJitterRatio, 0f, 0.49f);
+
+        if (tm != null)
+        {
+            Vector3 localCenter = tm.GetCellCenterLocal(new Vector3Int(cellX, cellY, 0));
+            float halfX = Mathf.Abs(tm.cellSize.x) * 0.5f * jitterRatio;
+            float halfY = Mathf.Abs(tm.cellSize.y) * 0.5f * jitterRatio;
+            localCenter.x += Mathf.Lerp(-halfX, halfX, (float)rng.NextDouble());
+            localCenter.y += Mathf.Lerp(-halfY, halfY, (float)rng.NextDouble());
+            return tm.transform.TransformPoint(localCenter);
+        }
+
+        float jitter = 0.5f * jitterRatio;
+        return new Vector3(
+            cellX + 0.5f + Mathf.Lerp(-jitter, jitter, (float)rng.NextDouble()),
+            cellY + 0.5f + Mathf.Lerp(-jitter, jitter, (float)rng.NextDouble()),
+            0f);
     }
 
     internal Vector3 CellCenter(int x, int y, int size)
@@ -363,5 +663,225 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         var renderer = prefab.GetComponent<MeshRenderer>();
         if (renderer?.sharedMaterial == null) return;
         renderer.sharedMaterial.SetColor("_MainColor", obstacle.obstacleColor);
+    }
+
+    private List<Vector3> CollectMissionPositions()
+    {
+        var positions = new List<Vector3>();
+        Transform missionParent = mission.missionObject != null ? mission.missionObject : transform;
+        if (missionParent == null) return positions;
+
+        for (int i = 0; i < missionParent.childCount; i++)
+        {
+            Transform child = missionParent.GetChild(i);
+            if (child.GetComponent<AbstractMissionInstance>() == null) continue;
+            positions.Add(child.position);
+        }
+
+        return positions;
+    }
+
+    private bool IsNearMission(Vector3 worldPosition, List<Vector3> missionPositions, float radius)
+    {
+        if (missionPositions == null || missionPositions.Count == 0) return false;
+
+        float radiusSqr = radius * radius;
+        for (int i = 0; i < missionPositions.Count; i++)
+        {
+            Vector3 delta = missionPositions[i] - worldPosition;
+            if (delta.sqrMagnitude <= radiusSqr) return true;
+        }
+
+        return false;
+    }
+
+    private bool IsFarEnoughFromOccupiedCells(Vector2 candidate, float paddingInCells)
+    {
+        int cx = Mathf.Clamp(Mathf.FloorToInt(candidate.x), 0, mapSize - 1);
+        int cy = Mathf.Clamp(Mathf.FloorToInt(candidate.y), 0, mapSize - 1);
+        if (paddingInCells <= 0f) return !_grid[cx, cy].occupied;
+
+        int searchRadius = Mathf.CeilToInt(paddingInCells);
+        for (int y = Mathf.Max(0, cy - searchRadius); y <= Mathf.Min(mapSize - 1, cy + searchRadius); y++)
+        {
+            for (int x = Mathf.Max(0, cx - searchRadius); x <= Mathf.Min(mapSize - 1, cx + searchRadius); x++)
+            {
+                if (!_grid[x, y].occupied) continue;
+                Vector2 occupiedCenter = new Vector2(x + 0.5f, y + 0.5f);
+                if ((occupiedCenter - candidate).sqrMagnitude <= paddingInCells * paddingInCells)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private EnvironmentPrefabRule PickEnvironmentRule(float noiseValue, System.Random rng)
+    {
+        if (environment.rules == null || environment.rules.Length == 0) return null;
+
+        float totalWeight = 0f;
+        for (int i = 0; i < environment.rules.Length; i++)
+        {
+            EnvironmentPrefabRule rule = environment.rules[i];
+            if (rule == null || rule.prefab == null) continue;
+            if (noiseValue < rule.noiseMin || noiseValue > rule.noiseMax) continue;
+            if (rule.weight <= 0f) continue;
+            totalWeight += rule.weight;
+        }
+
+        if (totalWeight <= 0f) return null;
+
+        float pick = (float)rng.NextDouble() * totalWeight;
+        for (int i = 0; i < environment.rules.Length; i++)
+        {
+            EnvironmentPrefabRule rule = environment.rules[i];
+            if (rule == null || rule.prefab == null) continue;
+            if (noiseValue < rule.noiseMin || noiseValue > rule.noiseMax) continue;
+            if (rule.weight <= 0f) continue;
+
+            if (pick <= rule.weight) return rule;
+            pick -= rule.weight;
+        }
+
+        return null;
+    }
+
+    private static List<Vector2> GenerateEnvironmentPoissonPoints(
+        int mapSize,
+        float radius,
+        int maxSamplesPerPoint,
+        int edgePaddingCells,
+        int seed)
+    {
+        var points = new List<Vector2>();
+        if (mapSize <= 0) return points;
+
+        float minX = Mathf.Clamp(edgePaddingCells, 0, mapSize);
+        float minY = minX;
+        float maxX = Mathf.Clamp(mapSize - edgePaddingCells, 0, mapSize);
+        float maxY = maxX;
+        float width = maxX - minX;
+        float height = maxY - minY;
+        if (width <= 0f || height <= 0f) return points;
+
+        float safeRadius = Mathf.Max(0.1f, radius);
+        int safeMaxSamples = Mathf.Max(1, maxSamplesPerPoint);
+        float cellSize = safeRadius / Mathf.Sqrt(2f);
+        int gridWidth = Mathf.CeilToInt(width / cellSize);
+        int gridHeight = Mathf.CeilToInt(height / cellSize);
+
+        Vector2[,] grid = new Vector2[gridWidth, gridHeight];
+        bool[,] hasPoint = new bool[gridWidth, gridHeight];
+        var active = new List<Vector2>();
+        var rng = new System.Random(seed);
+
+        Vector2 first = new Vector2(
+            minX + (float)rng.NextDouble() * width,
+            minY + (float)rng.NextDouble() * height);
+
+        points.Add(first);
+        active.Add(first);
+        InsertEnvironmentPoint(first, minX, minY, cellSize, grid, hasPoint);
+
+        while (active.Count > 0)
+        {
+            int index = rng.Next(active.Count);
+            Vector2 center = active[index];
+            bool found = false;
+
+            for (int i = 0; i < safeMaxSamples; i++)
+            {
+                float angle = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float distance = safeRadius * (1f + (float)rng.NextDouble());
+                Vector2 candidate = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+
+                if (candidate.x < minX || candidate.x >= maxX || candidate.y < minY || candidate.y >= maxY)
+                    continue;
+                if (!IsValidEnvironmentCandidate(candidate, safeRadius, minX, minY, cellSize, grid, hasPoint))
+                    continue;
+
+                points.Add(candidate);
+                active.Add(candidate);
+                InsertEnvironmentPoint(candidate, minX, minY, cellSize, grid, hasPoint);
+                found = true;
+                break;
+            }
+
+            if (!found)
+                active.RemoveAt(index);
+        }
+
+        return points;
+    }
+
+    private static void InsertEnvironmentPoint(
+        Vector2 point,
+        float minX,
+        float minY,
+        float cellSize,
+        Vector2[,] grid,
+        bool[,] hasPoint)
+    {
+        int gx = Mathf.Clamp((int)((point.x - minX) / cellSize), 0, grid.GetLength(0) - 1);
+        int gy = Mathf.Clamp((int)((point.y - minY) / cellSize), 0, grid.GetLength(1) - 1);
+        grid[gx, gy] = point;
+        hasPoint[gx, gy] = true;
+    }
+
+    private static bool IsValidEnvironmentCandidate(
+        Vector2 candidate,
+        float radius,
+        float minX,
+        float minY,
+        float cellSize,
+        Vector2[,] grid,
+        bool[,] hasPoint)
+    {
+        int gx = Mathf.Clamp((int)((candidate.x - minX) / cellSize), 0, grid.GetLength(0) - 1);
+        int gy = Mathf.Clamp((int)((candidate.y - minY) / cellSize), 0, grid.GetLength(1) - 1);
+        int range = 2;
+
+        int xMin = Mathf.Max(0, gx - range);
+        int xMax = Mathf.Min(grid.GetLength(0) - 1, gx + range);
+        int yMin = Mathf.Max(0, gy - range);
+        int yMax = Mathf.Min(grid.GetLength(1) - 1, gy + range);
+        float radiusSqr = radius * radius;
+
+        for (int y = yMin; y <= yMax; y++)
+        {
+            for (int x = xMin; x <= xMax; x++)
+            {
+                if (!hasPoint[x, y]) continue;
+                Vector2 delta = grid[x, y] - candidate;
+                if (delta.sqrMagnitude < radiusSqr) return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void DestroySpawnedObject(GameObject target)
+    {
+        if (target == null) return;
+#if UNITY_EDITOR
+        DestroyImmediate(target);
+#else
+        Destroy(target);
+#endif
+    }
+
+    private static void ClearChildren(Transform parent)
+    {
+        if (parent == null) return;
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            GameObject child = parent.GetChild(i).gameObject;
+#if UNITY_EDITOR
+            DestroyImmediate(child);
+#else
+            Destroy(child);
+#endif
+        }
     }
 }

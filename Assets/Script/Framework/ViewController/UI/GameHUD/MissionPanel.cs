@@ -59,16 +59,19 @@ namespace QFramework.ViewController.UI
         private void RegisterMissionEvent(MissionItem item, MissionDataModel mission)
         {
             // 任务【阶段索引】变化事件
-            mission.StepIndex.Register(value => UpdateInfo(item, mission));
+            mission.StepIndex.Register(value => UpdateInfo(item, mission))
+                .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
 
             // 任务【阶段进度】变化事件
             foreach(var step in mission.StepList)
             {
-                step.Register(value => UpdateInfo(item, mission));
+                step.Register(value => UpdateInfo(item, mission))
+                    .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
             }
 
             // 任务状态变化事件
-            mission.MissionState.Register(value => UpdateByState(item, value, mission));
+            mission.MissionState.Register(value => UpdateByState(item, value, mission))
+                .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
 
             // ----- 初始化更新一次任务信息 -------------------------
             UpdateInfo(item, mission);

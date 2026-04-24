@@ -19403,10 +19403,10 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 40
+  far clip plane: 60
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -19443,11 +19443,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _target: {fileID: 0}
-  _followSmoothing: 10
-  _mouseOffsetThreshold: 5
+  _followTime: 0.5
+  _mouseOffsetThreshold: 3
   _mouseMaxOffset: 4
-  _mouseOffsetSmoothing: 5
-  _mouseSmoothingThreshold: 0.5
+  _mouseOffsetTime: 0.25
 --- !u!114 &1626233297703315721
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -218,7 +218,6 @@ namespace QFramework.ViewController.Enemy
         public void ActiveDeathMesh()
         {
             Mesh.GetComponent<MeshRenderer>().material = s_deathMaterial;
-            Collider.enabled = false;
             DeathVFX.gameObject.SetActive(true);
         }
 

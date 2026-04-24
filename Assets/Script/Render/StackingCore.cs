@@ -44,21 +44,11 @@ public abstract class StackingCore : MonoBehaviour
     protected virtual void OnEnable()  => Init();
     protected virtual void Start()     => Init();
 
-    protected virtual void Update()
-    {
-        if (!Application.isPlaying || transform.hasChanged)
-        {
-            UpdateZSort();
-            transform.hasChanged = false;
-        }
-    }
-
     protected virtual void OnValidate()
     {
 #if UNITY_EDITOR
         EditorApplication.delayCall += () => { if (this != null) Init(); };
 #endif
-        UpdateZSort();
         UpdateMaterial();
     }
 
@@ -77,7 +67,6 @@ public abstract class StackingCore : MonoBehaviour
         }
 
         UpdateMaterial();
-        UpdateZSort();
         OnInit();
     }
 

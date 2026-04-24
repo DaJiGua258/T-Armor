@@ -42,10 +42,14 @@ Material:
     - _SliceHeight: 0.03
     - _SliceIndex: 0
     - _SliceOffset: 0.95
+    - _WindFrequency: 1.2
+    - _WindStrength: 0.05
+    - _WindTurbulence: 0.3
     - _YOffset: 0.08
     - _ZWriteEnabled: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _MainColor: {r: 0.8836478, g: 0.9006772, b: 1, a: 1}
+    - _MainColor: {r: 0.93710685, g: 0.7755989, b: 0.7043035, a: 1}
     - _StackDir: {r: 0, g: 1, b: 0, a: 0}
+    - _WindDirection: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

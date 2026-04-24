@@ -5,7 +5,7 @@ public static class ObstaclePlacementService
     public static List<ObstaclePlacement> CalculatePlacements(
         CellData[,] grid,
         int mapSize,
-        float obstacleThreshold,
+        float obstacleNoiseThreshold,
         int[] prioritySizes)
     {
         var placements = new List<ObstaclePlacement>();
@@ -19,7 +19,7 @@ public static class ObstaclePlacementService
             {
                 for (int x = 0; x <= mapSize - size; x++)
                 {
-                    if (!CanPlace(grid, mapSize, obstacleThreshold, x, y, size)) continue;
+                    if (!CanPlace(grid, mapSize, obstacleNoiseThreshold, x, y, size)) continue;
                     MarkOccupied(grid, x, y, size);
                     placements.Add(new ObstaclePlacement
                     {
@@ -34,7 +34,7 @@ public static class ObstaclePlacementService
         return placements;
     }
 
-    public static bool CanPlace(CellData[,] grid, int mapSize, float obstacleThreshold, int ox, int oy, int size)
+    public static bool CanPlace(CellData[,] grid, int mapSize, float obstacleNoiseThreshold, int ox, int oy, int size)
     {
         for (int dy = 0; dy < size; dy++)
         {
@@ -44,7 +44,7 @@ public static class ObstaclePlacementService
                 int cy = oy + dy;
                 if (cx >= mapSize || cy >= mapSize) return false;
                 if (grid[cx, cy].layerIndex != CellData.LAYER_NONE) return false;
-                if (grid[cx, cy].noise > obstacleThreshold) return false;
+                if (grid[cx, cy].noise <= obstacleNoiseThreshold) return false;
                 if (grid[cx, cy].occupied) return false;
             }
         }

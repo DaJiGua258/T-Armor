@@ -240,6 +240,37 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!1 &7147050165183055440
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8937101710431092631}
+  m_Layer: 0
+  m_Name: EnviromentObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8937101710431092631
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7147050165183055440}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7439390938010830932}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7178136664243707485
 GameObject:
   m_ObjectHideFlags: 0
@@ -395,6 +426,8 @@ Transform:
   - {fileID: 9179850831868111213}
   - {fileID: 6051373015841483352}
   - {fileID: 7147182064489145712}
+  - {fileID: 7757179882678474920}
+  - {fileID: 8937101710431092631}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
 --- !u!156049354 &3579565351167329659
@@ -430,7 +463,7 @@ MonoBehaviour:
       persistence: 0.466
       lacunarity: 3.15
       seed: 7
-      noiseOffset: {x: 0, y: 0}
+      noiseOffset: {x: -9.4, y: 0}
     falloff:
       useFalloff: 1
       curve:
@@ -484,19 +517,19 @@ MonoBehaviour:
         - {fileID: 11400000, guid: b45b759afd3541242933619910603b00, type: 2}
         - {fileID: 11400000, guid: 62156ad0c4964f046bb572c155c53a3a, type: 2}
       layers:
-      - threshold: 0.324
+      - threshold: 0.43
         tint: {r: 0.47798735, g: 0.39897382, b: 0.24199985, a: 1}
         tilemap: {fileID: 4632225750691262619}
         tileSet:
           fullVariants: []
           borderTiles: []
-      - threshold: 0.416
+      - threshold: 0.63
         tint: {r: 0.4509804, g: 0.34117648, b: 0.22745098, a: 1}
         tilemap: {fileID: 3662744085124933869}
         tileSet:
           fullVariants: []
           borderTiles: []
-      - threshold: 0.654
+      - threshold: 0.69
         tint: {r: 0.36078432, g: 0.27450982, b: 0.18039216, a: 1}
         tilemap: {fileID: 5289214213162826186}
         tileSet:
@@ -505,17 +538,75 @@ MonoBehaviour:
       enableShapePostProcess: 1
       postProcessIterations: 4
     obstacle:
-      obstacleThreshold: 1
       obstacleColor: {r: 0.93710685, g: 0.7755989, b: 0.7043035, a: 1}
       pfObstacle1x1: {fileID: 8482001784776433974, guid: 8909adee8f868c541aa547bd76c87371, type: 3}
       pfObstacle2x2: {fileID: 8482001784776433974, guid: 2d79fbe12cbcc274b8f24e22653a9888, type: 3}
       pfObstacle3x3: {fileID: 8482001784776433974, guid: ea2e60fca168a4444b30bea132190496, type: 3}
       obstacleParent: {fileID: 7147182064489145712}
+    mission:
+      missionObject: {fileID: 7757179882678474920}
+      preferLowestNoise: 1
+      extraMarginCells: 0
+    environment:
+      enabled: 1
+      environmentParent: {fileID: 8937101710431092631}
+      rules:
+      - prefab: {fileID: 7494403134742495345, guid: 3931c6a62a71df343a20eb6ac4e3e6f8, type: 3}
+        weight: 1
+        spawnChance: 1
+        noiseMin: 0.026
+        noiseMax: 0.339
+      - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
+        weight: 1
+        spawnChance: 0.101
+        noiseMin: 0.466
+        noiseMax: 0.641
+      poissonRadius: 1
+      maxSamplesPerPoint: 24
+      spawnChance: 0.75
+      validNoiseMin: 0.15
+      validNoiseMax: 0.75
+      edgePaddingCells: 1
+      avoidObstaclePadding: 0.25
+      avoidMissionRadius: 2.5
+      cellJitterRatio: 0.49
+      seedOffset: 9973
     gizmo:
-      showGizmos: 0
+      showGizmos: 1
       showTerrainGizmos: 1
       showObstacleZoneGizmos: 1
       showObstacleGizmos: 1
+--- !u!1 &7701611072087340864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7757179882678474920}
+  m_Layer: 0
+  m_Name: MissionOject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7757179882678474920
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7701611072087340864}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7439390938010830932}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8202389286143774785
 GameObject:
   m_ObjectHideFlags: 0

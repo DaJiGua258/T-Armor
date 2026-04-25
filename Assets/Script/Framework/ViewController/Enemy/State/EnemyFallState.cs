@@ -40,7 +40,7 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnExit()
         {
-            Entity.Mesh.localPosition = Vector2.zero;
+            Entity.Mesh.localPosition = new Vector3(0, 0, Entity.Mesh.localPosition.z);
             Entity.Collider.enabled = true;
         }
     }

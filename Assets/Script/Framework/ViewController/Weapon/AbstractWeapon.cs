@@ -22,7 +22,7 @@ namespace QFramework.ViewController.Player
         [SerializeField] protected ParticleSystem _vfxShooting;
 
         [Header("武器属性")]
-        protected WeaponDataModel _weaponDataModel;
+        public WeaponDataModel WeaponDataModel;
 
         
 
@@ -51,44 +51,44 @@ namespace QFramework.ViewController.Player
 
         public void InitWeaponData(WeaponDataModel weaponDataModel)
         {
-            _weaponDataModel = weaponDataModel;
-            _weaponId = _weaponDataModel.InstanceId.Value;
+            WeaponDataModel = weaponDataModel;
+            _weaponId = WeaponDataModel.InstanceId.Value;
         }
 
         public void ReloadByInput()
         {
-            if(_weaponDataModel.WeaponState == WeaponStateEnum.Idle
-                && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
-                && _weaponDataModel.CurMagazine.Value > 0
-                && _weaponDataModel.CurMaxAmmo.Value > 0)
+            if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
+                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
+                && WeaponDataModel.CurMagazine.Value > 0
+                && WeaponDataModel.CurMaxAmmo.Value > 0)
             {
-                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel));
+                this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }
         }
 
         public void ReloadAuto()
         { 
-            if(_weaponDataModel.WeaponState == WeaponStateEnum.Idle
-                && _weaponDataModel.CurMagazine.Value < _weaponDataModel.MaxMagazine
-                && _weaponDataModel.CurMagazine.Value == 0
-                && _weaponDataModel.CurMaxAmmo.Value > 0)
+            if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
+                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
+                && WeaponDataModel.CurMagazine.Value == 0
+                && WeaponDataModel.CurMaxAmmo.Value > 0)
             {
-                this.SendCommand(new WeaponCommand.Reload(_weaponDataModel));
+                this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }
         }
 
 
         public void Shoot()
         {
-            if(_weaponDataModel == null)
+            if(WeaponDataModel == null)
             {
                 Debug.LogWarning("WeaponDataModel is null");
                 return;
             }
 
             // 开火间隔 & 弹匣有弹药
-            if(_timer < 60f / _weaponDataModel.Rpm  // 60秒 / 每分钟子弹数 = 开火间隔
-                ||  _weaponDataModel.WeaponState == WeaponStateEnum.Reloading)
+            if(_timer < 60f / WeaponDataModel.Rpm  // 60秒 / 每分钟子弹数 = 开火间隔
+                ||  WeaponDataModel.WeaponState == WeaponStateEnum.Reloading)
                 return;
 
 
@@ -105,7 +105,7 @@ namespace QFramework.ViewController.Player
 
         public virtual void ShootDetal()
         {
-            this.SendCommand(WeaponCommand.Shoot.Instance.Init(_weaponDataModel));
+            this.SendCommand(WeaponCommand.Shoot.Instance.Init(WeaponDataModel));
             // 计算发射方向：与武器朝向一致
             Vector3 shootDir = Muzzle.right; // local right 是2D武器的默认枪口方向 (一般为右)
             // 枪口世界坐标
@@ -115,7 +115,7 @@ namespace QFramework.ViewController.Player
             _vfxShooting.Play();
 
             Bullet bulletComponent = bullet.GetComponent<Bullet>();
-            bulletComponent.InitBullet(shootDir, _weaponDataModel.BulletSpeed, _weaponDataModel.BulletDamage);
+            bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);
         }
     }
 }

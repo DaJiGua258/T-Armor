@@ -92,3 +92,27 @@ MonoBehaviour:
   Pf_obstacle1x1: {fileID: 8482001784776433974, guid: 8909adee8f868c541aa547bd76c87371, type: 3}
   Pf_obstacle2x2: {fileID: 8482001784776433974, guid: 2d79fbe12cbcc274b8f24e22653a9888, type: 3}
   Pf_obstacle3x3: {fileID: 8482001784776433974, guid: ea2e60fca168a4444b30bea132190496, type: 3}
+  preferLowestNoise: 1
+  extraMarginCells: 0
+  environmentEnabled: 1
+  environmentRules:
+  - prefab: {fileID: 7494403134742495345, guid: 09be885cb91555441bf7adcb89731d51, type: 3}
+    weight: 1
+    spawnChance: 1
+    noiseMin: 0.026
+    noiseMax: 0.339
+  - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
+    weight: 1
+    spawnChance: 0.455
+    noiseMin: 0.446
+    noiseMax: 0.597
+  poissonRadius: 1
+  maxSamplesPerPoint: 24
+  environmentSpawnChance: 0.75
+  validNoiseMin: 0.15
+  validNoiseMax: 0.75
+  edgePaddingCells: 1
+  avoidObstaclePadding: 0.25
+  avoidMissionRadius: 2.5
+  cellJitterRatio: 0.49
+  environmentSeedOffset: 9989

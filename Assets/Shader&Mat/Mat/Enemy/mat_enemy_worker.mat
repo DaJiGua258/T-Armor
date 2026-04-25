@@ -15,7 +15,7 @@ Material:
   m_InvalidKeywords:
   - _ZWRITEENABLED_ON
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -32,7 +32,7 @@ Material:
     m_Floats:
     - _Angle: 0
     - _Blend: 1
-    - _LayerCount: 6
+    - _LayerCount: 0
     - _LayerOffset: 1
     - _NumSlices: 10
     - _OffsetX: 0
@@ -42,6 +42,7 @@ Material:
     - _SliceHeight: 0.03
     - _SliceIndex: 0
     - _SliceOffset: 0.95
+    - _SliceSize: 32
     - _YOffset: 0.03
     - _ZWriteEnabled: 1
     m_Colors:

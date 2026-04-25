@@ -94,6 +94,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 7336255043436526633, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8127331552782524085, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_Name
       value: Building
@@ -187,6 +191,10 @@ PrefabInstance:
     - target: {fileID: 7303318300107967896, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_Mesh
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7336255043436526633, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8127331552782524085, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_Name
@@ -285,6 +293,10 @@ PrefabInstance:
     - target: {fileID: 8127331552782524085, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_Name
       value: Building (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8655373791415005370, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9192029096850702710, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_LocalPosition.x

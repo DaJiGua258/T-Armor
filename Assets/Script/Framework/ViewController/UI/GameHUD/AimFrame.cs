@@ -16,9 +16,11 @@ namespace QFramework.ViewController.UI
         private RectTransform _rectTransform;
         [SerializeField] private float _frameScale = 1.2f;
         [SerializeField] private Vector2 _defaultFrameSize = new Vector2(200, 200);
+        
 
         [Header("检测设置")]
         [SerializeField] private float _aimRadius = 2f;      // 圆形探测的半径
+        [SerializeField] private float _miniRadius = 1f;
         [SerializeField] private float _castDistance = 0.1f; // 投射距离（设为很小的值即等同于原地覆盖检测）
         [SerializeField] private Vector2 _castDirection = Vector2.zero;
         [SerializeField] private LayerMask _layerMask;
@@ -103,7 +105,10 @@ namespace QFramework.ViewController.UI
             // 1. 设置大小：根据目标的 Bounds（世界坐标包围盒）转换
             // 这里假设 bounds 是物体的像素/单位大小，乘以缩放
             Vector2 targetWorldSize = _targetCollider.bounds.size;
-            _rectTransform.sizeDelta = targetWorldSize * _frameScale; // 100f 通常是 PPU
+            float size = targetWorldSize.x > _miniRadius ?  // 如果目标大于最小半径，则使用目标大小
+                targetWorldSize.x * _frameScale 
+                : _miniRadius * _frameScale;
+            _rectTransform.sizeDelta = new Vector2(size, size); // 100f 通常是 PPU
 
             // 2. 设置位置：将目标的世界坐标转为屏幕坐标
             _rectTransform.DOMove(Camera.main.WorldToScreenPoint(_targetCollider.transform.position), 0.1f).SetEase(Ease.Linear);
@@ -157,6 +162,7 @@ namespace QFramework.ViewController.UI
                 Debug.Log("Update Enemy Info: " + enemyId);
             
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
+            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = _targetCollider.GetComponent<Rigidbody2D>() });
 
             _lastTargetCollider = _targetCollider;
         }

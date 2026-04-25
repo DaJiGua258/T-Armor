@@ -98,7 +98,7 @@ Material:
     - _Threshold: 0.5
     - _TriplanarBlend: 8
     - _WarpStrength: 0.4
-    - _YOffset: 0.02
+    - _YOffset: 0.03
     m_Colors:
     - _AtmosphereColor: {r: 0.4, g: 0.7, b: 1, a: 1}
     - _BackColor: {r: 0.4532035, g: 0.24114941, b: 0.8616352, a: 1}

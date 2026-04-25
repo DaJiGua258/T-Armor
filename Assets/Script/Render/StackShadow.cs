@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class StackShadow : StackShadowStatic
 {   
+    protected override bool UseRenderManagerStaticMode => false;
+
     void Update()
     {
         if (!Application.isPlaying || transform.hasChanged)

@@ -164,7 +164,7 @@ namespace QFramework.ViewController.Player
 
         public void Dash(Vector2 dir)
         {
-            _rigid.velocity = dir * MoveSpeed * 3f;
+            _rigid.velocity = dir * MoveSpeed * 4f;
         }
 
 

@@ -7,12 +7,10 @@ using UnityEditor;
 public enum HeightLevel { Ground = 0, LowAir = 1, HighAir = 2 }
 
 [ExecuteAlways]
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public abstract class StackingCore : MonoBehaviour
 {
-    [Header("精灵堆叠设置")]
-    public Texture2D SpriteSheet;
-    public int SpriteSize = 32;
+    [Header("堆叠材质")]
+    public Material StackingMaterial;
 
     [Header("渲染顺序")]
     public bool UseLocalZSort = true;
@@ -29,9 +27,10 @@ public abstract class StackingCore : MonoBehaviour
     protected const float ZOffsetLowAir  = -8f;
     protected const float ZOffsetHighAir = -16f;
 
-    protected MeshFilter  MeshFilter;
-    protected Renderer    CachedRenderer;
-    protected Material    StackingMaterial;
+    protected MeshFilter   MeshFilter;
+    protected MeshRenderer CachedRenderer;
+
+    protected virtual bool UseRenderManagerStaticMode => false;
 
     public float HeightLevelZOffset => HeightLevel switch
     {
@@ -47,24 +46,31 @@ public abstract class StackingCore : MonoBehaviour
     protected virtual void OnValidate()
     {
 #if UNITY_EDITOR
-        EditorApplication.delayCall += () => { if (this != null) Init(); };
+        if (Application.isPlaying)
+            return;
+
+        EditorApplication.delayCall += () =>
+        {
+            if (this == null || Application.isPlaying)
+                return;
+
+            Init();
+        };
 #endif
-        UpdateMaterial();
     }
 
     protected virtual void Init()
     {
-        MeshFilter = GetComponent<MeshFilter>();
-        if (MeshFilter.sharedMesh == null)
-            MeshFilter.sharedMesh = CreateQuad();
-
-        CachedRenderer = GetComponent<Renderer>();
-
-        if (StackingMaterial == null)
+        if (Application.isPlaying && UseRenderManagerStaticMode)
         {
-            StackingMaterial = CachedRenderer.sharedMaterial;
-            if (StackingMaterial == null) { Debug.LogError($"[{gameObject.name}] 材质为空！"); return; }
+            RemoveMeshComponents();
+            UpdateMaterial();
+            OnInit();
+            return;
         }
+
+        if (!EnsureMeshComponents())
+            return;
 
         UpdateMaterial();
         OnInit();
@@ -74,8 +80,8 @@ public abstract class StackingCore : MonoBehaviour
 
     protected virtual void UpdateMaterial()
     {
-        if (StackingMaterial == null || SpriteSheet == null) return;
-        StackingMaterial.SetTexture("_MainTex", SpriteSheet);
+        if (CachedRenderer == null) return;
+        CachedRenderer.sharedMaterial = StackingMaterial;
     }
 
     protected Mesh CreateQuad()
@@ -113,4 +119,54 @@ public abstract class StackingCore : MonoBehaviour
     }
 
     protected virtual void UpdateZSort() { }
+
+    private bool EnsureMeshComponents()
+    {
+        if (StackingMaterial == null)
+        {
+            RemoveMeshComponents();
+            return false;
+        }
+
+        MeshFilter = GetComponent<MeshFilter>();
+        if (MeshFilter == null)
+            MeshFilter = gameObject.AddComponent<MeshFilter>();
+
+        CachedRenderer = GetComponent<MeshRenderer>();
+        if (CachedRenderer == null)
+            CachedRenderer = gameObject.AddComponent<MeshRenderer>();
+
+        if (MeshFilter.sharedMesh == null)
+            MeshFilter.sharedMesh = CreateQuad();
+
+        CachedRenderer.enabled = true;
+        return true;
+    }
+
+    private void RemoveMeshComponents()
+    {
+        if (!gameObject.scene.IsValid())
+        {
+            MeshFilter = null;
+            CachedRenderer = null;
+            return;
+        }
+
+        var meshFilter = GetComponent<MeshFilter>();
+        var meshRenderer = GetComponent<MeshRenderer>();
+
+        if (Application.isPlaying)
+        {
+            if (meshFilter != null) Destroy(meshFilter);
+            if (meshRenderer != null) Destroy(meshRenderer);
+        }
+        else
+        {
+            if (meshFilter != null) DestroyImmediate(meshFilter);
+            if (meshRenderer != null) DestroyImmediate(meshRenderer);
+        }
+
+        MeshFilter = null;
+        CachedRenderer = null;
+    }
 }

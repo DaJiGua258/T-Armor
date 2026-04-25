@@ -9796,6 +9796,7 @@ GameObject:
   - component: {fileID: 897948539984571279}
   - component: {fileID: 4895321906567753851}
   - component: {fileID: 6582105865182203550}
+  - component: {fileID: 2847000596978990085}
   m_Layer: 0
   m_Name: vfx_bullet_explosion
   m_TagString: Untagged
@@ -14684,3 +14685,20 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &2847000596978990085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8486971914317455159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eb1c75bbcc9338499e5fdb67fbe958e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StackingMaterial: {fileID: 0}
+  UseLocalZSort: 1
+  OrderParent: {fileID: 0}
+  ZSortOffset: 0
+  HeightLevel: 0

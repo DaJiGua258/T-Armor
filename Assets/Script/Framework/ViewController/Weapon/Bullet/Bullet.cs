@@ -50,7 +50,7 @@ namespace QFramework.ViewController.Player
 
 
             RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, _layerMask);
-
+            Debug.DrawRay(origin, direction * distance, Color.red);
             if(hit.collider != null)
             {
                 if(hit.collider.gameObject.CompareTag("Env"))

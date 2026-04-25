@@ -7,6 +7,7 @@ using QFramework.Utility;
 using QFramework;
 using QFramework.System;
 using QFramework.ViewController.Mission;
+using System;
 
 
 
@@ -18,6 +19,10 @@ using UnityEditor;
 
 public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 {
+    private const string ObstacleParentName = "ObstacleRoot";
+    private const string MissionParentName = "MissionRoot";
+    private const string EnvironmentParentName = "EnvironmentRoot";
+
     private IResourceLoad _resourceLoad => this.GetUtility<IResourceLoad>();
     private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
     [Header("参数存档")]
@@ -31,6 +36,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
     private List<ObstaclePlacement> _gizmoObstacles = new List<ObstaclePlacement>();
     private bool _isApplyingParameterAsset;
     private MapGeneratorParametersSO _appliedParameterAsset;
+    private readonly Dictionary<GameObject, GameObject> _runtimeSpawnTemplateCache = new Dictionary<GameObject, GameObject>();
 
     private int mapSize => settings.mapSize;
     private NoiseSettings noise => settings.noise;
@@ -142,6 +148,19 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         parameterAsset.Pf_obstacle1x1 = obstacle.pfObstacle1x1;
         parameterAsset.Pf_obstacle2x2 = obstacle.pfObstacle2x2;
         parameterAsset.Pf_obstacle3x3 = obstacle.pfObstacle3x3;
+        parameterAsset.preferLowestNoise = mission.preferLowestNoise;
+        parameterAsset.extraMarginCells = mission.extraMarginCells;
+        parameterAsset.environmentEnabled = environment.enabled;
+        parameterAsset.poissonRadius = environment.poissonRadius;
+        parameterAsset.maxSamplesPerPoint = environment.maxSamplesPerPoint;
+        parameterAsset.environmentSpawnChance = environment.spawnChance;
+        parameterAsset.validNoiseMin = environment.validNoiseMin;
+        parameterAsset.validNoiseMax = environment.validNoiseMax;
+        parameterAsset.edgePaddingCells = environment.edgePaddingCells;
+        parameterAsset.avoidObstaclePadding = environment.avoidObstaclePadding;
+        parameterAsset.avoidMissionRadius = environment.avoidMissionRadius;
+        parameterAsset.cellJitterRatio = environment.cellJitterRatio;
+        parameterAsset.environmentSeedOffset = environment.seedOffset;
 
         if (terrain.layers == null)
         {
@@ -159,6 +178,29 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
                     tint = src.tint,
                     tileSet = src.tileSet
                 };
+            }
+        }
+
+        if (environment.rules == null)
+        {
+            parameterAsset.environmentRules = null;
+        }
+        else
+        {
+            parameterAsset.environmentRules = new MapGeneratorParametersSO.EnvironmentRuleParameter[environment.rules.Length];
+            for (int i = 0; i < environment.rules.Length; i++)
+            {
+                EnvironmentPrefabRule src = environment.rules[i];
+                parameterAsset.environmentRules[i] = src == null
+                    ? new MapGeneratorParametersSO.EnvironmentRuleParameter()
+                    : new MapGeneratorParametersSO.EnvironmentRuleParameter
+                    {
+                        prefab = src.prefab,
+                        weight = src.weight,
+                        spawnChance = src.spawnChance,
+                        noiseMin = src.noiseMin,
+                        noiseMax = src.noiseMax
+                    };
             }
         }
 
@@ -204,6 +246,22 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         obstacle.pfObstacle1x1 = source.Pf_obstacle1x1;
         obstacle.pfObstacle2x2 = source.Pf_obstacle2x2;
         obstacle.pfObstacle3x3 = source.Pf_obstacle3x3;
+        obstacle.obstacleParent = ResolveParentByNameOrDefault(ObstacleParentName);
+        mission.missionObject = ResolveParentByNameOrDefault(MissionParentName);
+        mission.preferLowestNoise = source.preferLowestNoise;
+        mission.extraMarginCells = source.extraMarginCells;
+        environment.enabled = source.environmentEnabled;
+        environment.environmentParent = ResolveParentByNameOrDefault(EnvironmentParentName);
+        environment.poissonRadius = source.poissonRadius;
+        environment.maxSamplesPerPoint = source.maxSamplesPerPoint;
+        environment.spawnChance = source.environmentSpawnChance;
+        environment.validNoiseMin = source.validNoiseMin;
+        environment.validNoiseMax = source.validNoiseMax;
+        environment.edgePaddingCells = source.edgePaddingCells;
+        environment.avoidObstaclePadding = source.avoidObstaclePadding;
+        environment.avoidMissionRadius = source.avoidMissionRadius;
+        environment.cellJitterRatio = source.cellJitterRatio;
+        environment.seedOffset = source.environmentSeedOffset;
 
         LayerConfig[] oldLayers = terrain.layers;
         if (source.layers == null)
@@ -226,8 +284,48 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             }
         }
 
+        if (source.environmentRules == null)
+        {
+            environment.rules = null;
+        }
+        else
+        {
+            environment.rules = new EnvironmentPrefabRule[source.environmentRules.Length];
+            for (int i = 0; i < source.environmentRules.Length; i++)
+            {
+                MapGeneratorParametersSO.EnvironmentRuleParameter src = source.environmentRules[i];
+                environment.rules[i] = src == null
+                    ? new EnvironmentPrefabRule()
+                    : new EnvironmentPrefabRule
+                    {
+                        prefab = src.prefab,
+                        weight = src.weight,
+                        spawnChance = src.spawnChance,
+                        noiseMin = src.noiseMin,
+                        noiseMax = src.noiseMax
+                    };
+            }
+        }
+
         _isApplyingParameterAsset = false;
         _appliedParameterAsset = source;
+    }
+
+    private Transform ResolveParentByNameOrDefault(string parentName)
+    {
+        Transform directChild = transform.Find(parentName);
+        if (directChild != null)
+        {
+            return directChild;
+        }
+
+        GameObject sceneObject = GameObject.Find(parentName);
+        if (sceneObject != null)
+        {
+            return sceneObject.transform;
+        }
+
+        return transform;
     }
 
     private void BuildGrid()
@@ -350,9 +448,13 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         int randomIndex = UnityEngine.Random.Range(0, 3);
         Vector3 randomRotation = new Vector3(0f, 0f, 90 * randomIndex);
 
-        GameObject obj = Instantiate(prefab, parent);
+        GameObject template = GetRuntimeSpawnTemplate(prefab);
+        if (template == null) return;
+
+        GameObject obj = Instantiate(template, parent);
         obj.transform.position = pos;
         obj.transform.localRotation = Quaternion.Euler(randomRotation);
+        if (!obj.activeSelf) obj.SetActive(true);
     }
 
     private void SpawnMissionInstances()
@@ -457,10 +559,15 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             Vector3 worldPosition = GetJitteredEnvironmentWorldPosition(cx, cy, rng);
             if (environment.avoidMissionRadius > 0f && IsNearMission(worldPosition, missionPositions, environment.avoidMissionRadius))
                 continue;
+            GameObject template = GetRuntimeSpawnTemplate(rule.prefab);
+            if (template == null) continue;
 
-            GameObject obj = Instantiate(rule.prefab, parent);
-            obj.transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+            GameObject obj = Instantiate(template, parent);
+            obj.transform.position = worldPosition;
+            obj.transform.rotation = Quaternion.identity;
+            if (!obj.activeSelf) obj.SetActive(true);
         }
+        Physics.SyncTransforms();
     }
 
     private Vector2Int ComputeMissionFootprint(Vector2 areaSize, Tilemap tilemap)
@@ -652,9 +759,9 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 
     private void InitPrefab()
     {
-        TryApplyPrefabColor(obstacle.pfObstacle1x1);
-        TryApplyPrefabColor(obstacle.pfObstacle2x2);
-        TryApplyPrefabColor(obstacle.pfObstacle3x3);
+        // TryApplyPrefabColor(obstacle.pfObstacle1x1);
+        // TryApplyPrefabColor(obstacle.pfObstacle2x2);
+        // TryApplyPrefabColor(obstacle.pfObstacle3x3);
     }
 
     private void TryApplyPrefabColor(GameObject prefab)
@@ -883,5 +990,57 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             Destroy(child);
 #endif
         }
+    }
+
+    private GameObject GetRuntimeSpawnTemplate(GameObject prefab)
+    {
+        if (prefab == null) return null;
+        if (!Application.isPlaying) return prefab;
+
+        GameObject template;
+        if (_runtimeSpawnTemplateCache.TryGetValue(prefab, out template) && template != null)
+            return template;
+
+        template = Instantiate(prefab);
+        template.name = $"{prefab.name}_RuntimeTemplate";
+        if (template.activeSelf) template.SetActive(false);
+
+        RemoveMeshRelatedComponentsRecursively(template.transform);
+        _runtimeSpawnTemplateCache[prefab] = template;
+        return template;
+    }
+
+    private static void RemoveMeshRelatedComponentsRecursively(Transform root)
+    {
+        if (root == null) return;
+
+        var meshFilter = root.GetComponent<MeshFilter>();
+        var meshRenderer = root.GetComponent<MeshRenderer>();
+
+        if (meshFilter != null) Destroy(meshFilter);
+        if (meshRenderer != null) Destroy(meshRenderer);
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            RemoveMeshRelatedComponentsRecursively(root.GetChild(i));
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_runtimeSpawnTemplateCache.Count == 0) return;
+
+        foreach (KeyValuePair<GameObject, GameObject> pair in _runtimeSpawnTemplateCache)
+        {
+            GameObject template = pair.Value;
+            if (template == null) continue;
+#if UNITY_EDITOR
+            DestroyImmediate(template);
+#else
+            Destroy(template);
+#endif
+        }
+
+        _runtimeSpawnTemplateCache.Clear();
     }
 }

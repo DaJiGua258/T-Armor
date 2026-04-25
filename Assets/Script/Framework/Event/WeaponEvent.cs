@@ -1,10 +1,12 @@
+using UnityEngine;
+
 namespace QFramework.Event
 {
     public class WeaponEvent
     {
-        public struct InitWeaponEvent
+        public struct GetTargetRig
         {
-            public int WeaponId;
+            public Rigidbody2D TargetRig;
         }
     }
 }

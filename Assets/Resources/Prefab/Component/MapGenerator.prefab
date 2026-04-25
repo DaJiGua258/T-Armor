@@ -250,7 +250,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8937101710431092631}
   m_Layer: 0
-  m_Name: EnviromentObject
+  m_Name: EnvironmentRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -551,16 +551,11 @@ MonoBehaviour:
       enabled: 1
       environmentParent: {fileID: 8937101710431092631}
       rules:
-      - prefab: {fileID: 7494403134742495345, guid: 3931c6a62a71df343a20eb6ac4e3e6f8, type: 3}
+      - prefab: {fileID: 7494403134742495345, guid: e616c99a677122a4b8417a2dd5edfba5, type: 3}
         weight: 1
         spawnChance: 1
         noiseMin: 0.026
         noiseMax: 0.339
-      - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
-        weight: 1
-        spawnChance: 0.101
-        noiseMin: 0.466
-        noiseMax: 0.641
       poissonRadius: 1
       maxSamplesPerPoint: 24
       spawnChance: 0.75
@@ -572,10 +567,10 @@ MonoBehaviour:
       cellJitterRatio: 0.49
       seedOffset: 9973
     gizmo:
-      showGizmos: 1
-      showTerrainGizmos: 1
-      showObstacleZoneGizmos: 1
-      showObstacleGizmos: 1
+      showGizmos: 0
+      showTerrainGizmos: 0
+      showObstacleZoneGizmos: 0
+      showObstacleGizmos: 0
 --- !u!1 &7701611072087340864
 GameObject:
   m_ObjectHideFlags: 0
@@ -586,7 +581,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7757179882678474920}
   m_Layer: 0
-  m_Name: MissionOject
+  m_Name: MissionRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -617,7 +612,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7147182064489145712}
   m_Layer: 0
-  m_Name: ObstacleParent
+  m_Name: ObstacleRoot
   m_TagString: Env
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

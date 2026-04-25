@@ -12,11 +12,24 @@ public class StackShadowStatic : StackingCore
 
     // 影子在同层 base 后面的偏移量
     protected const float ShadowZOffset = 0.01f;
+    private bool _runtimeInitialized;
+    private Matrix4x4 _cachedMatrix;
+
+    protected override bool UseRenderManagerStaticMode => true;
 
     protected override void OnInit()
     {
+        if (Application.isPlaying && UseRenderManagerStaticMode && _runtimeInitialized)
+            return;
+
         SyncPosition();
         UpdateScale();
+
+        if (Application.isPlaying && UseRenderManagerStaticMode)
+        {
+            _cachedMatrix = transform.localToWorldMatrix;
+            _runtimeInitialized = true;
+        }
     }
 
     protected override void OnValidate()
@@ -41,8 +54,7 @@ public class StackShadowStatic : StackingCore
     {
         base.UpdateMaterial();
         if (StackingMaterial == null) return;
-        StackingMaterial.SetInt  ("_LayerCount", 1);
-        StackingMaterial.SetFloat("_YOffset",    0f);
+        StackingMaterial.SetFloat("_YOffset", 0f);
     }
 
     protected void UpdateScale()
@@ -52,4 +64,12 @@ public class StackShadowStatic : StackingCore
     }
 
     protected override void UpdateZSort() { } // 由 SyncPosition 接管
+
+    private void LateUpdate()
+    {
+        if (!UseRenderManagerStaticMode || !Application.isPlaying || !_runtimeInitialized || StackingMaterial == null)
+            return;
+
+        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix);
+    }
 }

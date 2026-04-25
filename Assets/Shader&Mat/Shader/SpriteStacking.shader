@@ -1,92 +1,102 @@
-Shader "Custom/SpriteStacking"
+Shader "Custom/SpriteStacking_URP"
 {
     Properties
     {
-        _MainColor ("MainColor", Color)  = (1, 1, 1, 1)
+        _Color ("MainColor", Color)  = (1, 1, 1, 1) // 统一改为 _Color
         _MainTex ("Sprite Sheet (Left to Right)", 2D) = "white" {}
-        _LayerCount ("Layer Count", Int) = 16
         _YOffset ("Layer Y Offset", Float) = 0.02
         _StackDir ("Stack Direction (World Space)", Vector) = (0, 1, 0, 0)
-        
     }
+
     SubShader
     {
-        // 针对 2D 透明物体的标准设置
-        Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
+        Tags { 
+            "RenderPipeline" = "UniversalPipeline"
+            "Queue"="Transparent" 
+            "RenderType"="Transparent" 
+        }
+        
         Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite On   // ← 改为 On，允许写入深度缓冲
+        ZWrite On   
         ZTest LEqual
         Cull Off
 
         Pass
         {
-            CGPROGRAM
+            Name "ForwardLit"
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma geometry geom
             #pragma fragment frag
-            #include "UnityCG.cginc"
+            #pragma multi_compile_instancing
 
-            float4 _MainColor;
-            sampler2D _MainTex;
-            int _LayerCount;
-            float _YOffset;
-            float4 _StackDir;
-            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _Color; // 统一变量名
+                float _YOffset;
+                float4 _StackDir;
+                float4 _MainTex_ST;
+            CBUFFER_END
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            float4 _MainTex_TexelSize;
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2g
             {
-                float4 vertex : SV_POSITION; // 传递对象空间坐标
+                float4 vertex : INTERNAL_POS; 
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct g2f
             {
-                float4 vertex : SV_POSITION; // 传递裁剪空间坐标
+                float4 vertex : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             v2g vert(appdata v)
             {
                 v2g o;
-                o.vertex = v.vertex; 
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                o.vertex = v.vertex;
                 o.uv = v.uv;
                 return o;
             }
 
-            // 几何着色器：最大生成顶点数为 255 (即最多 85 层，255/3=85)
-            // ...geom函数头部保持不变，依然保持修复后的 150 顶点限制...
-            [maxvertexcount(150)] 
+            [maxvertexcount(144)] 
             void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream)
             {
-                int layers = min(_LayerCount, 50); 
-                float uvWidth = 1.0 / (float)max(1, _LayerCount);
+                UNITY_SETUP_INSTANCE_ID(input[0]);
 
-                // --- 修复部分：改回正向循环，实现正确层级 ---
-                // 从第 0 层 (最底层切片) 开始绘制
-                // 一直绘制到最后一层 (layers-1，即最顶层切片)
-                // 这样顶层后画，就会覆盖在底层上面
+                // 纹理按“每帧为正方形”自动推导层数：layerCount = width / height
+                int layerCount = max(1, (int)round(_MainTex_TexelSize.z / max(1.0, _MainTex_TexelSize.w)));
+                int layers = min(layerCount, 50);
+                float uvWidth = 1.0 / (float)layers;
+
                 for (int i = layers - 1; i >= 0; i--)
                 {
                     for (int j = 0; j < 3; j++)
                     {
                         g2f o;
-                        float4 worldPos = mul(unity_ObjectToWorld, input[j].vertex);
-                        
-                        // 高度偏移公式依然不变，顶层 (i大) 在高处
-                        worldPos.xyz += _StackDir.xyz * (i * _YOffset);
-                        o.vertex = mul(UNITY_MATRIX_VP, worldPos);
+                        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                        UNITY_TRANSFER_INSTANCE_ID(input[0], o);
 
-                        // ✅ 关键：每层向摄像机方向偏移一点点深度
-                        // 层数越大（越靠上）深度值越小（越靠近摄像机）
-                        o.vertex.z += i * 0.0001 * o.vertex.w; // NDC 空间偏移，乘以 w 保持透视正确
-                        
-                        // UV 切片公式依然不变，顶层切分贴图最右侧的帧
+                        float3 worldPos = TransformObjectToWorld(input[j].vertex.xyz);
+                        worldPos.xyz += _StackDir.xyz * (i * _YOffset);
+                        o.vertex = TransformWorldToHClip(worldPos);
+
+                        o.vertex.z += i * 0.0001 * o.vertex.w;
                         o.uv.x = (input[j].uv.x * uvWidth) + (i * uvWidth);
                         o.uv.y = input[j].uv.y;
 
@@ -94,17 +104,16 @@ Shader "Custom/SpriteStacking"
                     }
                     triStream.RestartStrip();
                 }
-            }   
-            
-
-            fixed4 frag(g2f i) : SV_Target
-            {
-                fixed4 col = tex2D(_MainTex, i.uv);
-                // 简单的透明剔除，防止透明重叠区域可能产生的渲染错误
-                if (col.a < 0.05) discard; 
-                return col * _MainColor;
             }
-            ENDCG
+
+            half4 frag(g2f i) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(i);
+                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                if (col.a < 0.05) discard; 
+                return col * _Color; // 使用统一后的变量
+            }
+            ENDHLSL
         }
     }
 }

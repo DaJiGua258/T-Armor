@@ -11,22 +11,24 @@ public class StackBaseStatic : StackingCore
     private const float BaseYOffset = 0.03f;
     private float _yOffset = BaseYOffset;
     public float ActiveYOffset => _yOffset;
+    private bool _runtimeInitialized;
+    private Matrix4x4 _cachedMatrix;
 
-    private int _layerCount;
-    private int LayerCount
-    {
-        get
-        {
-            if (_layerCount == 0 && SpriteSheet != null)
-                _layerCount = SpriteSheet.width / SpriteSize;
-            return _layerCount;
-        }
-    }
+    protected override bool UseRenderManagerStaticMode => true;
 
     protected override void OnInit()
     {
+        if (Application.isPlaying && UseRenderManagerStaticMode && _runtimeInitialized)
+            return;
+
         UpdateScale();
         UpdateZSort();
+
+        if (Application.isPlaying && UseRenderManagerStaticMode)
+        {
+            _cachedMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.localScale);
+            _runtimeInitialized = true;
+        }
     }
 
     protected override void OnValidate()
@@ -46,8 +48,7 @@ public class StackBaseStatic : StackingCore
     {
         base.UpdateMaterial();
         if (StackingMaterial == null) return;
-        StackingMaterial.SetInt  ("_LayerCount", LayerCount);
-        StackingMaterial.SetFloat("_YOffset",    _yOffset);
+        StackingMaterial.SetFloat("_YOffset", _yOffset);
     }
 
     protected void UpdateScale()
@@ -56,5 +57,13 @@ public class StackBaseStatic : StackingCore
         if (!CanSetScale) return;
         transform.localScale = new Vector3(SizeMultiplier, SizeMultiplier, 1f);
         _yOffset = SizeHeight * 0.02f;
+    }
+
+    private void LateUpdate()
+    {
+        if (!UseRenderManagerStaticMode || !Application.isPlaying || !_runtimeInitialized || StackingMaterial == null)
+            return;
+
+        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix);
     }
 }

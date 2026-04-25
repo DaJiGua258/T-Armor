@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 129
   _rb: {fileID: 6884988828198100052}
   _bulletMesh: {fileID: 8231925553303829552}
   _pf_bulletExplosionVFX: {fileID: 8486971914317455159, guid: 8961c7f1a2ff35f49937309c98e58d0f, type: 3}
@@ -88,9 +88,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8231925553303829552}
-  - component: {fileID: 9188733025840853032}
-  - component: {fileID: 6549206811518664885}
   - component: {fileID: 4995064897792522863}
+  - component: {fileID: 6632890489157074304}
+  - component: {fileID: 1032373674950870016}
   m_Layer: 0
   m_Name: BulletMesh
   m_TagString: Untagged
@@ -113,7 +113,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5051814083861341237}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &9188733025840853032
+--- !u!114 &4995064897792522863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7782407028947840349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 287a2a0e2fe99144fbedd2bc706ead9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StackingMaterial: {fileID: 2100000, guid: a406ca1ecfcaaf1449319e50cb543996, type: 2}
+  UseLocalZSort: 1
+  OrderParent: {fileID: 0}
+  ZSortOffset: 0
+  HeightLevel: 0
+  CanSetScale: 0
+  SizeMultiplier: 1
+  SizeHeight: 1
+--- !u!33 &6632890489157074304
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -121,7 +141,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7782407028947840349}
   m_Mesh: {fileID: 0}
---- !u!23 &6549206811518664885
+--- !u!23 &1032373674950870016
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -163,24 +183,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4995064897792522863
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7782407028947840349}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 287a2a0e2fe99144fbedd2bc706ead9c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SpriteSheet: {fileID: 2800000, guid: 129fc2d86cd86e34c823a90c79d66f14, type: 3}
-  SpriteSize: 32
-  UseLocalZSort: 1
-  OrderParent: {fileID: 0}
-  ZSortOffset: 0
-  HeightLevel: 0
-  CanSetScale: 0
-  SizeMultiplier: 1
-  SizeHeight: 1

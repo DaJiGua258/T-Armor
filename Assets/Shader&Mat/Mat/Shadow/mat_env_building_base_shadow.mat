@@ -7,15 +7,15 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: mat_enemy_worker_shadow
-  m_Shader: {fileID: 4800000, guid: d0cac4afb7deaed4695f9e359c0be2a0, type: 3}
+  m_Name: mat_env_building_base_shadow
+  m_Shader: {fileID: 4800000, guid: a839927e510832648bc2d9747baf1691, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ZWRITEENABLED_ON
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -25,7 +25,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 3bbc3820a73d2f34086262a7a23b3fb8, type: 3}
+        m_Texture: {fileID: 2800000, guid: e40af6734ae69d64c921d3fb0137e244, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -45,7 +45,7 @@ Material:
     - _YOffset: 0
     - _ZWriteEnabled: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _MainColor: {r: 1, g: 1, b: 1, a: 0.2}
+    - _Color: {r: 0, g: 0, b: 0, a: 0.2}
+    - _MainColor: {r: 0.7882353, g: 0.8039216, b: 0.8156863, a: 0.2}
     - _StackDir: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

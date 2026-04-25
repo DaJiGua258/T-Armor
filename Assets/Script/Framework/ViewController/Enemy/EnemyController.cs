@@ -183,8 +183,8 @@ namespace QFramework.ViewController.Enemy
             Vector2 pos = Mesh.transform.localPosition;
             if (pos.sqrMagnitude <= 0.1f) // 0.01f 的平方
             {
-                
-                Mesh.transform.localPosition = Vector2.zero;
+                float z = Mesh.transform.localPosition.z;
+                Mesh.transform.localPosition = new Vector3(0, 0, z);
                 return true;
             }
             return false;   
@@ -206,7 +206,7 @@ namespace QFramework.ViewController.Enemy
                 s_deathMaterial = new Material(s_meshMaterial);
                 s_deathMaterial.name += "_death";
                 float gray = 0.6f;
-                s_deathMaterial.SetColor("_MainColor", new Color(gray, gray, gray, 1f));
+                s_deathMaterial.SetColor("_Color", new Color(gray, gray, gray, 1f));
             }
         }
 

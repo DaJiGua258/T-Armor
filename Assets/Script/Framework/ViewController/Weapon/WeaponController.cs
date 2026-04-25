@@ -5,6 +5,8 @@ using QFramework.System;
 using QFramework.Enum;
 using QFramework.Utility;
 using Unity.VisualScripting;
+using QFramework.Event;
+using QFramework.UtilityKit;
 
 namespace QFramework.ViewController.Player
 {
@@ -21,6 +23,7 @@ namespace QFramework.ViewController.Player
         public AbstractWeapon WeaponRight;
         [SerializeField] private Transform _weaponSlotLeft;
         [SerializeField] private Transform _weaponSlotRight;
+        [SerializeField] private Rigidbody2D _targetRig;
 
         private IPlayerSystem _playerSystem => this.GetSystem<IPlayerSystem>();
         
@@ -39,6 +42,8 @@ namespace QFramework.ViewController.Player
             _playerSystem.PlayerWeapon.WeaponDataLeft.Register(OnWeaponLeftDataChanged);
             _playerSystem.PlayerWeapon.WeaponDataRight.Register(OnWeaponRightDataChanged);
 
+            TypeEventSystem.Global.Register<WeaponEvent.GetTargetRig>(e => GetTargetRig(e.TargetRig));
+
             this.SendCommand(new WeaponCommand.Init());
         }
 
@@ -47,34 +52,68 @@ namespace QFramework.ViewController.Player
         /// </summary>
         public void RotateWeapon(Vector3 hitPos, float aimZOffsetDeg)
         {
-            if (!WeaponLeft || !WeaponRight)
+            void RotateWeaponDetail(AbstractWeapon weapon, Vector3 hitPos, float aimZOffsetDeg)
             {
-                Debug.Log("WeaponLeft or WeaponRight is null");
-                return;
+                // 计算目标朝向
+                Vector3 dir = hitPos - weapon.transform.position;
+
+                // 计算旋转角度
+                float targetZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + aimZOffsetDeg;
+
+                // 平滑插值
+                float currentZ = weapon.transform.rotation.eulerAngles.z;
+                
+                // 提前量计算
+                if(_targetRig != null)
+                {
+                    currentZ += MathTool.CalculateLeadAngle2D(
+                        weapon.transform.position, 
+                        weapon.WeaponDataModel.BulletSpeed, 
+                        _targetRig.position, 
+                        _targetRig.velocity);
+                }
+                float smoothZ = Mathf.LerpAngle(currentZ, targetZ, 10f * Time.deltaTime);
+
+                // 设置旋转
+                weapon.transform.rotation = Quaternion.Euler(0f, 0f, smoothZ);
             }
 
-            Vector3 hit = hitPos;
+            RotateWeaponDetail(WeaponLeft, hitPos, aimZOffsetDeg);
+            RotateWeaponDetail(WeaponRight, hitPos, aimZOffsetDeg);
 
-            Vector3 dirLeft = hit - WeaponLeft.transform.position;
-            Vector3 dirRight = hit - WeaponRight.transform.position;
+            // if (!WeaponLeft || !WeaponRight)
+            // {
+            //     Debug.Log("WeaponLeft or WeaponRight is null");
+            //     return;
+            // }
 
-            // 在这里实现旋转平滑效果
-            // 当前Weapon的朝向（欧拉角z)
-            float currentZLeft = WeaponLeft.transform.rotation.eulerAngles.z;
-            float currentZRight = WeaponRight.transform.rotation.eulerAngles.z;
+            // Vector3 hit = hitPos;
 
-            // 计算目标朝向
-            float targetZLeft = Mathf.Atan2(dirLeft.y, dirLeft.x) * Mathf.Rad2Deg + aimZOffsetDeg;
-            float targetZRight = Mathf.Atan2(dirRight.y, dirRight.x) * Mathf.Rad2Deg + aimZOffsetDeg;
+            // Vector3 dirLeft = hit - WeaponLeft.transform.position;
+            // Vector3 dirRight = hit - WeaponRight.transform.position;
 
-            // 在360度环绕下插值
-            float smoothZLeft = Mathf.LerpAngle(currentZLeft, targetZLeft, 10f * Time.deltaTime);
-            float smoothZRight = Mathf.LerpAngle(currentZRight, targetZRight, 10f * Time.deltaTime);
+            // // 在这里实现旋转平滑效果
+            // // 当前Weapon的朝向（欧拉角z)
+            // float currentZLeft = WeaponLeft.transform.rotation.eulerAngles.z;
+            // float currentZRight = WeaponRight.transform.rotation.eulerAngles.z;
 
-            WeaponLeft.transform.rotation = Quaternion.Euler(0f, 0f, smoothZLeft);
-            WeaponRight.transform.rotation = Quaternion.Euler(0f, 0f, smoothZRight);
+            // // 计算目标朝向
+            // float targetZLeft = Mathf.Atan2(dirLeft.y, dirLeft.x) * Mathf.Rad2Deg + aimZOffsetDeg;
+            // float targetZRight = Mathf.Atan2(dirRight.y, dirRight.x) * Mathf.Rad2Deg + aimZOffsetDeg;
+
+            // // 在360度环绕下插值
+            // float smoothZLeft = Mathf.LerpAngle(currentZLeft, targetZLeft, 10f * Time.deltaTime);
+            // float smoothZRight = Mathf.LerpAngle(currentZRight, targetZRight, 10f * Time.deltaTime);
+
+            // WeaponLeft.transform.rotation = Quaternion.Euler(0f, 0f, smoothZLeft);
+            // WeaponRight.transform.rotation = Quaternion.Euler(0f, 0f, smoothZRight);
 
             return;
+        }
+
+        public void GetTargetRig(Rigidbody2D targetRig)
+        {
+            _targetRig = targetRig;
         }
 
 

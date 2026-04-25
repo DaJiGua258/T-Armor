@@ -100,7 +100,7 @@ public class SpriteProjectionExporter : EditorWindow
         Color[] outPixels = new Color[frameSize * frameSize];
         for (int i = 0; i < mask.Length; i++)
         {
-            outPixels[i] = mask[i] ? Color.black : Color.clear;
+            outPixels[i] = mask[i] ? Color.white : Color.clear;
         }
 
         output.SetPixels(outPixels);

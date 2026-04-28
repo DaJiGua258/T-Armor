@@ -17,7 +17,7 @@ namespace QFramework.ViewController.Player
             _vfx_explosionTiny2.Stop();
             _vfx_explosionTiny3.Stop();
             _vfx_explosionSmall.Stop();
-            _vfx_crashFire.Stop();
+            // _vfx_crashFire.Stop();
         }
 
         public void PlayVFX()
@@ -36,7 +36,7 @@ namespace QFramework.ViewController.Player
             yield return new WaitForSeconds(0.1f);
             _vfx_explosionSmall.Play();
             yield return new WaitForSeconds(0.1f);
-            if (_vfx_crashFire != null) _vfx_crashFire.Play();
+            // if (_vfx_crashFire != null) _vfx_crashFire.Play();
         }
     }
 }

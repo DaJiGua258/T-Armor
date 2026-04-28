@@ -8,18 +8,18 @@ namespace QFramework.ViewController.Enemy
     /// 进入后在原地等待，计时结束后切换到巡逻移动状态。
     /// 若玩家进入检测范围则立即切换到攻击状态。
     /// </summary>
-    public class EnemyIdleState : AbstractState<EnemyController>
+    public class EnemyIdleState : AbstractState<AbstractEnemy>
     {
         private float _idleTimer;
         private float _idleDuration;
 
-        public EnemyIdleState(EnemyController owner, StateMachine<EnemyController> fsm)
+        public EnemyIdleState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
         public override void OnEnter()
         {
             Entity.StopMovement();
-            _idleDuration = 1f;
+            _idleDuration = 0.5f;
             _idleTimer = 0f;
         }
 

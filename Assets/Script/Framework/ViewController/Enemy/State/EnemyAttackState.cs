@@ -8,13 +8,13 @@ namespace QFramework.ViewController.Enemy
     /// 条件：玩家必须在攻击范围内才允许进入（OnCondition）。
     /// 每隔一段冷却时间对玩家造成伤害；玩家离开范围后返回待机状态。
     /// </summary>
-    public class EnemyAttackState : AbstractState<EnemyController>
+    public class EnemyAttackState : AbstractState<AbstractEnemy>
     {
         private float _curAttackRange = 1;
         private float _attackCooldown = 1.5f;
         private float _attackTimer;
 
-        public EnemyAttackState(EnemyController owner, StateMachine<EnemyController> fsm)
+        public EnemyAttackState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
         /// <summary>仅当玩家在攻击范围内时才允许进入攻击状态。</summary>

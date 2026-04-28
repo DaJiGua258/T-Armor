@@ -89,8 +89,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8231925553303829552}
   - component: {fileID: 4995064897792522863}
-  - component: {fileID: 6632890489157074304}
-  - component: {fileID: 1032373674950870016}
+  - component: {fileID: 7698153020938028494}
+  - component: {fileID: 6377581165219434049}
   m_Layer: 0
   m_Name: BulletMesh
   m_TagString: Untagged
@@ -133,7 +133,7 @@ MonoBehaviour:
   CanSetScale: 0
   SizeMultiplier: 1
   SizeHeight: 1
---- !u!33 &6632890489157074304
+--- !u!33 &7698153020938028494
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -141,7 +141,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7782407028947840349}
   m_Mesh: {fileID: 0}
---- !u!23 &1032373674950870016
+--- !u!23 &6377581165219434049
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

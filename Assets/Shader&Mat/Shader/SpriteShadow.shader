@@ -17,13 +17,15 @@ Shader "Custom/SpriteShadow"
         }
 
         // 关键部分：模板测试
-        Stencil {
-            Ref 1          // 参考值为 1
-            Comp NotEqual  // 如果当前像素的模板值不等于 1，则通过测试
-            Pass Replace   // 测试通过后，将该像素的模板值替换为 Ref 值 (1)
-        }
+        // Stencil {
+        //     Ref 1          // 参考值为 1
+        //     Comp Always         // 如果当前像素的模板值不等于 1，则通过测试
+        //     Pass Replace   // 测试通过后，将该像素的模板值替换为 Ref 值 (1)
+        //     ZFail Keep     // 如果当前像素更远（被挡住了），则不修改模板
+        // }
 
-        ZWrite Off
+        ZTest LEqual
+        ZWrite On
         Cull Off
         Blend SrcAlpha OneMinusSrcAlpha
 

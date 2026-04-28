@@ -90,10 +90,16 @@ namespace QFramework.System
             
             this.WeaponType = weaponConfig.WeaponType;
             this.WeaponState = WeaponStateEnum.Idle;
+
+            // 
             this.MaxAmmo = weaponConfig.MaxAmmo;
             this.CurMaxAmmo.Value = weaponConfig.CurAmmo;
+
+            // 
             this.MaxMagazine = weaponConfig.MaxMagazine;
-            this.CurMagazine.Value = weaponConfig.CurMagazine;
+            this.CurMagazine.Value = weaponConfig.MaxMagazine;
+
+            
             this.ReloadTime = weaponConfig.ReloadTime;
             this.BulletSpeed = weaponConfig.BulletSpeed;
             this.BulletDamage = weaponConfig.BulletDamage;

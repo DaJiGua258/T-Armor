@@ -60,21 +60,8 @@ namespace QFramework.ViewController
 
         public IEnumerator StartDraw()
         {
-            // float elapsed = 0f;
-
-            // while (elapsed < Duration)
-            // {
-            //     elapsed += Time.deltaTime;
-
-            //     DrawLightning();
-
-            //     yield return null; // 等待下一帧，直到达到 0.1s
-            // }
-
             DrawElec();
-
             yield return new WaitForSeconds(0.1f);
-
             _lineRenderer.positionCount = 0;
         }
 

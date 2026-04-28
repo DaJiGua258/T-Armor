@@ -117,6 +117,7 @@ Material:
     - _LandColor: {r: 0.30277675, g: 0.33490145, b: 0.3962264, a: 1}
     - _LandColorNight: {r: 0.37254903, g: 0.35686275, b: 0.454902, a: 1}
     - _LightDir: {r: 1, g: 1, b: 0.5, a: 0}
+    - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _NoiseOffset: {r: 0, g: 0, b: 0, a: 0}
     - _PeakColor: {r: 1, g: 1, b: 1, a: 1}
     - _SavannaColor: {r: 0.75, g: 0.7, b: 0.28, a: 1}

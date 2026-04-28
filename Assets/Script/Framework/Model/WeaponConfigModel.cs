@@ -17,9 +17,9 @@ namespace QFramework.Model
         {
             {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
             {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 10, 600)},
-            {WeaponTypeEnum.MG, new WeaponConfig(WeaponTypeEnum.MG, 10, 60, 2, 20, 10, 840)},
+            {WeaponTypeEnum.LMG, new WeaponConfig(WeaponTypeEnum.LMG, 10, 60, 2, 20, 10, 840)},
             {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2, 20, 10, 180)},
-            {WeaponTypeEnum.RL, new WeaponConfig(WeaponTypeEnum.RL, 4, 30, 2, 20, 10, 120)},
+            {WeaponTypeEnum.MRL, new WeaponConfig(WeaponTypeEnum.MRL, 4, 30, 2, 20, 10, 120)},
         };
 
         protected override void OnInit()
@@ -49,7 +49,6 @@ namespace QFramework.Model
 
         // 弹匣
         public int MaxMagazine;
-        public int CurMagazine;
 
         // 
         public float ReloadTime;
@@ -70,7 +69,6 @@ namespace QFramework.Model
             this.MaxAmmo = maxMagazine * maxAmmoMultipler;
             this.CurAmmo = maxMagazine * maxAmmoMultipler;
             this.MaxMagazine = maxMagazine;
-            this.CurMagazine = maxMagazine;
             this.ReloadTime = reloadTime;
             this.BulletSpeed = bulletSpeed;
             this.BulletDamage = bulletDamage;

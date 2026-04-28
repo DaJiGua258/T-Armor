@@ -1,10 +1,16 @@
+using QFramework.Event;
+using QFramework.Utility;
 using QFramework.ViewController.Enemy;
 using UnityEngine;
 
 namespace QFramework.ViewController.Misc
 {
-    public class Explosion : MonoBehaviour
+    public class Explosion : MonoBehaviour, IController
     {
+        public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
+
+        public ShakeCameraMode ShakeMode;
+
         public float Radius;
         public int Force;
         public float Torque;
@@ -16,13 +22,6 @@ namespace QFramework.ViewController.Misc
             AddForce();
         }
 
-        // public void Init(int radius, int force, int torque)
-        // {
-        //     Radius = radius;
-        //     Force = force;
-        //     Torque = torque;
-        // }
-
         private void AddForce()
         {
             Results = Physics2D.OverlapCircleAll(transform.position, Radius, LayerMask);
@@ -30,10 +29,12 @@ namespace QFramework.ViewController.Misc
             {
                 if(item.CompareTag("Enemy"))
                 {
-                    item.TryGetComponent<EnemyController>(out var enemy);
+                    item.TryGetComponent<AbstractEnemy>(out var enemy);
                     enemy.ForcePush(transform.position, Force, Torque);
                 }
             }
-        }   
+
+            TypeEventSystem.Global.Send(new ShakeCamera { strength = (int)ShakeMode });
+        } 
     }
 }

@@ -21,38 +21,12 @@ namespace QFramework.ViewController.Player
 
         [Header("躯干引用")]
         [SerializeField] private Transform _body;
+        [SerializeField] private Transform _legs;
         [SerializeField] private Rigidbody2D _rigid;
+        [SerializeField] private float _rotateSpeed = 10f;
         public float MoveSpeed;
         public float AimZOffsetDeg;
-        
-
-        [Header("脚部引用")]
-        public Transform LegFl; // 前左
-        public Transform LegFr; // 前右
-        public Transform LegBl; // 后左
-        public Transform LegBr; // 后右
-
-
-        [Header("腿部调整参数")]
-        public float FB;
-        public float RL;
-        public float LegRotation;
-
-        [Header("惯性参数")]
-        public float inertiaSpeed = 8f;             // 惯性插值速度
-        public float inertiaDistance = 1f;          // 停止后惯性最大距离
-        public float minMoveThreshold = 0.01f;      // 认为已经停止的阈值
-        public float inertiaDelay = 0.7f;           // 滞后感倍数可调
-        public Vector3 lastBodyDir;                 // 上一次身体移动方向
-        
-        private Vector3 _legInertiaOffset;           // 腿部惯性偏移
-        private float _legInertiaFactor;             // 腿部惯性因子
-        [Header("腿部偏移权重")]
-        [SerializeField] private float _lerpFactor = 30;               // 躯干移动方向插值因子
-        [SerializeField] private float _legOffsetWeightMulti = 1f;          // 权重倍率
-        private Vector3 lastBodyPosition;           // 上一次身体位置
-        private Vector3 inertiaOffset;              // 惯性偏移
-
+    
         [Header("其他引用")]
         [SerializeField] private PlayerDeathVFXController _deathVFX;
         [Header("状态机")]
@@ -81,7 +55,6 @@ namespace QFramework.ViewController.Player
         private void Start()
         {
             ParamsInit();
-            InitLegPostion();
             
             // 初始化状态字典
             _fsm = new StateMachine<PlayerController>();
@@ -105,7 +78,7 @@ namespace QFramework.ViewController.Player
 
             TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(
                 e => UpdateTargetPos(e.Target)
-            );
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
         private void Update()
@@ -121,7 +94,7 @@ namespace QFramework.ViewController.Player
             if(_fsm.CurrentStateType != typeof(PlayerDeathState))
             {
                 RotateBody();           // 旋转躯干
-                UpdateLegPostion();     // 更新腿部位置
+                RotateLegs();           // 
                 WeaponInput();          // 武器输入
                 CheckFuel();
             }
@@ -271,32 +244,25 @@ namespace QFramework.ViewController.Player
             return;
         }
 
-        /// <summary>
-        /// 更新腿部位置
-        /// </summary>
-        public void InitLegPostion()
+        public void RotateLegs()
         {
-            if (!LegFl || !LegFr || !LegBr || !LegBl) return;
-
-            // FL (前左): y增加(前), x减少(左)
-            LegFl.SetLocalPositionAndRotation(new Vector3(-RL, FB, LegFl.localPosition.z), Quaternion.Euler(0, 0, LegRotation));
-
-            // FR (前右): y增加(前), x增加(右)
-            LegFr.SetLocalPositionAndRotation(new Vector3(RL, FB, LegFr.localPosition.z), Quaternion.Euler(0, 0, -LegRotation));
-
-            // BR (后右): y减少(后), x增加(右)
-            LegBr.SetLocalPositionAndRotation(new Vector3(RL, -FB, LegBr.localPosition.z), Quaternion.Euler(0, 0, LegRotation));
-
-            // BL (后左): y减少(后), x减少(左)
-            LegBl.SetLocalPositionAndRotation(new Vector3(-RL, -FB, LegBl.localPosition.z), Quaternion.Euler(0, 0, -LegRotation));
-        }
-
-        /// <summary>
-        /// 更新腿部位置
-        /// </summary>
-        void UpdateLegPostion()
-        {
+            Vector2 velocity = _rigid.velocity;
             
+            // 速度太小时不旋转，避免归零时抖动
+            if (velocity.sqrMagnitude < 0.01f)
+                return;
+
+            // 计算目标角度：让 right 方向对齐 velocity
+            // right 对应 angle = 0°，所以直接用 velocity 的角度
+            float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
+            Quaternion targetRotation = Quaternion.Euler(0f, 0f, targetAngle);
+
+            // 平滑插值
+            _legs.rotation = Quaternion.Slerp(
+                _legs.rotation,
+                targetRotation,
+                _rotateSpeed * Time.deltaTime
+            );
         }
 
         public string GetCurrentState()

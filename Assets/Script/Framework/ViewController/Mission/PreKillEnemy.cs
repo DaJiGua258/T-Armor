@@ -11,7 +11,8 @@ namespace QFramework.ViewController.Mission
 
         void Start()
         {
-            TypeEventSystem.Global.Register<MissionEvent.KillEnemyEvent>(e => AddProgress());
+            TypeEventSystem.Global.Register<MissionEvent.KillEnemyEvent>(e => AddProgress())
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
         void OnTriggerEnter2D(Collider2D other)

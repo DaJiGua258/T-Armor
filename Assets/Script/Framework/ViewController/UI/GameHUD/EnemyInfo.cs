@@ -14,7 +14,8 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            TypeEventSystem.Global.Register<WeaponInfoEvent.UpdateEnemyInfo>(e => UpdateEnemyInfo());
+            TypeEventSystem.Global.Register<WeaponInfoEvent.UpdateEnemyInfo>(e => UpdateEnemyInfo())
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
         }
         
 

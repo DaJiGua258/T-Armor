@@ -46,7 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321e28cd55e6cea4884e1f75ea303a96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StackingMaterial: {fileID: 2100000, guid: 250cd07101b933043aabfe70ab129300, type: 2}
+  SpriteSheet: {fileID: 0}
+  SpriteSize: 32
   UseLocalZSort: 1
   OrderParent: {fileID: 1204359055267767140}
   ZSortOffset: 0
@@ -229,7 +230,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 287a2a0e2fe99144fbedd2bc706ead9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StackingMaterial: {fileID: 2100000, guid: 70041a9a7efc6d843a770684a97d9a0d, type: 2}
+  SpriteSheet: {fileID: 0}
+  SpriteSize: 32
   UseLocalZSort: 1
   OrderParent: {fileID: 1204359055267767140}
   ZSortOffset: 0

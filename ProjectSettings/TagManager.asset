@@ -18,8 +18,8 @@ TagManager:
   - AimTarget
   - Area
   - 
-  - Groud
-  - LowAir
+  - GroudTarget
+  - LowAirTarget
   - ' HighAir'
   - 
   - 

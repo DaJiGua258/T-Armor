@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
 {
-    public class EnemyFallState : AbstractState<EnemyController>
+    public class EnemyFallState : AbstractState<AbstractEnemy>
     {
-        public EnemyFallState(EnemyController owner, StateMachine<EnemyController> fsm)
+        public EnemyFallState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
         public float gravity = -9.81f; // 重力加速度

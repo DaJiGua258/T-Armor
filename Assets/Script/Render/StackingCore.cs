@@ -24,8 +24,8 @@ public abstract class StackingCore : MonoBehaviour
 
     // 高度层 Z 基础偏移，越小越靠前渲染
     protected const float ZOffsetGround  =   0f;
-    protected const float ZOffsetLowAir  = -8f;
-    protected const float ZOffsetHighAir = -16f;
+    protected const float ZOffsetLowAir  = -5f;
+    protected const float ZOffsetHighAir = -10f;
 
     protected MeshFilter   MeshFilter;
     protected MeshRenderer CachedRenderer;

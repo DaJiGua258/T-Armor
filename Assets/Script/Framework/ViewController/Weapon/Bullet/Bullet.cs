@@ -44,7 +44,7 @@ namespace QFramework.ViewController.Player
             Vector2 velocity = _rb.velocity;
             if (velocity.sqrMagnitude <= Mathf.Epsilon) return;
 
-            float distance = velocity.magnitude * Time.deltaTime;
+            float distance = velocity.magnitude * Time.deltaTime + 0.5f;
             Vector2 origin = transform.position;
             Vector2 direction = velocity.normalized;
 
@@ -60,10 +60,10 @@ namespace QFramework.ViewController.Player
                 else if (hit.collider.gameObject.CompareTag("Enemy"))
                 {
                     BulletExplosion(hit.point);
-                    int enemyId = hit.collider.TryGetComponent<EnemyController>(out var enemy) ? enemy.enemyId : -1;
+                    int enemyId = hit.collider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
                     if(enemy != null)
                     {
-                        enemy.SetDeathObjectPos(hit.point);
+                        // enemy.SetDeathObjectPos(hit.point);
 
                         // 造成伤害, 并更新UI
                         this.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, _damage));

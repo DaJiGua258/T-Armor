@@ -8,7 +8,7 @@ public class StackShadowStatic : StackingCore
     public float SizeMultiplier = 1f;
 
     [Header("影子设置")]
-    public Vector2 ShadowOffset2D = new Vector2(0.1f, 0.1f);
+    public Vector2 ShadowOffset2D = new Vector2(0, -0.1f);
 
     // 影子在同层 base 后面的偏移量
     protected const float ShadowZOffset = 0.01f;

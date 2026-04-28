@@ -1,8 +1,8 @@
-using QFramework.Enum;
-using QFramework;
-using UnityEngine;
-using QFramework.UtilityKit;
 using DG.Tweening;
+using QFramework;
+using QFramework.Event;
+using QFramework.UtilityKit;
+using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : OverrideMonoSingleton<CameraController>
@@ -11,33 +11,45 @@ public class CameraController : OverrideMonoSingleton<CameraController>
     [SerializeField] private Transform _target;
 
     [Header("平滑跟随")]
-    [SerializeField] private float _followTime = 0.5f;
+    [SerializeField] private float _followTime = 0.15f;
 
     [Header("光标偏移")]
-    [SerializeField] private float _mouseOffsetThreshold = 3f;       // 光标距玩家超过此距离时开始偏移
-    [SerializeField] private float _mouseMaxOffset = 4f;       // 镜头最大偏移量
-    [SerializeField] private float _mouseOffsetTime = 0.25f; // 偏移平滑速度
+    [SerializeField] private float _mouseOffsetThreshold = 3f;
+    [SerializeField] private float _mouseMaxOffset = 4f;
+    [SerializeField] private float _mouseOffsetSmoothTime = 0.25f;
 
     private Camera _cam;
-    private Plane _plane;
     private Vector3 _currentOffset;
-    private Tweener _cameraTweener;
+    private Vector3 _offsetVelocity;      // 用于 SmoothDamp
+    private Vector3 _camVelocity;         // 用于 SmoothDamp
+
+    [Header("震动")]
+    [SerializeField] private float _shakeDuration = 0.3f;
+    [SerializeField] private int _shakeVibrato = 20;
+
+    private Vector3 _shakeOffset;
+    private Tweener _shakeTweener;
 
     protected override void Awake()
-    {   
+    {
         base.Awake();
-        
-        _cam = GetComponent<Camera>();
-        if (!_cam) _cam = Camera.main;
+        _cam = GetComponent<Camera>() ?? Camera.main;
+    }
+
+    void Start()
+    {
+        TypeEventSystem.Global.Register<ShakeCamera>(e => Shake(e.strength))
+            .UnRegisterWhenGameObjectDestroyed(gameObject);
     }
 
     public void InitCameraTarget(Transform target)
     {
         _target = target;
-
-        _cameraTweener = transform.DOMove(transform.position, _followTime)
-                              .SetAutoKill(false)
-                              .SetEase(Ease.Linear);
+        // 初始化时直接对齐，避免开局摄像机飞过来
+        if (target)
+        {
+            transform.position = new Vector3(target.position.x, target.position.y, transform.position.z);
+        }
     }
 
     void LateUpdate()
@@ -47,13 +59,11 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         Vector3 targetPos = _target.position;
         Vector3 mouseWorld = InputUtility.GetMousePos();
 
-
-        // 计算光标相对于玩家的方向与距离
+        // 计算鼠标偏移
         Vector3 mouseDelta = mouseWorld - targetPos;
         mouseDelta.z = 0f;
         float mouseDist = mouseDelta.magnitude;
 
-        // 超出阈值部分线性映射为偏移量，上限为 _mouseMaxOffset
         Vector3 desiredOffset = Vector3.zero;
         if (mouseDist > _mouseOffsetThreshold)
         {
@@ -61,44 +71,42 @@ public class CameraController : OverrideMonoSingleton<CameraController>
             desiredOffset = mouseDelta.normalized * offsetMag;
         }
 
-        // 平滑过渡偏移量
-        // _currentOffset = Vector3.Lerp(_currentOffset, desiredOffset, _mouseOffsetTime * Time.deltaTime);
-        
-        DOTween.To(() => _currentOffset, 
-                    x => _currentOffset = x, 
-                    desiredOffset, 
-                    _mouseOffsetTime).SetEase(Ease.Linear);
+        // ✅ 用 SmoothDamp 平滑偏移（比 Lerp 更自然，有速度连续性）
+        _currentOffset = Vector3.SmoothDamp(
+            _currentOffset, desiredOffset, ref _offsetVelocity, _mouseOffsetSmoothTime);
 
-        // 目标镜头世界位置（保持 Z 不变）
+        // 目标摄像机位置 + 震动
         Vector3 desiredCamPos = new Vector3(
-            targetPos.x + _currentOffset.x,
-            targetPos.y + _currentOffset.y,
+            targetPos.x + _currentOffset.x + _shakeOffset.x,
+            targetPos.y + _currentOffset.y + _shakeOffset.y,
             transform.position.z
         );
 
-        _cameraTweener.ChangeEndValue(desiredCamPos, true).Restart();
-
-        // transform.position = desiredCamPos;
+        // ✅ 用 SmoothDamp 平滑摄像机位置
+        transform.position = Vector3.SmoothDamp(
+            transform.position, desiredCamPos, ref _camVelocity, _followTime);
     }
-
-    /// <summary>
-    /// 获取光标世界位置
-    /// </summary>
-    /// <param name="referencePos"></param>
-    /// <returns></returns>
-    private Vector3 GetMouseWorldPosition(Vector3 referencePos)
+    
+    public void Shake(float strength)
     {
-        // 创建一个平面，用于计算点击位置与角色位置的差值
-        _plane = new Plane(Vector3.forward, referencePos);
+        _shakeTweener?.Kill();
+        _shakeOffset = Vector3.zero;
 
-        // 从屏幕点击位置发射射线，获取点击位置的世界坐标
-        Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
-
-        // 如果射线与平面相交，则返回交点世界坐标
-        if (_plane.Raycast(ray, out float d))
-        {
-            return ray.GetPoint(d);
-        }
-        return referencePos;
+        _shakeTweener = DOTween.Shake(
+            () => _shakeOffset,
+            x => _shakeOffset = x,
+            _shakeDuration,
+            strength,
+            _shakeVibrato
+        ).SetEase(Ease.OutQuad);
     }
+}
+
+public enum ShakeCameraMode
+{
+    Tiny = 5,
+    Small = 10,
+    Mid = 15,
+    Large = 20,
+    Huge = 25,
 }

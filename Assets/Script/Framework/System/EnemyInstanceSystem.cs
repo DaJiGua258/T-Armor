@@ -59,6 +59,9 @@ namespace QFramework.System
     public class EnemeyDataModel : InstanceType
     {
         private static int _enemyCounter = 0;
+
+        public EnemyTypeEnum EnemyType;
+
         public BindableProperty<int> enemySize = new BindableProperty<int>();
         public BindableProperty<int> MaxHealth = new BindableProperty<int>();
         public BindableProperty<int> CurrentHealth = new BindableProperty<int>();
@@ -74,9 +77,10 @@ namespace QFramework.System
             this.InstanceId.Value = GetInstanceId((int)enemeyConfig.EnemyType, _enemyCounter);
             _enemyCounter++;
 
+            this.EnemyType = enemeyConfig.EnemyType;
             this.enemySize.Value = enemeyConfig.enemySize;
             this.MaxHealth.Value = enemeyConfig.MaxHealth;
-            this.CurrentHealth.Value = enemeyConfig.CurrentHealth;
+            this.CurrentHealth.Value = enemeyConfig.MaxHealth;
             this.Speed.Value = enemeyConfig.Speed;
             this.Damage = enemeyConfig.Damage;
         }

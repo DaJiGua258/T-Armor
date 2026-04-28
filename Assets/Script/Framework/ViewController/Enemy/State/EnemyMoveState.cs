@@ -8,13 +8,13 @@ namespace QFramework.ViewController.Enemy
     /// 在一定范围内随机选取目标点并向其移动。
     /// 到达目标点后切换到待机状态；若发现玩家则立即切换到攻击状态。
     /// </summary>
-    public class EnemyMoveState : AbstractState<EnemyController>
+    public class EnemyMoveState : AbstractState<AbstractEnemy>
     {
         private float _arrivedThreshold = 0.2f;
         private float _patrolRadius = 5f;
         private float _curAttackRange = 1;
 
-        public EnemyMoveState(EnemyController owner, StateMachine<EnemyController> fsm)
+        public EnemyMoveState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
         public override void OnEnter()

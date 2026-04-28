@@ -157,13 +157,13 @@ namespace QFramework.ViewController.UI
             
             if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
 
-            int enemyId = _targetCollider.TryGetComponent<EnemyController>(out var enemy) ? enemy.enemyId : -1;
+            int enemyId = _targetCollider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
                 _enemyInfo.SetEnemyId(enemyId);
                 Debug.Log("Update Enemy Info: " + enemyId);
             
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
             TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = _targetCollider.GetComponent<Rigidbody2D>() });
-
+ 
             _lastTargetCollider = _targetCollider;
         }
 

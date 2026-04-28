@@ -93,7 +93,10 @@ Shader "Custom/SpriteStacking_URP"
                         UNITY_TRANSFER_INSTANCE_ID(input[0], o);
 
                         float3 worldPos = TransformObjectToWorld(input[j].vertex.xyz);
-                        worldPos.xyz += _StackDir.xyz * (i * _YOffset);
+                        float layerCenter = (layers - 1) * 0.5;
+                        float layerOffset = (i - layerCenter) * _YOffset;
+                        float3 stackDir = normalize(_StackDir.xyz);
+                        worldPos.xyz += stackDir * layerOffset;
                         o.vertex = TransformWorldToHClip(worldPos);
 
                         o.vertex.z += i * 0.0001 * o.vertex.w;

@@ -13,10 +13,15 @@ namespace QFramework.Enum
     public enum WeaponTypeEnum
     {
         None,
+
+        // 轻型武器
         AR,  // 突击步枪
-        MG,  // 机枪
+        HSA,  // 半自动加农炮
+        LMG,  // 机枪
         SG,  // 霰弹枪
-        RL,  // 火箭发射器
+
+        // 重型武器
+        MRL,  // 火箭发射器
     }
 
     public enum ItemTypeEnum
@@ -38,11 +43,29 @@ namespace QFramework.Enum
     public enum EnemyTypeEnum
     {
         None,
-        Worker,
-        Enemy2,
-        Enemy3,
-        Enemy4,
-        Enemy5,
+
+        // 运输型
+        Worker,      // 工蜂（运输型）
+
+        // 战士型
+        Warrior_AR,     // 战斗型（步枪）
+        Warrior_SN,      // 战斗型（狙击）
+
+        // 哨兵型 
+        Sentry_MG,       // 战斗重型（机枪压制）
+        Sentry_RL,       // 战斗重型（火箭弹幕）
+
+        // 侦察型
+        Spotter_Support,   // 增援呼叫型（信息素） 
+        Spotter_Air,
+        Spotter_Shelling,
+
+        // 突袭型，轻型炮艇
+        Raider,
+
+        // 运输艇
+        Dropper_Lit,
+        Dropper_Mid
     }
 
     public enum EquipmentTypeEnum

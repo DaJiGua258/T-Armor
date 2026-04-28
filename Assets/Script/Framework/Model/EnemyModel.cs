@@ -15,9 +15,11 @@ namespace QFramework.Model
         // 敌人配置列表
         private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new Dictionary<EnemyTypeEnum, EnemeyConfig>()
         {
-            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 100, 100, 10, 5)},
-            {EnemyTypeEnum.Enemy2, new EnemeyConfig(10, 200, 200, 20, 20)},
-            {EnemyTypeEnum.Enemy3, new EnemeyConfig(15, 300, 300, 30, 30)},
+            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 50, 0.5f, 10, 5)},
+            {EnemyTypeEnum.Warrior_AR, new EnemeyConfig(10, 100, 0.5f, 20, 20)},
+
+
+            {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 100, 1f, 30, 30)},
         };
 
         protected override void OnInit()
@@ -49,30 +51,26 @@ namespace QFramework.Model
         // 敌人属性
         public int enemySize;
         public int MaxHealth;
-        public int CurrentHealth;
         public int Speed;
         public int Damage;
-        public EnemyState EnemyState;
+
+        // 状态参数
+        public float ReactionTime;
+
+
+
 
         /// <summary>
         /// 初始化敌人配置
         /// </summary>
-        public EnemeyConfig(int enemySize, int maxHealth, int currentHealth, int speed, int damage)
+        public EnemeyConfig(int enemySize, int maxHealth, float reactionTime, int speed, int damage)
         {
             this.enemySize = enemySize;
             this.MaxHealth = maxHealth;
-            this.CurrentHealth = currentHealth;
+            this.ReactionTime = reactionTime;
             this.Speed = speed;
             this.Damage = damage;
         }
     }
 
-
-    public enum EnemyState
-    {
-        Idle,
-        Moving,
-        Attacking,
-        Dead,
-    }
 }

@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8703093769169971510}
   - component: {fileID: 4574475980865172078}
-  - component: {fileID: 6821100959585994309}
-  - component: {fileID: 1082272715791614689}
+  - component: {fileID: 7572840129468124963}
+  - component: {fileID: 5276204174599603116}
   m_Layer: 0
   m_Name: Stem
   m_TagString: Env
@@ -54,7 +54,7 @@ MonoBehaviour:
   CanSetScale: 1
   SizeMultiplier: 1.5
   SizeHeight: 4
---- !u!33 &6821100959585994309
+--- !u!33 &7572840129468124963
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -62,7 +62,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612696172127476699}
   m_Mesh: {fileID: 0}
---- !u!23 &1082272715791614689
+--- !u!23 &5276204174599603116
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -114,8 +114,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7820035787297941987}
   - component: {fileID: 6879498616134609925}
-  - component: {fileID: 1788135432182256581}
-  - component: {fileID: 7315654297184198105}
+  - component: {fileID: 7684138698863366006}
+  - component: {fileID: 7376708201187561817}
   m_Layer: 0
   m_Name: Leaves
   m_TagString: Env
@@ -132,7 +132,7 @@ Transform:
   m_GameObject: {fileID: 1046981898168560601}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 1, z: 3.14161}
+  m_LocalPosition: {x: 0, y: 0.75, z: 3.11661}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -158,7 +158,7 @@ MonoBehaviour:
   CanSetScale: 1
   SizeMultiplier: 1.5
   SizeHeight: 15
---- !u!33 &1788135432182256581
+--- !u!33 &7684138698863366006
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -166,7 +166,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1046981898168560601}
   m_Mesh: {fileID: 0}
---- !u!23 &7315654297184198105
+--- !u!23 &7376708201187561817
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -218,8 +218,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7157890896657388805}
   - component: {fileID: 2981111567547602567}
-  - component: {fileID: 1386731618550318083}
-  - component: {fileID: 8455200886648889449}
+  - component: {fileID: 5191166208430135094}
+  - component: {fileID: 1805314165864632306}
   m_Layer: 0
   m_Name: Shdaow
   m_TagString: Untagged
@@ -236,7 +236,7 @@ Transform:
   m_GameObject: {fileID: 4714923812886872673}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: -0.20000076, z: 3.45161}
+  m_LocalPosition: {x: 0, y: -0.5, z: 3.45161}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -261,8 +261,8 @@ MonoBehaviour:
   HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 2
-  ShadowOffset2D: {x: 0, y: -0.2}
---- !u!33 &1386731618550318083
+  ShadowOffset2D: {x: 0, y: -0.5}
+--- !u!33 &5191166208430135094
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -270,7 +270,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4714923812886872673}
   m_Mesh: {fileID: 0}
---- !u!23 &8455200886648889449
+--- !u!23 &1805314165864632306
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -378,7 +378,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.047675133}
+  m_Offset: {x: 0, y: -0.3}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -389,7 +389,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.5425339, y: 0.52791405}
+  m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
 --- !u!1 &6005171866384921728
 GameObject:

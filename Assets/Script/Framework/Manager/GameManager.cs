@@ -161,6 +161,7 @@ namespace QFramework.Manager
 
         private void OnGameSceneReady()
         {
+            // TODO: 恢复初始化
             if (!InitGameScene())
             {
                 Debug.LogError("[GameManager] Init game scene failed, stop entering runtime state.");

@@ -34,7 +34,8 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            TypeEventSystem.Global.Register<GetAimFramePos>(e => SetFrom(e.Pos));
+            TypeEventSystem.Global.Register<GetAimFramePos>(e => SetFrom(e.Pos))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
         void Update()

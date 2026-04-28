@@ -34,7 +34,8 @@ namespace QFramework.ViewController.UI
                 LayoutRebuilder.ForceRebuildLayoutImmediate(item);
             }
 
-            TypeEventSystem.Global.Register<WeaponInfoEvent.Register>(e => RegisterWeaponInfo());
+            TypeEventSystem.Global.Register<WeaponInfoEvent.Register>(e => RegisterWeaponInfo())
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
 
             leftWeaponInfo.Tweener = leftWeaponInfo.Img
                 .DOFillAmount(1f, 0f)

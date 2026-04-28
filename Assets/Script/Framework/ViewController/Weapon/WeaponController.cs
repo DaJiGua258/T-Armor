@@ -42,7 +42,8 @@ namespace QFramework.ViewController.Player
             _playerSystem.PlayerWeapon.WeaponDataLeft.Register(OnWeaponLeftDataChanged);
             _playerSystem.PlayerWeapon.WeaponDataRight.Register(OnWeaponRightDataChanged);
 
-            TypeEventSystem.Global.Register<WeaponEvent.GetTargetRig>(e => GetTargetRig(e.TargetRig));
+            TypeEventSystem.Global.Register<WeaponEvent.GetTargetRig>(e => GetTargetRig(e.TargetRig))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
 
             this.SendCommand(new WeaponCommand.Init());
         }
@@ -80,34 +81,7 @@ namespace QFramework.ViewController.Player
 
             RotateWeaponDetail(WeaponLeft, hitPos, aimZOffsetDeg);
             RotateWeaponDetail(WeaponRight, hitPos, aimZOffsetDeg);
-
-            // if (!WeaponLeft || !WeaponRight)
-            // {
-            //     Debug.Log("WeaponLeft or WeaponRight is null");
-            //     return;
-            // }
-
-            // Vector3 hit = hitPos;
-
-            // Vector3 dirLeft = hit - WeaponLeft.transform.position;
-            // Vector3 dirRight = hit - WeaponRight.transform.position;
-
-            // // 在这里实现旋转平滑效果
-            // // 当前Weapon的朝向（欧拉角z)
-            // float currentZLeft = WeaponLeft.transform.rotation.eulerAngles.z;
-            // float currentZRight = WeaponRight.transform.rotation.eulerAngles.z;
-
-            // // 计算目标朝向
-            // float targetZLeft = Mathf.Atan2(dirLeft.y, dirLeft.x) * Mathf.Rad2Deg + aimZOffsetDeg;
-            // float targetZRight = Mathf.Atan2(dirRight.y, dirRight.x) * Mathf.Rad2Deg + aimZOffsetDeg;
-
-            // // 在360度环绕下插值
-            // float smoothZLeft = Mathf.LerpAngle(currentZLeft, targetZLeft, 10f * Time.deltaTime);
-            // float smoothZRight = Mathf.LerpAngle(currentZRight, targetZRight, 10f * Time.deltaTime);
-
-            // WeaponLeft.transform.rotation = Quaternion.Euler(0f, 0f, smoothZLeft);
-            // WeaponRight.transform.rotation = Quaternion.Euler(0f, 0f, smoothZRight);
-
+            
             return;
         }
 
@@ -148,23 +122,12 @@ namespace QFramework.ViewController.Player
 
             // 如果左槽位有武器，则销毁
             if(weaponSlot.childCount > 0)
+            {
                 Destroy(weaponSlot.GetChild(0).gameObject);
-
-            // 如果武器数据为 Rifle，则生成 Rifle 武器
-            if(weaponData.WeaponType == WeaponTypeEnum.AR)
-            {
-                weapon = InstantiateWeapons(WeaponTypeEnum.AR, weaponSlot, weaponData);
-            }
-            else if(weaponData.WeaponType == WeaponTypeEnum.MG)
-            {
-                weapon = InstantiateWeapons(WeaponTypeEnum.MG, weaponSlot, weaponData);
-            }
-            else if(weaponData.WeaponType == WeaponTypeEnum.SG)
-            {
-                weapon = InstantiateWeapons(WeaponTypeEnum.SG, weaponSlot, weaponData);
             }
 
-        
+            weapon = InstantiateWeapons(weaponData.WeaponType, weaponSlot, weaponData);
+
             if(weaponSlotEnum == WeaponSlotEnum.Left)
             {
                 WeaponLeft = weapon;

@@ -36,7 +36,8 @@ namespace QFramework.ViewController.UI
             UpdateFuelBar(false);
             UpdateHealthBar(false);
 
-            TypeEventSystem.Global.Register<WeaponInfoEvent.UpdatePos>(e => UpdatePos(e.Pos));
+            TypeEventSystem.Global.Register<WeaponInfoEvent.UpdatePos>(e => UpdatePos(e.Pos))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
         private void InitBar(SliderlBar bar)

@@ -25,7 +25,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: d76e65a05bf0f5d48a8ce7e3a0c6aa3e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 899ae05f93fc90349845e6860184fb4e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -43,7 +43,7 @@ Material:
     - _SliceIndex: 0
     - _SliceOffset: 0.95
     - _SliceSize: 32
-    - _YOffset: 0.03
+    - _YOffset: 0.04
     - _ZWriteEnabled: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

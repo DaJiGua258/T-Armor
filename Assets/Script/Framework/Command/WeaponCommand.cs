@@ -44,7 +44,8 @@ namespace QFramework.Command
             protected override void OnExecute()
             {
                 _weaponData.WeaponState = WeaponStateEnum.Shooting;
-                _weaponData.CurMagazine.Value--;  // 当前弹匣弹药
+                // 防御性保护，避免任何路径把弹匣打成负数
+                _weaponData.CurMagazine.Value = Mathf.Max(0, _weaponData.CurMagazine.Value - 1);  // 当前弹匣弹药
                 _weaponData.WeaponState = WeaponStateEnum.Idle;
             }
         }

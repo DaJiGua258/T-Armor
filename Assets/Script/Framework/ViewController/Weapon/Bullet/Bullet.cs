@@ -60,7 +60,8 @@ namespace QFramework.ViewController.Player
                 else if (hit.collider.gameObject.CompareTag("Enemy"))
                 {
                     BulletExplosion(hit.point);
-                    int enemyId = hit.collider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
+                    var enemy = hit.collider.GetComponentInParent<AbstractEnemy>();
+                    int enemyId = enemy.enemyId;
                     if(enemy != null)
                     {
                         // enemy.SetDeathObjectPos(hit.point);

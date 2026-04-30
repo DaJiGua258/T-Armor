@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Pathfinding;
 using QFramework.Command;
 using QFramework.Enum;
 using QFramework.System;
@@ -20,15 +21,17 @@ namespace QFramework.ViewController.Enemy
         [Header("实例标识")]
         public int enemyId;
         public EnemyTypeEnum enemyType;
+        public bool IsInit = false;
 
-        [Header("感知范围")]
+        [Header("寻路与感知")]
+        public FollowerEntity Agent;
         public float DetectionRange;
         public float AttackMaxRange;
         public float AttackMinRange;
 
         [Header("组件")]
         [SerializeField] private float _moveSpeed = 3f;
-        [SerializeField] private Rigidbody2D _rb;
+        public Rigidbody2D Rb;
         public Collider2D Collider;
         private static Material s_deathMaterial;
         private static Material s_meshMaterial;
@@ -47,17 +50,31 @@ namespace QFramework.ViewController.Enemy
         public Transform Body;
         public Transform Legs;
         public Transform Shadow;
+        public Transform ColliderTrans;
 
         [Header("武器引用")]
         public Transform Weapon;
         public Transform Muzzle;
         
+        [Header("武器参数")]
+        [SerializeField] protected float _weaponAimRotateSpeed = 10f;
+        [SerializeField] protected float _weaponAimLimitDeg = 75f;
+        // 0 = 最大散布，1 = 完全精准（无偏移）
+        [Range(0f, 1f)]
+        [SerializeField] protected float _shootAccuracy = 1f;
+        
 
         [Header("特殊引用")]
         protected StateMachine<AbstractEnemy> _fsm;
+        private bool _hasPatrolRoute;
+        private bool _patrolToEndPoint = true;
+        private Vector3 _patrolStartPoint;
+        private Vector3 _patrolEndPoint;
+        private bool _hasPatrolMoveSpeed;
+        private float _patrolMoveSpeed = 1f;
         private Tweener _tweener;
         [Header("移动参数")]
-        [SerializeField] private float _rotateSpeed = 5f;
+        [SerializeField] protected float _rotateSpeed = 5f;
         [SerializeField] private float _turnSpeed = 5f;
         private Vector3 _smoothVelocity;
         
@@ -75,10 +92,12 @@ namespace QFramework.ViewController.Enemy
             
             
             // ----- 初始化 -------------------------
-            InitTransofrm();
-            InitFSM();
-            InitData();
+            if(IsInit) return;
+
+            InitEnemy();
         }
+
+        
 
         protected virtual void Update()
         {
@@ -105,6 +124,18 @@ namespace QFramework.ViewController.Enemy
 
         #region  ----- 初始化 -------------------------
 
+        /// <summary>
+        /// 用于外部调用初始化
+        /// </summary>
+        public void InitEnemy()
+        {
+            if(IsInit) return;
+            InitTransofrm();
+            InitFSM();
+            InitData();
+            IsInit = true;
+        }
+
         protected virtual void InitFSM()
         {
             _fsm = new StateMachine<AbstractEnemy>();
@@ -114,6 +145,7 @@ namespace QFramework.ViewController.Enemy
             _fsm.AddState(new EnemyDeathState(this, _fsm));
             _fsm.AddState(new EnemyFallState(this, _fsm));
             _fsm.AddState(new EnemyLockState(this, _fsm));
+            _fsm.AddState(new EnemyPatrolState(this, _fsm));
 
             // ----- 启动状态机 -------------------------
             _fsm.StartState<EnemyIdleState>();   
@@ -125,6 +157,7 @@ namespace QFramework.ViewController.Enemy
             Mesh = transform.Find("Mesh");
             Body = Mesh.Find("Body");
             Legs = Mesh.Find("Legs");
+            ColliderTrans = Mesh.Find("Collider");
 
             Shadow = transform.Find("Shadow");
 
@@ -136,15 +169,26 @@ namespace QFramework.ViewController.Enemy
             }
 
             // 物理组件
-            _rb = transform.GetComponent<Rigidbody2D>();
-            Collider = Mesh.GetComponent<Collider2D>();
+            Rb = transform.GetComponent<Rigidbody2D>();
+            Collider = ColliderTrans.GetComponent<Collider2D>();
+
+            Agent = transform.GetComponent<FollowerEntity>();
         }
 
         protected virtual void InitData() { }
 
         #endregion
 
-        #region ----- 移动相关 -------------------------
+        #region ----- 目标判断 -------------------------
+
+        /// <summary>
+        /// 获取目标
+        /// </summary>
+        public void GetTarget(Transform player)
+        {
+            Target = player;
+        }
+
         /// <summary>
         /// 判断是否在检测范围内
         /// </summary>
@@ -181,33 +225,47 @@ namespace QFramework.ViewController.Enemy
         public bool IsInSpecifiedRange(float range)
         {
             if (Target == null) return false;
-            float dis = Vector2.Distance(transform.position, Target.position);
-            if(dis <= range)
-            {
-                return true;
-            }
-
-            return false;
+            return IsInSpecifiedRange(Target.position, range);
         }
-        
-        public void MoveToward(Vector3 targetPos)
+
+        /// <summary>
+        /// 判断自身到任意目标点是否在指定范围内。
+        /// </summary>
+        public bool IsInSpecifiedRange(Vector3 targetPos, float range)
         {
-            Vector2 targetDir = ((Vector2)targetPos - _rb.position).normalized;
+            float dis = Vector2.Distance(transform.position, targetPos);
+            if (Agent != null)
+            {
+                Agent.stopDistance = range;
+            }
+            return dis <= range;
+        }
+
+        #endregion
+
+        #region ----- 移动相关 -------------------------
+        
+        public virtual void MoveToward(Vector3 targetPos)
+        {
+            // Vector2 targetDir = ((Vector2)targetPos - Rb.position).normalized;
     
-            // 当前移动方向，静止时直接用目标方向
-            Vector2 currentDir = _rb.velocity.sqrMagnitude > 0.01f
-                ? _rb.velocity.normalized
-                : targetDir;
+            // // 当前移动方向，静止时直接用目标方向
+            // Vector2 currentDir = Rb.velocity.sqrMagnitude > 0.01f
+            //     ? Rb.velocity.normalized
+            //     : targetDir;
             
-            // 每帧最多转这么多角度
-            Vector2 newDir = Vector2.MoveTowards(currentDir, targetDir, _turnSpeed * Time.fixedDeltaTime);
+            // // 每帧最多转这么多角度
+            // Vector2 newDir = Vector2.MoveTowards(currentDir, targetDir, _turnSpeed * Time.fixedDeltaTime);
             
-            _rb.velocity = newDir * _moveSpeed;
+            // Rb.velocity = newDir * _moveSpeed;
             
+            // Rotate(targetPos);
+
+            Agent.destination = targetPos;
             Rotate(targetPos);
         }
 
-        public void Rotate(Vector3 targetPos)
+        public virtual void Rotate(Vector3 targetPos)
         {
             Vector2 dir = (targetPos - transform.position).normalized;
 
@@ -222,6 +280,7 @@ namespace QFramework.ViewController.Enemy
             float currentAngle = Body.rotation.eulerAngles.z;
             float smoothAngle = Mathf.LerpAngle(currentAngle, z, _rotateSpeed * Time.fixedDeltaTime);
 
+            // ----- 应用旋转 -------------------------
             Body.rotation = Quaternion.Euler(0, 0, smoothAngle);
             Shadow.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
@@ -229,6 +288,52 @@ namespace QFramework.ViewController.Enemy
             {
                 Weapon.rotation = Quaternion.Euler(0, 0, smoothAngle);
             }
+
+            // ----- 腿部旋转 -------------------------
+            Vector2 v = Agent != null
+                ? Agent.velocity
+                : (Rb != null ? Rb.velocity : Vector2.zero);
+
+            if(v.sqrMagnitude < 0.01f || Legs == null) return;
+
+            float vz = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+            Quaternion legTarget = Quaternion.Euler(0f, 0f, vz);
+            // 平滑插值
+            Legs.rotation = Quaternion.Slerp(
+                Legs.rotation,
+                legTarget,
+                _rotateSpeed * Time.deltaTime * 0.25f
+            );
+        }
+
+        public virtual void RotateToTarget(Vector3 targetPos)
+        {
+            // 默认行为与 Rotate 一致；子类可重写为攻击特化朝向
+            Rotate(targetPos);
+        }
+
+        /// <summary>
+        /// 武器节点独立瞄准目标（平滑 + 相对身体角度限制）。
+        /// </summary>
+        protected void RotateWeaponToTarget(Vector3 targetPos)
+        {
+            if(Weapon == null || Body == null) return;
+
+            Vector2 dir = (targetPos - Weapon.position).normalized;
+            if(dir.sqrMagnitude < 0.01f) return;
+
+            // 与 WeaponController 对齐：使用 Atan2 + LerpAngle 的瞄准方式
+            float targetZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            float bodyZ = Body.rotation.eulerAngles.z;
+
+            // 限制武器偏离身体的夹角，避免瞬间大幅甩动
+            float delta = Mathf.DeltaAngle(bodyZ, targetZ);
+            delta = Mathf.Clamp(delta, -_weaponAimLimitDeg, _weaponAimLimitDeg);
+            targetZ = bodyZ + delta;
+
+            float currentZ = Weapon.rotation.eulerAngles.z;
+            float smoothZ = Mathf.LerpAngle(currentZ, targetZ, _weaponAimRotateSpeed * Time.deltaTime);
+            Weapon.rotation = Quaternion.Euler(0f, 0f, smoothZ);
         }
 
         public void RotateInLock(float z)
@@ -238,9 +343,30 @@ namespace QFramework.ViewController.Enemy
             Shadow.rotation = Quaternion.Euler(0, 0, z);
         }
 
+        public void StartMovement()
+        {
+            if (Agent != null)
+            {
+                Agent.maxSpeed = _moveSpeed;
+            }
+        }
+
+        public void StartPatrolMovement()
+        {
+            if (Agent == null) return;
+            Agent.maxSpeed = _hasPatrolMoveSpeed ? _patrolMoveSpeed : _moveSpeed;
+        }
+        
         public void StopMovement()
         {
-            _rb.velocity = Vector2.zero;
+            if (Agent != null)
+            {
+                Agent.maxSpeed = 0;
+            }
+            else if (Rb != null)
+            {
+                Rb.velocity = Vector2.zero;
+            }
         }
 
         public bool IsGrounded()
@@ -257,9 +383,73 @@ namespace QFramework.ViewController.Enemy
             return false;   
         }
 
+        #region ----- 射击相关 -------------------------
+
+        /// <summary>
+        /// 基于准度参数，返回朝向目标的带随机偏移射击方向。
+        /// 准度越高，偏移越小（1 = 完全精准）。
+        /// </summary>
+        protected Vector3 GetShootDirectionWithAccuracy(Vector3 shootOrigin, Vector3 fallbackDir)
+        {
+            // 兜底方向：目标丢失/距离过近等异常情况下，仍保证子弹可发射。
+            Vector3 safeFallback = fallbackDir.sqrMagnitude > 0.0001f ? fallbackDir.normalized : transform.right;
+            if(Target == null) return safeFallback;
+
+            // 计算目标方向
+            Vector3 toTarget = Target.position - shootOrigin;
+            if(toTarget.sqrMagnitude < 0.0001f) return safeFallback;
+
+            // 计算基础方向
+            Vector3 baseDir = toTarget.normalized;
+            const float maxSpreadDegAtZeroAccuracy = 20f; // 最大偏移角度，准度为0时
+            float maxOffsetDeg = (1f - _shootAccuracy) * maxSpreadDegAtZeroAccuracy; // 计算最大偏移角度
+
+            if(maxOffsetDeg <= 0.001f) return baseDir; // 如果最大偏移角度小于0.001，则直接返回基础方向
+
+            // 以目标方向为中心，在 [-maxOffsetDeg, +maxOffsetDeg] 内随机偏移。
+            float randomOffsetDeg = Random.Range(-maxOffsetDeg, maxOffsetDeg);
+            return Quaternion.Euler(0f, 0f, randomOffsetDeg) * baseDir;
+        }
+
+        #endregion
+
+
+        
+
         public void ChangeState<TState>() where TState : AbstractState<AbstractEnemy>
         {
             _fsm.ChangeState<TState>();
+        }
+
+        public void SetPatrolRoute(Vector3 startPoint, Vector3 endPoint)
+        {
+            _patrolStartPoint = startPoint;
+            _patrolEndPoint = endPoint;
+            _patrolToEndPoint = true;
+            _hasPatrolRoute = true;
+        }
+
+        public void SetPatrolMoveSpeed(float patrolMoveSpeed)
+        {
+            _patrolMoveSpeed = Mathf.Max(0f, patrolMoveSpeed);
+            _hasPatrolMoveSpeed = true;
+        }
+
+        public bool HasPatrolPath()
+        {
+            return _hasPatrolRoute;
+        }
+
+        public Vector3 GetCurrentPatrolPoint()
+        {
+            if (!_hasPatrolRoute) return transform.position;
+            return _patrolToEndPoint ? _patrolEndPoint : _patrolStartPoint;
+        }
+
+        public void AdvancePatrolPoint()
+        {
+            if (!_hasPatrolRoute) return;
+            _patrolToEndPoint = !_patrolToEndPoint;
         }
 
         #endregion
@@ -329,11 +519,11 @@ namespace QFramework.ViewController.Enemy
         public void ForcePush(Vector2 forcePos, int force, float torque)
         {
             var dir = (Vector2)transform.position - forcePos;
-            _rb.AddForce(dir.normalized * force, ForceMode2D.Impulse);
+            Rb.AddForce(dir.normalized * force, ForceMode2D.Impulse);
 
             // 随机产生 1 或 -1
             float torDir = (Random.value > 0.5f) ? 1f : -1f;
-            _rb.AddTorque(torque * torDir, ForceMode2D.Impulse);
+            Rb.AddTorque(torque * torDir, ForceMode2D.Impulse);
         }
 
         public string GetCurrentState()
@@ -345,13 +535,14 @@ namespace QFramework.ViewController.Enemy
                 EnemyAttackState => "Attack",
                 EnemyDeathState => "Death",
                 EnemyFallState => "Fall",
+                QFramework.ViewController.Enemy.EnemyPatrolState => "Patrol",
                 _ => "Unknown"
             };
         }
 
         #endregion
 
-        void OnDrawGizmos()
+        void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, DetectionRange);

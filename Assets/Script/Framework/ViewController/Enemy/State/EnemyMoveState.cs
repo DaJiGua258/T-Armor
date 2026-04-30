@@ -19,18 +19,29 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
+            Entity.StartMovement();
+
             // ----- 随机生成攻击范围 -------------------------
             _curAttackRange = Random.Range((float)Entity.AttackMinRange, (float)Entity.AttackMaxRange);
+
+            Debug.Log("进入移动状态");
+            Debug.Log("攻击范围: " + _curAttackRange);
         }
 
         public override void OnUpdate()
         {
             // 追逐过程中，超出范围返回待机状态
             if(!Entity.IsInDetectRange()) 
+            {
                 FSM.ChangeState<EnemyIdleState>();
+                return;
+            }
 
             if(Entity.IsInSpecifiedRange(_curAttackRange)) 
+            {
                 FSM.ChangeState<EnemyAttackState>();
+                return;
+            }
   
 
             Entity.MoveToward(Entity.Target.position);

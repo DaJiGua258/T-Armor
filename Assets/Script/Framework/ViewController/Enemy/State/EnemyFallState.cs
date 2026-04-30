@@ -9,20 +9,21 @@ namespace QFramework.ViewController.Enemy
         public EnemyFallState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
-        public float gravity = -9.81f; // 重力加速度
         private float verticalVelocity = 0;   // 当前垂直速度
 
         public override void OnEnter()
         {
             verticalVelocity = 0;
             Entity.Collider.enabled = false;
+            Entity.Agent.enabled = false;
         }
 
         public override void OnUpdate()
         {
             if(Entity.IsGrounded())
             {
-                FSM.ChangeState<EnemyIdleState>();
+                if (Entity.HasPatrolPath()) FSM.ChangeState<EnemyPatrolState>();
+                else FSM.ChangeState<EnemyIdleState>();
             }
 
             
@@ -32,7 +33,7 @@ namespace QFramework.ViewController.Enemy
             // 2. 应用世界坐标的重力位移
             worldPos.y += verticalVelocity * Time.deltaTime;
             
-            verticalVelocity += gravity * Time.deltaTime;  // 重力加速度
+            verticalVelocity += GameConstants.EnemyGravity * Time.deltaTime;  // 重力加速度
 
             // 3. 转回局部坐标并赋值
             Entity.Mesh.localPosition = Entity.Mesh.InverseTransformPoint(worldPos);
@@ -42,6 +43,9 @@ namespace QFramework.ViewController.Enemy
         {
             Entity.Mesh.localPosition = new Vector3(0, 0, Entity.Mesh.localPosition.z);
             Entity.Collider.enabled = true;
+            Entity.Agent.enabled = true;
         }
     }
+
+    
 }

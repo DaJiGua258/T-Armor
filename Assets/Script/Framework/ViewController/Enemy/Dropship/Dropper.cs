@@ -2,14 +2,37 @@ using System;
 using UnityEngine;
 using QFramework.ViewController.FSM;
 using System.Collections.Generic;
-using QFramework.Enum;
+using System.Collections;
 
 namespace QFramework.ViewController.Enemy
 {
     public class Dropper : AbstractEnemy
     {
         [Header("Dropper参数")]
+        public const float MeshHeight = 3f;
         [SerializeField] private List<CargoSlot> _cargoSlots;
+        public bool IsDropped = false;
+
+        [Header("运动参数")]
+        [SerializeField] private float _maxSpeed = 10f;
+        [SerializeField] private float _decelerationDis = 10f;
+        [SerializeField] private AnimationCurve _speedCurve;
+        [SerializeField] private AnimationCurve _heightCurve;
+        public Vector3 LastPos;
+
+        public float StartDis;
+        public float EndDis;
+
+        [Header("路径参数")]
+        [SerializeField] private float _reachTargetDistance = 1.2f;
+        private Vector3 _routeStartPoint;
+        private Vector3 _routeDropPoint;
+        private Vector3 _routeEndPoint;
+        private bool _hasRoute;
+
+        [Header("悬浮参数")]
+        public float amplitude = 0.5f;          // 浮动振幅（上下跳动的幅度）
+        public float frequency = 1f;            // 浮动频率（跳动的快慢）
 
 
         protected override void InitFSM()
@@ -29,7 +52,6 @@ namespace QFramework.ViewController.Enemy
 
         protected override void InitData()
         {
-            InitEnemy();
             LockCargos();
         }
 
@@ -37,7 +59,10 @@ namespace QFramework.ViewController.Enemy
         protected override void Update()
         {
             _fsm.Update();
-            CarryCargos();
+            if(!IsDropped)
+            {
+                CarryCargos();
+            }
         }
 
         public override void Attack()
@@ -50,71 +75,176 @@ namespace QFramework.ViewController.Enemy
             // 留给后续实现投放/发射逻辑
         }
 
+        #region ----- 运动相关 -------------------------
+
+
+        public override void MoveToward(Vector3 targetPos)
+        {
+            Vector2 targetDir = targetPos - transform.position;
+            float disToTarget = targetDir.magnitude;
+            float disFromStart = Vector2.Distance(transform.position, LastPos);
+    
+
+            float time = 0;
+
+            if(disFromStart > disToTarget)
+            {
+                time = Mathf.Clamp01(disToTarget / _decelerationDis);
+                
+            }
+            else
+            {
+                time = Mathf.Clamp01(disFromStart / _decelerationDis + 0.05f);
+            }
+
+
+            // 依据curve曲线设置速度
+            Rb.velocity = _maxSpeed * _speedCurve.Evaluate(time) * targetDir.normalized;
+
+            // 依据curve曲线设置mesh高度
+            Mesh.localPosition = new Vector3(
+                Mesh.localPosition.x,
+                MeshHeight + MeshHeight * _heightCurve.Evaluate(time),
+                Mesh.localPosition.z);
+
+            Rotate(targetPos);
+            _enterHieght = Mesh.localPosition.y;
+        }
+
+        private float _enterHieght;
+        public void AirFloat(float timer)
+        {
+            // 三角函数偏移
+            float height = _enterHieght + 
+                Mathf.Sin(timer * Mathf.PI * frequency) * amplitude;
+            
+            // 设置mesh高度
+            Mesh.transform.localPosition = new Vector3(
+                Mesh.localPosition.x,
+                height,
+                Mesh.localPosition.z
+            );
+        }
+
+        #endregion
+
         #region ----- 挂载 -------------------------
+        public int GetCargoSlotCount()
+        {
+            if (_cargoSlots == null) return 0;
+            return Mathf.Min(_cargoSlots.Count, 6);
+        }
+
+        public void BindCargoEnemy(int slotIndex, AbstractEnemy enemy)
+        {
+            if (enemy == null) return;
+            if (_cargoSlots == null || slotIndex < 0 || slotIndex >= _cargoSlots.Count) return;
+
+            _cargoSlots[slotIndex].Enemy = enemy;
+
+            enemy.transform.position = new Vector3(
+                transform.position.x,
+                transform.position.y - MeshHeight,
+                transform.position.z
+            );
+
+            enemy.Mesh.localPosition = new Vector3(
+                0,
+                MeshHeight - 0.1f,
+                enemy.Mesh.localPosition.z
+            );
+        }
+
         public void CarryCargos()
         {
+            if (_cargoSlots == null || _cargoSlots.Count == 0) return;
             float height = Mesh.localPosition.y;
             foreach (var cargoSlot in _cargoSlots)
             {
-                // cargoSlot.Enemy.transform.position = cargoSlot.Slot.position;
-                // Vector3 pos = cargoSlot.Enemy.transform.position;  // 搭载的敌人当前位置
+                if (cargoSlot.Enemy == null || cargoSlot.Slot == null) continue;
+
+
                 cargoSlot.Enemy.transform.position = new Vector3(
                     cargoSlot.Slot.position.x,
                     cargoSlot.Slot.position.y - height,
                     cargoSlot.Enemy.transform.position.z
                 );
+
+                cargoSlot.Enemy.Mesh.localPosition = new Vector3(
+                    0, 
+                    height - 0.1f,  // 保持搭载的敌人的mesh和运输船的mesh高度一致
+                    cargoSlot.Enemy.Mesh.localPosition.z);
+                
                 cargoSlot.Enemy.RotateInLock(Body.localEulerAngles.z);
             }
         }
 
         public void LockCargos()
         {
-            if(_cargoSlots.Count == 0) return;
+            if (_cargoSlots == null || _cargoSlots.Count == 0) return;
 
             foreach (var cargoSlot in _cargoSlots)
             {
+                if (cargoSlot.Enemy == null) continue;
                 cargoSlot.Enemy.ChangeState<EnemyLockState>();
             }
         }
 
         public void DropCargos()
         {
-            if(_cargoSlots.Count == 0) return;
+            StartCoroutine(DropCargosEnumerator());
+        }
+
+        IEnumerator DropCargosEnumerator()
+        {
+            if (_cargoSlots == null || _cargoSlots.Count == 0) yield break;
+            yield return new WaitForSeconds(0.5f);
 
             foreach (var cargoSlot in _cargoSlots)
             {
+                if (cargoSlot.Enemy == null) continue;
                 cargoSlot.Enemy.ChangeState<EnemyFallState>();
+                yield return new WaitForSeconds(0.1f);
             }
+            
+            yield return new WaitForSeconds(0.5f);
+
+            IsDropped = true;
         }
 
         #endregion
 
-        public void InitEnemy()
+        #region ----- 路径 -------------------------
+        public void SetupRoute(Vector3 startPoint, Vector3 dropPoint, Vector3 endPoint)
         {
-            float height = Mesh.localPosition.y;
-
-            var res = ResourceLoad.Load<GameObject>("Prefab/Enemy/" + EnemyTypeEnum.Warrior_AR.ToString());
-            foreach (var cargoSlot in _cargoSlots)
-            {
-                
-                var obj = Instantiate(res);
-                var enemy = obj.GetComponent<AbstractEnemy>();
-                cargoSlot.Enemy = enemy;
-
-                enemy.transform.rotation = Quaternion.identity;
-                enemy.transform.position = new Vector3(
-                    transform.position.x,
-                    transform.position.y - height,
-                    transform.position.z
-                );
-                enemy.Mesh.localPosition = new Vector3(
-                    0, 
-                    height - 0.1f,  // 保持搭载的敌人的mesh和运输船的mesh高度一致
-                    cargoSlot.Slot.localEulerAngles.z);
-                
-                
-            }
+            _routeStartPoint = startPoint;
+            _routeDropPoint = dropPoint;
+            _routeEndPoint = endPoint;
+            _hasRoute = true;
+            LastPos = _routeStartPoint;
         }
+
+        public bool IsRouteReady()
+        {
+            return _hasRoute;
+        }
+
+        public Vector3 GetCurrentRouteTarget()
+        {
+            return IsDropped ? _routeEndPoint : _routeDropPoint;
+        }
+
+        public bool IsReachCurrentRouteTarget()
+        {
+            if (!_hasRoute) return false;
+            return IsInSpecifiedRange(GetCurrentRouteTarget(), _reachTargetDistance);
+        }
+
+        public void DespawnAtRouteEnd()
+        {
+            Destroy(gameObject);
+        }
+        #endregion
 
         
     }

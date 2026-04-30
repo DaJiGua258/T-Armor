@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4371996657677189358}
   - component: {fileID: 5882061796907103828}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Shadow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 306593119826239706}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.2000122, z: 0.109996796}
+  m_LocalPosition: {x: 0, y: -0.20000076, z: 0.11000013}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -64,7 +64,7 @@ GameObject:
   - component: {fileID: 7177030984168857588}
   - component: {fileID: 7128231305715015432}
   - component: {fileID: 3007961202586362618}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -80,7 +80,7 @@ Transform:
   m_GameObject: {fileID: 327119584301018284}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -959.2, y: -513.3, z: 0}
+  m_LocalPosition: {x: -0.3, y: 29.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -162,7 +162,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7766833829135707699}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: WeaponSlotRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -193,7 +193,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3741987070547888572}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7129977459079710536}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -261,7 +261,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8309590534835056175}
   - component: {fileID: 3928671835635470795}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MovingBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -338,7 +338,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4329662377304436414}
   - component: {fileID: 1696123989937143416}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HitBox
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -416,7 +416,7 @@ GameObject:
   - component: {fileID: 3935147323868678724}
   - component: {fileID: 6662755748636056035}
   - component: {fileID: 4393500015187427533}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: DeathVFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -432,7 +432,7 @@ Transform:
   m_GameObject: {fileID: 6320850123345649415}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -51.53}
+  m_LocalPosition: {x: 0, y: 0, z: 2.7700002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -488,7 +488,7 @@ GameObject:
   - component: {fileID: 6251947062192545301}
   - component: {fileID: 8794090625772150847}
   - component: {fileID: 1482676822024070366}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -504,7 +504,7 @@ Transform:
   m_GameObject: {fileID: 6504291283580859724}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.10003662, z: -51.419994}
+  m_LocalPosition: {x: 0, y: 0.10003662, z: 2.8800037}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -592,7 +592,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3560834938684610163}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: WeaponSlotLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -626,7 +626,7 @@ GameObject:
   - component: {fileID: 2757679199047761586}
   - component: {fileID: 6936216218561862601}
   - component: {fileID: 4035327919801879382}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Legs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -642,7 +642,7 @@ Transform:
   m_GameObject: {fileID: 7259554538435511267}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -51.329998}
+  m_LocalPosition: {x: 0, y: 0, z: 2.97}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -766,9 +766,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1011287723912200705, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1586253613782253535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1929800519641084163, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5114504085573947320, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7439698328166635368, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
       propertyPath: m_Name
       value: vfx_explosion_tiny
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711806827171844535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -833,9 +861,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1011287723912200705, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1929800519641084163, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5114504085573947320, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5584855297647174253, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7439698328166635368, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
       propertyPath: m_Name
       value: vfx_explosion_small
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711806827171844535, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -900,9 +956,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1011287723912200705, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1586253613782253535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1929800519641084163, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5114504085573947320, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7439698328166635368, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
       propertyPath: m_Name
       value: vfx_explosion_tiny
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711806827171844535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -967,9 +1051,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1011287723912200705, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1586253613782253535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1929800519641084163, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5114504085573947320, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7439698328166635368, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
       propertyPath: m_Name
       value: vfx_explosion_tiny
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711806827171844535, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

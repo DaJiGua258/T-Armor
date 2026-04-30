@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8363973039179069821}
   - component: {fileID: 2666531182155915941}
   - component: {fileID: 634342250284102114}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Shadow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,8 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321e28cd55e6cea4884e1f75ea303a96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SpriteSheet: {fileID: 0}
-  SpriteSize: 32
+  StackingMaterial: {fileID: 0}
   UseLocalZSort: 1
   OrderParent: {fileID: 1204359055267767140}
   ZSortOffset: 0
@@ -115,7 +114,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1204359055267767140}
   - component: {fileID: 2814532634235900006}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Building
   m_TagString: Env
   m_Icon: {fileID: 0}
@@ -196,7 +195,7 @@ GameObject:
   - component: {fileID: 7203945755351890318}
   - component: {fileID: 8301651348222576838}
   - component: {fileID: 8989275608856096156}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -230,8 +229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 287a2a0e2fe99144fbedd2bc706ead9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SpriteSheet: {fileID: 0}
-  SpriteSize: 32
+  StackingMaterial: {fileID: 0}
   UseLocalZSort: 1
   OrderParent: {fileID: 1204359055267767140}
   ZSortOffset: 0

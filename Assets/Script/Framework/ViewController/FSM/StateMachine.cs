@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using QFramework.ViewController.Enemy;
 using UnityEngine;
 
 namespace QFramework.ViewController.FSM
@@ -89,5 +90,19 @@ namespace QFramework.ViewController.FSM
         /// <summary>判断当前状态是否为指定类型。</summary>
         public bool IsCurrentState<TState>() where TState : IState
             => _currentStateType == typeof(TState);
+
+        public static implicit operator StateMachine<TOwner>(StateMachine<Dropper> v)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CheckState<TState>() where TState : IState
+        {
+            if (!_states.TryGetValue(typeof(TState), out var next)) 
+            {
+                Debug.LogError($"[FSM] 状态 {typeof(TState).Name} 尚未注册，请先调用 AddState。");
+               ;
+            }
+        }
     }
 }

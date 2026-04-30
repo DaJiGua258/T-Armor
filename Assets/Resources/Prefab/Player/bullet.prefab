@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5051814083861341237}
   - component: {fileID: 5771425610815361273}
   - component: {fileID: 6884988828198100052}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _layerMask:
     serializedVersion: 2
-    m_Bits: 129
+    m_Bits: 1024
   _rb: {fileID: 6884988828198100052}
   _bulletMesh: {fileID: 8231925553303829552}
   _pf_bulletExplosionVFX: {fileID: 8486971914317455159, guid: 8961c7f1a2ff35f49937309c98e58d0f, type: 3}
@@ -91,7 +91,7 @@ GameObject:
   - component: {fileID: 4995064897792522863}
   - component: {fileID: 7698153020938028494}
   - component: {fileID: 6377581165219434049}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: BulletMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}

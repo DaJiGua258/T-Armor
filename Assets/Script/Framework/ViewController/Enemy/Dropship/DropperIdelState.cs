@@ -20,6 +20,7 @@ namespace QFramework.ViewController.Enemy
             _idleDuration = 0.5f;
             _idleTimer = 0f;
             Entity.StopMovement();
+            (Entity as Dropper).LastPos = Entity.transform.position;  // 记录上一次停靠的位置
         }
 
         public override void OnUpdate()
@@ -29,6 +30,11 @@ namespace QFramework.ViewController.Enemy
 
             // TODO: 按你的规则切换到移动/投放状态
             FSM.ChangeState<DropperMoveState>();
+        }
+
+        public override void OnExit()
+        {
+            (Entity as Dropper).LastPos = Entity.transform.position;  // 记录上一次停靠的位置
         }
     }
 }

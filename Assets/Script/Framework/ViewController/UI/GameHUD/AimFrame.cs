@@ -76,6 +76,9 @@ namespace QFramework.ViewController.UI
 
             for (int i = 0; i < count; i++)
             {
+                // 只检查Enemy标签的物体
+                if(!_raycastResults[i].collider.CompareTag("Enemy")) continue;
+
                 // 计算目标中心到鼠标的距离
                 float curDis = Vector2.Distance(mouseWorldPos, _raycastResults[i].collider.transform.position);
                 if (curDis < minDis)
@@ -157,9 +160,11 @@ namespace QFramework.ViewController.UI
             
             if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
 
-            int enemyId = _targetCollider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
-                _enemyInfo.SetEnemyId(enemyId);
-                Debug.Log("Update Enemy Info: " + enemyId);
+            // int enemyId = _targetCollider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
+            //     _enemyInfo.SetEnemyId(enemyId);
+            var enemy = _targetCollider.GetComponentInParent<AbstractEnemy>();
+            int enemyId = enemy.enemyId;
+
             
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
             TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = _targetCollider.GetComponent<Rigidbody2D>() });

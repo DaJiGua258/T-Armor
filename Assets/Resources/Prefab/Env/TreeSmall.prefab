@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5248906881362544078}
   - component: {fileID: 1510623178707111072}
   - component: {fileID: 3906113218907215484}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Leaves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -116,7 +116,7 @@ GameObject:
   - component: {fileID: 2111526722719431186}
   - component: {fileID: 6036643611977730997}
   - component: {fileID: 3698436593738929052}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Stem
   m_TagString: Env
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8112340409587144721}
   - component: {fileID: 8412143255089188694}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: TreeSmall
   m_TagString: Env
   m_Icon: {fileID: 0}
@@ -299,7 +299,7 @@ GameObject:
   - component: {fileID: 552166922949794922}
   - component: {fileID: 6850013283086916212}
   - component: {fileID: 3642692288946137946}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Shdaow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -400,7 +400,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3643005499370223075}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}

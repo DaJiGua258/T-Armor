@@ -59,7 +59,6 @@ namespace QFramework.ViewController.Player
         {
             if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMagazine.Value > 0
                 && WeaponDataModel.CurMaxAmmo.Value > 0)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
@@ -70,7 +69,7 @@ namespace QFramework.ViewController.Player
         { 
             if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMagazine.Value == 0
+                && WeaponDataModel.CurMagazine.Value <= 0
                 && WeaponDataModel.CurMaxAmmo.Value > 0)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
@@ -88,7 +87,8 @@ namespace QFramework.ViewController.Player
 
             // 开火间隔 & 弹匣有弹药
             if(_timer < 60f / WeaponDataModel.Rpm  // 60秒 / 每分钟子弹数 = 开火间隔
-                ||  WeaponDataModel.WeaponState == WeaponStateEnum.Reloading)
+                ||  WeaponDataModel.WeaponState == WeaponStateEnum.Reloading
+                || WeaponDataModel.CurMagazine.Value <= 0)
                 return;
 
 

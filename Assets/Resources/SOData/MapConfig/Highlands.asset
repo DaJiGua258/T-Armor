@@ -17,7 +17,7 @@ MonoBehaviour:
   octaves: 2
   persistence: 0.466
   lacunarity: 3.15
-  seed: 7
+  seed: 0
   noiseOffset: {x: -9.4, y: 0}
   useFalloff: 1
   curve:
@@ -100,12 +100,12 @@ MonoBehaviour:
     weight: 1
     spawnChance: 1
     noiseMin: 0.026
-    noiseMax: 0.339
+    noiseMax: 0.21
   - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
     weight: 1
     spawnChance: 0.455
-    noiseMin: 0.446
-    noiseMax: 0.597
+    noiseMin: 0.482
+    noiseMax: 0.679
   poissonRadius: 1
   maxSamplesPerPoint: 24
   environmentSpawnChance: 0.75

@@ -12,28 +12,24 @@ namespace QFramework.ViewController.Enemy
         public DropperMoveState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
-        public override void OnEnter()
-        {
-            // TODO: 进入移动状态时的初始化
-        }
-
         public override void OnUpdate()
         {
-            if (Entity.Target != null)
-            {
-                Entity.MoveToward(Entity.Target.position);
-            }
+            var dropper = Entity as Dropper;
+            if (dropper == null) return;
+            if (!dropper.IsRouteReady()) return;
 
-            // TODO: 到达投放条件后切换到投放状态
-            if (Entity.IsInAttackMaxRange())
+            Entity.MoveToward(dropper.GetCurrentRouteTarget());
+
+            if (!dropper.IsReachCurrentRouteTarget()) return;
+            if (Entity.Rb != null && Entity.Rb.velocity.sqrMagnitude >= 0.01f) return;
+
+            if (!dropper.IsDropped)
             {
                 FSM.ChangeState<DropperDroppingState>();
+                return;
             }
-        }
 
-        public override void OnExit()
-        {
-            Entity.StopMovement();
+            dropper.DespawnAtRouteEnd();
         }
     }
 }

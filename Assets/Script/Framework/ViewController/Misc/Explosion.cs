@@ -37,4 +37,6 @@ namespace QFramework.ViewController.Misc
             TypeEventSystem.Global.Send(new ShakeCamera { strength = (int)ShakeMode });
         } 
     }
+
+    
 }

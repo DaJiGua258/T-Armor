@@ -29,15 +29,23 @@ namespace QFramework.ViewController.Enemy
             if(_idleTimer < _idleDuration) return;
 
             // ----- 冷却时间结束后执行 -------------------------
+            // 攻击判定优先，避免同一帧 Move -> Attack 连续切换造成抖动
+            if(Entity.IsInAttackMaxRange())
+            {
+                FSM.ChangeState<EnemyAttackState>();
+                return;
+            }
 
             if(Entity.IsInDetectRange())
             {
                 FSM.ChangeState<EnemyMoveState>();
+                return;
             }
 
-            if(Entity.IsInAttackMaxRange())
+            if (Entity.HasPatrolPath())
             {
-                FSM.ChangeState<EnemyAttackState>();
+                FSM.ChangeState<QFramework.ViewController.Enemy.EnemyPatrolState>();
+                return;
             }
         }
 

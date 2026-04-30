@@ -15,12 +15,12 @@ TagManager:
   - Water
   - UI
   - PlanetUI
-  - AimTarget
-  - Area
   - 
-  - GroudTarget
-  - LowAirTarget
-  - ' HighAir'
+  - Area
+  - AimTarget
+  - Groud
+  - LowAir
+  - HighAir
   - 
   - 
   - 

@@ -418,7 +418,7 @@ Transform:
   m_GameObject: {fileID: 7297282927373324996}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: -960, y: -540, z: 30}
+  m_LocalPosition: {x: 0, y: 0, z: 30}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -462,7 +462,7 @@ MonoBehaviour:
       octaves: 2
       persistence: 0.466
       lacunarity: 3.15
-      seed: 7
+      seed: 0
       noiseOffset: {x: -9.4, y: 0}
     falloff:
       useFalloff: 1
@@ -551,11 +551,16 @@ MonoBehaviour:
       enabled: 1
       environmentParent: {fileID: 8937101710431092631}
       rules:
-      - prefab: {fileID: 7494403134742495345, guid: e616c99a677122a4b8417a2dd5edfba5, type: 3}
+      - prefab: {fileID: 7494403134742495345, guid: 09be885cb91555441bf7adcb89731d51, type: 3}
         weight: 1
         spawnChance: 1
         noiseMin: 0.026
-        noiseMax: 0.339
+        noiseMax: 0.21
+      - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
+        weight: 1
+        spawnChance: 0.455
+        noiseMin: 0.482
+        noiseMax: 0.679
       poissonRadius: 1
       maxSamplesPerPoint: 24
       spawnChance: 0.75
@@ -565,7 +570,7 @@ MonoBehaviour:
       avoidObstaclePadding: 0.25
       avoidMissionRadius: 2.5
       cellJitterRatio: 0.49
-      seedOffset: 9973
+      seedOffset: 9989
     gizmo:
       showGizmos: 0
       showTerrainGizmos: 0

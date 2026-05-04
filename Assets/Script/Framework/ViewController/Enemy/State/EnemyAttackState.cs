@@ -25,15 +25,16 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
-            var rvo = Entity.Agent.rvoSettings;
-            rvo.locked = true;
-            Entity.Agent.rvoSettings = rvo;
+            Entity.SetAgentRvoLocked(true);
         }
 
         public override void OnUpdate()
         {
+            // 战斗中定期刷新到最近目标
+            Entity.RefreshTargetInCombat();
+
             // ----- 如果不在攻击范围内，则返回待机状态 -------------------------
-            if(!Entity.IsInAttackMaxRange()) 
+            if(!Entity.IsInAttackMaxRange())
             {
                 FSM.ChangeState<EnemyIdleState>();
                 return;
@@ -52,9 +53,7 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnExit()
         {
-            var rvo = Entity.Agent.rvoSettings;
-            rvo.locked = false;
-            Entity.Agent.rvoSettings = rvo;
+            Entity.SetAgentRvoLocked(false);
         }
     }
 }

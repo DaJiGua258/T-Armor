@@ -9755,7 +9755,7 @@ ParticleSystemRenderer:
   m_SortingOrder: 0
   m_RenderMode: 1
   m_MeshDistribution: 0
-  m_SortMode: 2
+  m_SortMode: 4
   m_MinParticleSize: 0
   m_MaxParticleSize: 0.5
   m_CameraVelocityScale: 0
@@ -9813,7 +9813,7 @@ Transform:
   m_GameObject: {fileID: 8486971914317455159}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14655,7 +14655,7 @@ ParticleSystemRenderer:
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
-  m_SortMode: 4
+  m_SortMode: 3
   m_MinParticleSize: 0
   m_MaxParticleSize: 0.5
   m_CameraVelocityScale: 0
@@ -14700,5 +14700,5 @@ MonoBehaviour:
   StackingMaterial: {fileID: 0}
   UseLocalZSort: 1
   OrderParent: {fileID: 0}
-  ZSortOffset: 0
+  ZSortOffset: -2
   HeightLevel: 0

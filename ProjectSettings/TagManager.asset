@@ -7,6 +7,7 @@ TagManager:
   - Env
   - Enemy
   - PickUp
+  - PlayerEnemy
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - 
   - Area
   - AimTarget
-  - Groud
+  - Ground
   - LowAir
   - HighAir
   - 

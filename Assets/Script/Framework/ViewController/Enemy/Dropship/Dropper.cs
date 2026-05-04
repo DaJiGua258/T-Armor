@@ -6,10 +6,9 @@ using System.Collections;
 
 namespace QFramework.ViewController.Enemy
 {
-    public class Dropper : AbstractEnemy
+    public class Dropper : AbstractAirEnemy
     {
         [Header("Dropper参数")]
-        public const float MeshHeight = 3f;
         [SerializeField] private List<CargoSlot> _cargoSlots;
         public bool IsDropped = false;
 
@@ -18,10 +17,8 @@ namespace QFramework.ViewController.Enemy
         [SerializeField] private float _decelerationDis = 10f;
         [SerializeField] private AnimationCurve _speedCurve;
         [SerializeField] private AnimationCurve _heightCurve;
+        [SerializeField] private float _meshHeight = 3f;
         public Vector3 LastPos;
-
-        public float StartDis;
-        public float EndDis;
 
         [Header("路径参数")]
         [SerializeField] private float _reachTargetDistance = 1.2f;
@@ -29,10 +26,6 @@ namespace QFramework.ViewController.Enemy
         private Vector3 _routeDropPoint;
         private Vector3 _routeEndPoint;
         private bool _hasRoute;
-
-        [Header("悬浮参数")]
-        public float amplitude = 0.5f;          // 浮动振幅（上下跳动的幅度）
-        public float frequency = 1f;            // 浮动频率（跳动的快慢）
 
 
         protected override void InitFSM()
@@ -59,6 +52,13 @@ namespace QFramework.ViewController.Enemy
         protected override void Update()
         {
             _fsm.Update();
+
+            if (EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
+            {
+                _fsm.ChangeState<DropperDeathState>();
+                return;
+            }
+
             if(!IsDropped)
             {
                 CarryCargos();
@@ -75,28 +75,23 @@ namespace QFramework.ViewController.Enemy
             // 留给后续实现投放/发射逻辑
         }
 
-        #region ----- 运动相关 -------------------------
-
+        #region ----- 空中运动 -------------------------
 
         public override void MoveToward(Vector3 targetPos)
         {
             Vector2 targetDir = targetPos - transform.position;
             float disToTarget = targetDir.magnitude;
             float disFromStart = Vector2.Distance(transform.position, LastPos);
-    
 
             float time = 0;
-
-            if(disFromStart > disToTarget)
+            if (disFromStart > disToTarget)
             {
                 time = Mathf.Clamp01(disToTarget / _decelerationDis);
-                
             }
             else
             {
                 time = Mathf.Clamp01(disFromStart / _decelerationDis + 0.05f);
             }
-
 
             // 依据curve曲线设置速度
             Rb.velocity = _maxSpeed * _speedCurve.Evaluate(time) * targetDir.normalized;
@@ -104,26 +99,11 @@ namespace QFramework.ViewController.Enemy
             // 依据curve曲线设置mesh高度
             Mesh.localPosition = new Vector3(
                 Mesh.localPosition.x,
-                MeshHeight + MeshHeight * _heightCurve.Evaluate(time),
+                _meshHeight + _meshHeight * _heightCurve.Evaluate(time),
                 Mesh.localPosition.z);
 
             Rotate(targetPos);
-            _enterHieght = Mesh.localPosition.y;
-        }
-
-        private float _enterHieght;
-        public void AirFloat(float timer)
-        {
-            // 三角函数偏移
-            float height = _enterHieght + 
-                Mathf.Sin(timer * Mathf.PI * frequency) * amplitude;
-            
-            // 设置mesh高度
-            Mesh.transform.localPosition = new Vector3(
-                Mesh.localPosition.x,
-                height,
-                Mesh.localPosition.z
-            );
+            _enterHeight = Mesh.localPosition.y;
         }
 
         #endregion
@@ -144,13 +124,13 @@ namespace QFramework.ViewController.Enemy
 
             enemy.transform.position = new Vector3(
                 transform.position.x,
-                transform.position.y - MeshHeight,
+                transform.position.y - _meshHeight,
                 transform.position.z
             );
 
             enemy.Mesh.localPosition = new Vector3(
                 0,
-                MeshHeight - 0.1f,
+                _meshHeight - 0.1f,
                 enemy.Mesh.localPosition.z
             );
         }

@@ -27,16 +27,7 @@ namespace QFramework.ViewController.Enemy
             }
 
             
-            // 1. 先把局部坐标转成世界坐标
-            Vector3 worldPos = Entity.Mesh.TransformPoint(Entity.Mesh.localPosition);
-
-            // 2. 应用世界坐标的重力位移
-            worldPos.y += verticalVelocity * Time.deltaTime;
-            
-            verticalVelocity += GameConstants.EnemyGravity * Time.deltaTime;  // 重力加速度
-
-            // 3. 转回局部坐标并赋值
-            Entity.Mesh.localPosition = Entity.Mesh.InverseTransformPoint(worldPos);
+            Entity.ApplyGravityToMesh(ref verticalVelocity);
         }
 
         public override void OnExit()

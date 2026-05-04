@@ -1,5 +1,3 @@
-using QFramework.Command;
-using QFramework.System;
 using QFramework.ViewController.Player;
 using UnityEngine;
 
@@ -8,25 +6,39 @@ namespace QFramework.ViewController.Enemy
     public class Worker : AbstractEnemy
     {
         [Header("特殊引用")]
-        [SerializeField] private ElecShock _light;
-        // 速度过低时沿用上一次有效移动方向，避免 Idle -> Move 首帧抖动
-        private Vector2 _cachedMoveDir = Vector2.right;
+        [SerializeField] private ElecShock _light;  // 电击特效引用
 
+        /// <summary>
+        /// 执行攻击，触发电击
+        /// </summary>
         public override void Attack()
         {
             Shoot();
         }
 
+        /// <summary>
+        /// 电击射击：从枪口发射射线到目标，检测路径上的障碍与目标并处理伤害。
+        /// </summary>
         public override void Shoot()
         {
             _light.Draw(Target);
-            if(Target.TryGetComponent<PlayerController>(out PlayerController c))
+            if (Target == null || Muzzle == null) return;
+
+            Vector2 origin = Muzzle.position;
+            Vector2 direction = ((Vector2)Target.position - origin).normalized;
+            float distance = Vector2.Distance(origin, Target.position);
+
+            RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, TargetLayerMask);
+
+            if (hit.collider != null)
             {
-                this.SendCommand(PlayerCommand.Damage.Instance.Init(EnemyInstanceSystem.GetData(enemyId).Damage));
+                HitDetectionUtility.ProcessHit(hit.collider, EnemyInstanceSystem.GetData(enemyId).Damage);
             }
-            // var obj = Instantiate(_pf_bullet, Muzzle.position, Muzzle.rotation);
         }
 
+        /// <summary>
+        /// 移动时根据速度方向旋转，低速时保持当前朝向
+        /// </summary>
         public override void Rotate(Vector3 targetPos)
         {
             Vector2 dir;
@@ -34,30 +46,34 @@ namespace QFramework.ViewController.Enemy
             {
                 // 跟随状态优先使用实际移动方向
                 dir = Agent.velocity.normalized;
-                _cachedMoveDir = dir;
             }
             else
             {
-                // 低速/静止时保持最近有效方向，避免方向源突变
-                dir = _cachedMoveDir;
+                // 低速/静止时沿用 Body 当前朝向，避免缓存方向过期导致折返
+                float z = Body.rotation.eulerAngles.z * Mathf.Deg2Rad;
+                dir = new Vector2(Mathf.Cos(z), Mathf.Sin(z));
             }
 
             ApplyRotation(dir);
         }
 
+        /// <summary>
+        /// 攻击时强制朝向目标位置
+        /// </summary>
         public override void RotateToTarget(Vector3 targetPos)
         {
-            // 攻击状态下强制朝向目标
             Vector2 dir = (targetPos - transform.position).normalized;
             ApplyRotation(dir);
         }
 
+        // 应用平滑旋转到 Body 和 Shadow
         private void ApplyRotation(Vector2 dir)
         {
             if(dir.sqrMagnitude < 0.01f) return;
 
             float z = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             float currentAngle = Body.rotation.eulerAngles.z;
+
             // 统一平滑旋转，减少状态切换时瞬时跳角
             float smoothAngle = Mathf.LerpAngle(currentAngle, z, _rotateSpeed * Time.deltaTime);
 

@@ -132,7 +132,7 @@ namespace QFramework.ViewController.UI
 
             item.TipText.text = "";
 
-            item.NameText.text = mission.MissionConfig.MissionName;
+            item.NameText.text = "// " + mission.MissionConfig.MissionName;
             var steps = mission.MissionConfig.MissionSteps;
 
             // var tip = steps[mission.StepIndex.Value].TipText;
@@ -148,7 +148,7 @@ namespace QFramework.ViewController.UI
                 // 获取当前进度
                 var curProgress = mission.StepList[i].Value;
 
-                item.TipText.text += $"{tip} ({curProgress}/{progress})";
+                item.TipText.text += $"  > {tip} ({curProgress}/{progress})";
 
                 if(i + 1 <= mission.StepIndex.Value)
                 {
@@ -165,7 +165,7 @@ namespace QFramework.ViewController.UI
         {
             if(state == MissionState.Completed)
             {
-                item.TipText.text = "已完成";
+                item.TipText.text = "  > 已完成";
             }
             else if(state == MissionState.InProgress)
             {
@@ -179,7 +179,7 @@ namespace QFramework.ViewController.UI
             else if(state == MissionState.Pause)
             {
                 item.TipText.transform.parent.gameObject.SetActive(true);
-                item.TipText.text = "返回任务地点";
+                item.TipText.text = "  > 返回任务地点";
             }
 
             StartCoroutine(RefreshLayOut());
@@ -190,13 +190,16 @@ namespace QFramework.ViewController.UI
     public class MissionItem
     {
         public RectTransform Item;
+        public Image TileImg;
         public Text NameText;
         public Text TipText;
+        
         
 
         public MissionItem(Transform parent)
         {
             Item = parent.GetComponent<RectTransform>();
+            TileImg = parent.Find("Title").GetComponent<Image>();
             NameText = parent.Find("Title/Txt").GetComponent<Text>();
             TipText = parent.Find("Tip/Txt").GetComponent<Text>();
         }

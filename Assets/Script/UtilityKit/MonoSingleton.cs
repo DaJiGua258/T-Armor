@@ -108,7 +108,7 @@ namespace QFramework.UtilityKit
             if (s_instance != null && s_instance != (T)this)
             {
                 // 记录日志（可选）
-                DebugUtility.LogWarning($"{typeof(T).Name} 旧实例已被新实例替换。");
+                // DebugUtility.LogWarning($"{typeof(T).Name} 旧实例已被新实例替换。");
 
                 // 销毁旧的物体
                 Destroy(s_instance.gameObject);

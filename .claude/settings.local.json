@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(curl -s http://localhost:8090/skill/scene_find_objects -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"----------Scene----------/Player\", \"max_depth\": 5}')",
+      "Bash(python -c ' *)",
+      "Bash(curl -s http://localhost:8090/skill/scene_find_objects -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"Player\"}')",
+      "Bash(curl -s http://localhost:8090/skill/hierarchy_describe -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"----------Scene----------/Player/Mesh/Body\", \"max_depth\": 3}')",
+      "Bash(curl -s http://localhost:8090/skill/editor_get_context -X POST -H \"Content-Type: application/json\" -d '{}')"
+    ]
+  }
+}

@@ -4,9 +4,9 @@ namespace QFramework.Utility
 {
     public interface IDebugUtility : IUtility
     {
-        public void Log(object obj);
-        public void LogWarning(object obj);
-        public void LogError(object obj);
+        // public void Log(object obj);
+        // public void LogWarning(object obj);
+        // public void LogError(object obj);
     }
 
     public class DebugUtility : IDebugUtility

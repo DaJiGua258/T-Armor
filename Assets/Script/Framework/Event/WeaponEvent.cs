@@ -8,5 +8,10 @@ namespace QFramework.Event
         {
             public Rigidbody2D TargetRig;
         }
+
+        public struct UpdateBulletLayerMask
+        {
+            public LayerMask LayerMask;
+        }
     }
 }

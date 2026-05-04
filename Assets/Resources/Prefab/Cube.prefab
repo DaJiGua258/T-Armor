@@ -54,6 +54,7 @@ MonoBehaviour:
   CanSetScale: 0
   SizeMultiplier: 1
   ShadowOffset2D: {x: 0, y: -0.2}
+  IsLock: 1
 --- !u!33 &7677090271184632929
 MeshFilter:
   m_ObjectHideFlags: 0

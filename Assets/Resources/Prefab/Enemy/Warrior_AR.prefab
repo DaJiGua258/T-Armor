@@ -5033,7 +5033,7 @@ Transform:
   m_GameObject: {fileID: 2957228581037094919}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.729334, y: 41.38309, z: 2.521}
+  m_LocalPosition: {x: 0, y: 0, z: 2.521}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5084,15 +5084,22 @@ MonoBehaviour:
   enemyType: 2
   IsInit: 0
   Agent: {fileID: 0}
-  DetectionRange: 10
-  AttackMaxRange: 6
+  DetectionRange: 15
+  AttackMaxRange: 8
   AttackMinRange: 3
+  FlankWidth: 4
+  MaxFlankDistance: 5
   _moveSpeed: 3
   Rb: {fileID: 0}
   Collider: {fileID: 0}
+  TargetLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  _findTargetInterval: 0.5
+  _combatScanInterval: 0.3
   Target: {fileID: 0}
-  Pf_bullet: {fileID: 617970467497839275, guid: b78afcb6a2c1f2743851aab1fe54c95d, type: 3}
-  Pf_deathVFX: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+  pf_Bullet: {fileID: 617970467497839275, guid: b78afcb6a2c1f2743851aab1fe54c95d, type: 3}
+  pf_DeathVFX: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
   ShoottingVFX: {fileID: 6570429024436099198}
   Mesh: {fileID: 174613620693680565}
   Body: {fileID: 1139045569603773004}
@@ -5104,10 +5111,10 @@ MonoBehaviour:
   _weaponAimRotateSpeed: 10
   _weaponAimLimitDeg: 75
   _shootAccuracy: 1
+  _burstCount: 2
+  _burstInterval: 0.1
   _rotateSpeed: 5
   _turnSpeed: 5
-  _burstCount: 5
-  _burstInterval: 0.08
 --- !u!114 &1783405537121989179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5278,7 +5285,7 @@ Transform:
   m_GameObject: {fileID: 4267629209915775233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.049999237, z: 1.6273093}
+  m_LocalPosition: {x: 0, y: -0.05, z: -2.511}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5304,6 +5311,7 @@ MonoBehaviour:
   CanSetScale: 0
   SizeMultiplier: 1
   ShadowOffset2D: {x: 0, y: -0.05}
+  IsLock: 1
 --- !u!33 &5819633024151262868
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -10279,7 +10287,7 @@ Transform:
   m_GameObject: {fileID: 4652976409953898784}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00003528595, y: 0.100040436, z: 1.5273132}
+  m_LocalPosition: {x: 0.00003528595, y: 0.100048065, z: -2.610995}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -15378,7 +15386,7 @@ Transform:
   m_GameObject: {fileID: 7954837734328430922}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.003739357, y: 0.0000007599592, z: 0}
+  m_LocalPosition: {x: 0.003739357, y: 0.000008389354, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -15485,7 +15493,7 @@ Transform:
   m_GameObject: {fileID: 8297436831626408387}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: 0.19680202, w: -0.98044324}
-  m_LocalPosition: {x: 0, y: 0.0000038146973, z: 1.6173096}
+  m_LocalPosition: {x: 0, y: 0.0000076293945, z: -2.5209992}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

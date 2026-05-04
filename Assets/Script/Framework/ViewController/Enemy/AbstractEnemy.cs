@@ -6,6 +6,7 @@ using QFramework.System;
 using QFramework.Utility;
 using QFramework.ViewController.FSM;
 using QFramework.ViewController.Player;
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -29,6 +30,10 @@ namespace QFramework.ViewController.Enemy
         public float AttackMaxRange;
         public float AttackMinRange;
 
+        [Header("包抄参数")]
+        public float FlankWidth = 3f;          // 最大侧向偏移距离
+        public float MaxFlankDistance = 10f;   // 在此距离以上保持最大偏移
+
         [Header("组件")]
         [SerializeField] private float _moveSpeed = 3f;
         public Rigidbody2D Rb;
@@ -36,12 +41,20 @@ namespace QFramework.ViewController.Enemy
         private static Material s_deathMaterial;
         private static Material s_meshMaterial;
 
+        [Header("检测设置")]
+        public LayerMask TargetLayerMask;  // 扫描用的 LayerMask
+        [SerializeField] private float _findTargetInterval = 0.5f;  // 常规扫描间隔
+        private float _findTargetTimer;
+        [SerializeField] private float _combatScanInterval = 0.3f;  // 战斗中扫描间隔
+        private float _combatScanTimer;
+        private Collider2D[] _scanCache = new Collider2D[10];
+
         [Header("目标引用")]
         public Transform Target;
 
         [Header("预制体引用")]
-        public GameObject Pf_bullet;
-        public GameObject Pf_deathVFX;
+        public GameObject pf_Bullet;
+        public GameObject pf_DeathVFX;
         public ParticleSystem ShoottingVFX;
         
 
@@ -62,21 +75,27 @@ namespace QFramework.ViewController.Enemy
         // 0 = 最大散布，1 = 完全精准（无偏移）
         [Range(0f, 1f)]
         [SerializeField] protected float _shootAccuracy = 1f;
+        [SerializeField] protected int _burstCount = 3;        // 连发数量
+        [SerializeField] protected float _burstInterval = 0.1f; // 连发间隔
         
 
         [Header("特殊引用")]
         protected StateMachine<AbstractEnemy> _fsm;
+
+
+        [Header("移动参数")]
+        [SerializeField] protected float _rotateSpeed = 5f;
+        public float RotateSpeed => _rotateSpeed;
+        [SerializeField] private float _turnSpeed = 5f;
+        private Vector3 _smoothVelocity;
+
+        [Header("巡逻参数")]
         private bool _hasPatrolRoute;
         private bool _patrolToEndPoint = true;
         private Vector3 _patrolStartPoint;
         private Vector3 _patrolEndPoint;
         private bool _hasPatrolMoveSpeed;
         private float _patrolMoveSpeed = 1f;
-        private Tweener _tweener;
-        [Header("移动参数")]
-        [SerializeField] protected float _rotateSpeed = 5f;
-        [SerializeField] private float _turnSpeed = 5f;
-        private Vector3 _smoothVelocity;
         
         #region ----- 生命周期 -------------------------
         void Start()
@@ -84,13 +103,7 @@ namespace QFramework.ViewController.Enemy
             // ----- 添加实例 -------------------------
             enemyId = this.SendCommand(new EnemyCommand.Add(enemyType, enemyId));
 
-            if (Target == null)
-            {
-                var player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null) Target = player.transform;
-            }
-            
-            
+
             // ----- 初始化 -------------------------
             if(IsInit) return;
 
@@ -103,10 +116,22 @@ namespace QFramework.ViewController.Enemy
         {
             _fsm.Update();
 
+            // 目标被销毁或失活时置空
+            if (Target != null && !Target.gameObject.activeInHierarchy)
+                Target = null;
 
             if(EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
             {
                 _fsm.ChangeState<EnemyDeathState>();
+            }
+
+            // 定期扫描范围内最近目标
+            _findTargetTimer -= Time.deltaTime;
+            if (_findTargetTimer <= 0f)
+            {
+                _findTargetTimer = _findTargetInterval;
+                var nearest = FindNearestTarget(DetectionRange);
+                Target = nearest;
             }
 
             // if(!IsGrounded())
@@ -190,6 +215,52 @@ namespace QFramework.ViewController.Enemy
         }
 
         /// <summary>
+        /// 用 OverlapCircle + LayerMask 扫描范围内最近的有效目标。
+        /// 依据自身标签自动判断：Player→检测Enemy，Enemy→检测Player。
+        /// </summary>
+        public Transform FindNearestTarget(float range)
+        {
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, range, _scanCache, TargetLayerMask);
+
+            float closestSq = float.MaxValue;
+            Transform nearest = null;
+
+            string targetTag = CompareTag("Player") ? "Enemy" : "Player";
+
+            for (int i = 0; i < count && i < _scanCache.Length; i++)
+            {
+                var col = _scanCache[i];
+                if (col == null) continue;
+
+                if (!col.CompareTag(targetTag)) continue;
+
+                float sq = ((Vector2)col.transform.position - (Vector2)transform.position).sqrMagnitude;
+                if (sq < closestSq)
+                {
+                    closestSq = sq;
+                    nearest = col.transform;
+                }
+            }
+
+            return nearest;
+        }
+
+        /// <summary>
+        /// 在战斗状态下刷新目标
+        /// 当检测到有效目标时，会自动切换到最近的目标
+        /// </summary>
+        public void RefreshTargetInCombat()
+        {
+            _combatScanTimer -= Time.deltaTime;
+            if (_combatScanTimer > 0f) return;
+
+            _combatScanTimer = _combatScanInterval;
+
+            var nearest = FindNearestTarget(DetectionRange);
+            if (nearest != null) Target = nearest;
+        }
+
+        /// <summary>
         /// 判断是否在检测范围内
         /// </summary>
         public bool IsInDetectRange()
@@ -234,10 +305,6 @@ namespace QFramework.ViewController.Enemy
         public bool IsInSpecifiedRange(Vector3 targetPos, float range)
         {
             float dis = Vector2.Distance(transform.position, targetPos);
-            if (Agent != null)
-            {
-                Agent.stopDistance = range;
-            }
             return dis <= range;
         }
 
@@ -265,14 +332,19 @@ namespace QFramework.ViewController.Enemy
             Rotate(targetPos);
         }
 
+        /// <summary>
+        /// 旋转物体以面向目标位置
+        /// </summary>
+        /// <param name="targetPos">目标位置</param>
         public virtual void Rotate(Vector3 targetPos)
         {
+            // 计算从当前位置到目标位置的方向向量，并归一化
             Vector2 dir = (targetPos - transform.position).normalized;
 
             // 如果方向太小，则不旋转
             if(dir.sqrMagnitude < 0.01f) return;
 
-            // 计算目标角度
+            // 计算目标角度（弧度转角度）
             float z = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             Quaternion targetRot = Quaternion.Euler(0, 0, z);
 
@@ -281,21 +353,27 @@ namespace QFramework.ViewController.Enemy
             float smoothAngle = Mathf.LerpAngle(currentAngle, z, _rotateSpeed * Time.fixedDeltaTime);
 
             // ----- 应用旋转 -------------------------
+            // 应用旋转到主体
             Body.rotation = Quaternion.Euler(0, 0, smoothAngle);
+            // 应用旋转到阴影
             Shadow.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
+            // 如果武器存在，应用旋转到武器
             if(Weapon != null)
             {
                 Weapon.rotation = Quaternion.Euler(0, 0, smoothAngle);
             }
 
             // ----- 腿部旋转 -------------------------
+            // 获取物体的速度
             Vector2 v = Agent != null
                 ? Agent.velocity
                 : (Rb != null ? Rb.velocity : Vector2.zero);
 
+            // 如果速度太小或腿部不存在，则不旋转腿部
             if(v.sqrMagnitude < 0.01f || Legs == null) return;
 
+            // 计算腿部目标角度
             float vz = Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
             Quaternion legTarget = Quaternion.Euler(0f, 0f, vz);
             // 平滑插值
@@ -348,6 +426,7 @@ namespace QFramework.ViewController.Enemy
             if (Agent != null)
             {
                 Agent.maxSpeed = _moveSpeed;
+                Agent.stopDistance = 0.25f;
             }
         }
 
@@ -355,6 +434,7 @@ namespace QFramework.ViewController.Enemy
         {
             if (Agent == null) return;
             Agent.maxSpeed = _hasPatrolMoveSpeed ? _patrolMoveSpeed : _moveSpeed;
+            Agent.stopDistance = 0.25f;
         }
         
         public void StopMovement()
@@ -362,6 +442,7 @@ namespace QFramework.ViewController.Enemy
             if (Agent != null)
             {
                 Agent.maxSpeed = 0;
+                Agent.destination = transform.position;
             }
             else if (Rb != null)
             {
@@ -369,18 +450,65 @@ namespace QFramework.ViewController.Enemy
             }
         }
 
+        public void SetAgentActive(bool active)
+        {
+            if (Agent != null) Agent.enabled = active;
+        }
+
+        public void SetAgentRvoLocked(bool locked)
+        {
+            if (Agent == null) return;
+            var rvo = Agent.rvoSettings;
+            rvo.locked = locked;
+            Agent.rvoSettings = rvo;
+        }
+
+        /// <summary>
+        /// 从枪口向目标发射射线检测是否有无障碍物。
+        /// 使用 RaycastAll 跳过自身碰撞体，确保不会被自己的 collider 挡住。
+        /// </summary>
+        public bool HasLineOfSightToTarget()
+        {
+            if (Target == null) return false;
+
+            Vector3 origin = Muzzle != null ? Muzzle.position : transform.position;
+            Vector2 direction = Target.position - origin;
+            float distance = direction.magnitude;
+
+            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction.normalized, distance, TargetLayerMask);
+            foreach (var hit in hits)
+            {
+                if (hit.collider == null) continue;
+                // 跳过自身碰撞体
+                if (hit.collider.transform.IsChildOf(transform)) continue;
+                return true;
+            }
+            return false;
+        }
+
         public bool IsGrounded()
         {
             // 使用 sqrMagnitude (平方长度) 比 Distance (开方运算) 性能更高
             // 这里需要用2维，z轴一直被使用，会导致无法计算到0.1f以下
             Vector2 pos = Mesh.transform.localPosition;
-            if (pos.sqrMagnitude <= 0.1f) // 0.01f 的平方
+            if (pos.sqrMagnitude <= 0.001f || pos.y <= 0) // 0.01f 的平方
             {
                 float z = Mesh.transform.localPosition.z;
                 Mesh.transform.localPosition = new Vector3(0, 0, z);
                 return true;
             }
-            return false;   
+            return false;
+        }
+
+        /// <summary>
+        /// 对 Mesh 应用重力物理，使敌人下落。
+        /// </summary>
+        public void ApplyGravityToMesh(ref float verticalVelocity)
+        {
+            Vector3 worldPos = Mesh.TransformPoint(Mesh.localPosition);
+            worldPos.y += verticalVelocity * Time.deltaTime;
+            verticalVelocity += GameConstants.EnemyGravity * Time.deltaTime;
+            Mesh.localPosition = Mesh.InverseTransformPoint(worldPos);
         }
 
         #region ----- 射击相关 -------------------------
@@ -462,10 +590,11 @@ namespace QFramework.ViewController.Enemy
 
         public void ShowDeathVFX()
         {
-            var obj = ObjectPoolUtility.GetObject(Pf_deathVFX, transform.position, Quaternion.identity);
+            var obj = ObjectPoolUtility.GetObject(pf_DeathVFX, transform.position, Quaternion.identity);
             this.GetUtility<ITimerUtility>().AddOnce(() => {
                 this.GetUtility<IObjectPoolUtility>().PushObject(obj);
             }, 5f);
+            
             gameObject.SetActive(false);
         }
 
@@ -511,6 +640,31 @@ namespace QFramework.ViewController.Enemy
         public abstract void Attack();
 
         public abstract void Shoot();
+
+        protected bool _isBurstShooting;
+
+        /// <summary>
+        /// 供子类 Attack() 调用，启动连发射击协程。
+        /// </summary>
+        protected void BurstAttack()
+        {
+            if (_isBurstShooting) return;
+            StartCoroutine(BurstShootRoutine());
+        }
+
+        protected IEnumerator BurstShootRoutine()
+        {
+            _isBurstShooting = true;
+
+            for (int i = 0; i < _burstCount; i++)
+            {
+                Shoot();
+                if (i < _burstCount - 1)
+                    yield return new WaitForSeconds(_burstInterval);
+            }
+
+            _isBurstShooting = false;
+        }
 
         #endregion
 

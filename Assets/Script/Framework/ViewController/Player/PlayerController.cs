@@ -22,6 +22,7 @@ namespace QFramework.ViewController.Player
         [Header("躯干引用")]
         [SerializeField] private Transform _body;
         [SerializeField] private Transform _legs;
+        [SerializeField] private Transform _hitbox;
         [SerializeField] private Rigidbody2D _rigid;
         [SerializeField] private float _rotateSpeed = 10f;
         public float MoveSpeed;
@@ -234,6 +235,14 @@ namespace QFramework.ViewController.Player
             float smoothZ = Mathf.LerpAngle(currentZ, targetZ, 10f * Time.deltaTime);
 
             _body.rotation = Quaternion.Euler(0f, 0f, smoothZ);
+
+            if (_hitbox != null)
+            {
+                _hitbox.rotation = _body.rotation;
+                Vector3 pos = _body.position;
+                pos.z = _hitbox.localPosition.z;
+                _hitbox.position = pos;
+            }
 
             // 当Body旋转到目标朝向时，小于10度，则允许Weapon旋转
             if(MathTool.GetAngleDifference(currentZ, targetZ) < 10f && dist > 1f)

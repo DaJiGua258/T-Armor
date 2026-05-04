@@ -67,7 +67,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         if (parameterAsset == null)
         {
             parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + TerrainType.Highlands);
-            DebugUtility.LogWarning("MapGenerator: 未找到参数资产，使用默认参数。");
+            // DebugUtility.LogWarning("MapGenerator: 未找到参数资产，使用默认参数。");
         }
 
         // 根据关卡信息实时修改的参数
@@ -473,7 +473,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         Tilemap tilemap = GetReferenceTilemap();
         if (tilemap == null)
         {
-            DebugUtility.LogWarning("MapGenerator: 缺少参考 Tilemap，无法生成任务点。");
+            // DebugUtility.LogWarning("MapGenerator: 缺少参考 Tilemap，无法生成任务点。");
             return;
         }
 
@@ -489,14 +489,14 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             string prefabPath = missionData.MissionConfig.PrefabPath;
             if (string.IsNullOrWhiteSpace(prefabPath))
             {
-                DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 预制体路径为空，跳过生成。");
+                // DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 预制体路径为空，跳过生成。");
                 continue;
             }
 
             GameObject prefab = _resourceLoad.Load<GameObject>(prefabPath);
             if (prefab == null)
             {
-                DebugUtility.LogWarning($"MapGenerator: 未找到任务预制体 {prefabPath}，跳过生成。");
+                // DebugUtility.LogWarning($"MapGenerator: 未找到任务预制体 {prefabPath}，跳过生成。");
                 continue;
             }
 
@@ -504,7 +504,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             var missionInstance = missionObject.GetComponent<AbstractMissionInstance>();
             if (missionInstance == null)
             {
-                DebugUtility.LogWarning($"MapGenerator: 预制体 {prefabPath} 缺少 AbstractMissionInstance，跳过生成。");
+                // DebugUtility.LogWarning($"MapGenerator: 预制体 {prefabPath} 缺少 AbstractMissionInstance，跳过生成。");
                 DestroySpawnedObject(missionObject);
                 continue;
             }
@@ -513,7 +513,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             Vector2Int footprint = ComputeMissionFootprint(missionInstance.AreaSize, tilemap);
             if (!TryFindMissionPlacement(footprint, out Vector2Int origin))
             {
-                DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 没有可放置区域，跳过生成。");
+                // DebugUtility.LogWarning($"MapGenerator: 任务[{missionData.MissionType}] 没有可放置区域，跳过生成。");
                 DestroySpawnedObject(missionObject);
                 continue;
             }

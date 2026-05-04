@@ -1,19 +1,43 @@
 using QFramework.ViewController.FSM;
+using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
 {
     /// <summary>
-    /// 空投船死亡状态骨架。
+    /// 空投船死亡状态：先下落，落地时播放死亡特效。
     /// </summary>
     public class DropperDeathState : AbstractState<AbstractEnemy>
     {
         public DropperDeathState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
+        private float _verticalVelocity;
+        private float _rotationSpeed = 180f;
+        private float _horizontalSpeed = 3f;
+
         public override void OnEnter()
         {
             Entity.StopMovement();
-            Entity.ShowDeathVFX();
+            Entity.Collider.enabled = false;
+            _verticalVelocity = 0;
+        }
+
+        public override void OnUpdate()
+        {
+            if (Entity.IsGrounded())
+            {
+                Entity.ShowDeathVFX();
+                return;
+            }
+
+            Entity.ApplyGravityToMesh(ref _verticalVelocity);
+            
+            Entity.transform.position += Entity.transform.right * _horizontalSpeed * Time.deltaTime;
+
+            float rotZ = _rotationSpeed * Time.deltaTime;
+            Entity.Body.Rotate(0, 0, rotZ);
+            Entity.Legs.Rotate(0, 0, rotZ);
+            Entity.Shadow.Rotate(0, 0, rotZ);
         }
     }
 }

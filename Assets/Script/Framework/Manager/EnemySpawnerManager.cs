@@ -4,6 +4,7 @@ using Pathfinding;
 using QFramework.Enum;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Enemy;
+using QFramework.ViewController.Enemy.Formation;
 using UnityEngine;
 
 namespace QFramework.Manager
@@ -14,7 +15,7 @@ namespace QFramework.Manager
     /// </summary>
     public class EnemySpawnerManager : SceneMonoSingleton<EnemySpawnerManager>
     {
-        private const int MaxDropperCargoCount = 6;
+        private const int MaxCargoCnt = 6;
         private enum PatrolDistanceBucket
         {
             Short,
@@ -27,39 +28,39 @@ namespace QFramework.Manager
         [Header("运输船配置")]
         [SerializeField] private Dropper _dropperPrefab;
         [SerializeField] private Transform _spawnRoot;
-        [SerializeField] private bool _spawnOnStart = true;
-        [SerializeField, Min(1)] private int _waveCountPerSpawnProcess = 1;
-        [SerializeField, Min(0f)] private float _waveIntervalSeconds = 0f;
-        [SerializeField, Min(1)] private int _dropperCountPerSpawn = 1;
-        [SerializeField, Min(0f)] private float _shipSpawnIntervalMaxSeconds = 0f;
+        [SerializeField] private bool _isSpawnOnStart = true;
+        [SerializeField, Min(1)] private int _waveCntPerSpawn = 1;
+        [SerializeField, Min(0f)] private float _waveInterval = 0f;
+        [SerializeField, Min(1)] private int _dropperCnt = 1;
+        [SerializeField, Min(0f)] private float _spawnIntervalMax = 0f;
 
         [Header("运输船路径点")]
         [SerializeField] private Transform _startPoint;
         [SerializeField] private Transform _dropPoint;
         [SerializeField] private Transform _endPoint;
-        [SerializeField, Min(0f)] private float _spawnPointRandomRadius = 0f;
-        [SerializeField, Min(0f)] private float _dropPointRandomRadius = 0f;
-        [SerializeField, Min(1)] private int _walkablePointSampleAttempts = 10;
-        [SerializeField, Min(0f)] private float _walkableSnapMaxDistance = 2f;
+        [SerializeField, Min(0f)] private float _spawnRadius = 0f;
+        [SerializeField, Min(0f)] private float _dropRadius = 0f;
+        [SerializeField, Min(1)] private int _walkableSampleCnt = 10;
+        [SerializeField, Min(0f)] private float _walkableSnapDist = 2f;
 
-        [Header("巡逻敌人投送配置")]
+        [Header("巡逻队配置")]
         [SerializeField] private Transform _player;
-        [SerializeField, Min(0f)] private float _patrolDropIntervalSeconds = 0f;
-        [SerializeField, Min(1)] private int _patrolDropShipCountPerInterval = 1;
-        [SerializeField, Min(0f)] private float _patrolDropMinDistanceFromPlayer = 0f;
+        [SerializeField, Min(1)] private int _patrolSpawnCnt = 1;  // 每次生成数量
+        [SerializeField, Min(0f)] private float _patrolSpawnInterval = 0f;
+        [SerializeField, Min(0f)] private float _patrolSpawnMinDist = 0f;
+        [SerializeField] private List<FormationTypesSO> _patrolFormationTemplates;
 
         [Header("挂载敌人模板池（每个模板最多6个）")]
         [SerializeField] private List<CargoEnemyTemplate> _cargoTemplates;
 
         [Header("Gizmos调试")]
-        [SerializeField] private bool _drawSpawnGizmos = true;
+        [SerializeField] private bool _canDrawGizmos = true;
         [SerializeField, Min(0.05f)] private float _gizmoPointRadius = 0.25f;
 
-        private Coroutine _spawnProcessCoroutine;
-        private Coroutine _patrolDropProcessCoroutine;
+        private Coroutine _spawnCoroutine;
+        private Coroutine _patrolSpawnCoroutine;
         private readonly List<Vector3> _lastSpawnPoints = new List<Vector3>();
         private readonly List<Vector3> _lastDropPoints = new List<Vector3>();
-        private readonly List<List<Vector3>> _lastPatrolPathPoints = new List<List<Vector3>>();
 
         #endregion
 
@@ -67,8 +68,8 @@ namespace QFramework.Manager
 
         private void Start()
         {
-            if (_spawnOnStart) StartSpawnProcess();
-            StartPatrolDropProcessIfNeeded();
+            if (_isSpawnOnStart) StartSpawn();
+            StartPatrolSpawn();
         }
 
         #endregion
@@ -78,15 +79,15 @@ namespace QFramework.Manager
         /// <summary>
         /// 生成一架运输船并注入路径与挂载敌人。
         /// </summary>
-        public Dropper SpawnDropshipWave()
+        public Dropper SpawnWave()
         {
             if (!CanSpawnDropper()) return null;
             Dropper firstDropper = null;
-            int spawnCount = Mathf.Max(1, _dropperCountPerSpawn);
+            int spawnCount = Mathf.Max(1, _dropperCnt);
             // 按“每次生成数量”逐架创建运输船；每一架都独立计算起飞点与投送点偏移。
             for (int i = 0; i < spawnCount; i++)
             {
-                var dropper = SpawnSingleDropper();
+                var dropper = SpawnDropper();
                 if (firstDropper == null) firstDropper = dropper;
             }
 
@@ -97,37 +98,37 @@ namespace QFramework.Manager
         /// 启动“多波次生成流程”。
         /// 如果上一次流程还没结束，会先中断旧流程再启动新流程。
         /// </summary>
-        public void StartSpawnProcess()
+        public void StartSpawn()
         {
             if (!CanSpawnDropper()) return;
-            InterruptSpawnProcessIfRunning();
-            _spawnProcessCoroutine = StartCoroutine(SpawnProcessCoroutine());
+            InterruptSpawn();
+            _spawnCoroutine = StartCoroutine(SpawnRoutine());
         }
 
         #region ----- Inspector 菜单 -------------------------
 
         [ContextMenu("生成运输船")]
-        private void SpawnDropshipFromMenu()
+        private void SpawnFromMenu()
         {
             if (!Application.isPlaying)
             {
-                DebugUtility.LogWarning("[EnemySpawnerManager] 请先进入 Play 模式再通过菜单生成运输船。");
+                // DebugUtility.LogWarning("[EnemySpawnerManager] 请先进入 Play 模式再通过菜单生成运输船。");
                 return;
             }
 
-            StartSpawnProcess();
+            StartSpawn();
         }
 
         [ContextMenu("生成一次巡逻队")]
-        private void SpawnPatrolDropFromMenu()
+        private void SpawnPatrolFromMenu()
         {
             if (!Application.isPlaying)
             {
-                DebugUtility.LogWarning("[EnemySpawnerManager] 请先进入 Play 模式再通过菜单生成巡逻队。");
+                // DebugUtility.LogWarning("[EnemySpawnerManager] 请先进入 Play 模式再通过菜单生成巡逻队。");
                 return;
             }
 
-            SpawnPatrolDropBatch();
+            SpawnPatrolFormation();
         }
 
         #endregion
@@ -142,35 +143,35 @@ namespace QFramework.Manager
         {
             if (_dropperPrefab == null)
             {
-                DebugUtility.LogError("[EnemySpawnerManager] Dropper prefab is not assigned.");
+                // DebugUtility.LogError("[EnemySpawnerManager] Dropper prefab is not assigned.");
                 return false;
             }
 
             return IsRouteValid();
         }
 
-        private void InterruptSpawnProcessIfRunning()
+        private void InterruptSpawn()
         {
-            if (_spawnProcessCoroutine == null) return;
-            StopCoroutine(_spawnProcessCoroutine);
-            _spawnProcessCoroutine = null;
-            DebugUtility.LogWarning("[EnemySpawnerManager] Previous spawn process interrupted by a new request.");
+            if (_spawnCoroutine == null) return;
+            StopCoroutine(_spawnCoroutine);
+            _spawnCoroutine = null;
+            // DebugUtility.LogWarning("[EnemySpawnerManager] Previous spawn process interrupted by a new request.");
         }
 
-        private void StartPatrolDropProcessIfNeeded()
+        private void StartPatrolSpawn()
         {
-            if (_patrolDropIntervalSeconds <= 0f) return;
-            if (_patrolDropProcessCoroutine != null) StopCoroutine(_patrolDropProcessCoroutine);
-            _patrolDropProcessCoroutine = StartCoroutine(PatrolDropProcessCoroutine());
+            if (_patrolSpawnInterval <= 0f) return;
+            if (_patrolSpawnCoroutine != null) StopCoroutine(_patrolSpawnCoroutine);
+            _patrolSpawnCoroutine = StartCoroutine(PatrolSpawnRoutine());
         }
 
-        private IEnumerator SpawnProcessCoroutine()
+        private IEnumerator SpawnRoutine()
         {
             _lastSpawnPoints.Clear();
             _lastDropPoints.Clear();
 
-            int waveCount = Mathf.Max(1, _waveCountPerSpawnProcess);
-            int shipCountPerWave = Mathf.Max(1, _dropperCountPerSpawn);
+            int waveCount = Mathf.Max(1, _waveCntPerSpawn);
+            int shipCountPerWave = Mathf.Max(1, _dropperCnt);
 
             // 按配置波次执行生成；每一波内逐艘生成，并在两艘之间插入随机间隔。
             for (int waveIndex = 0; waveIndex < waveCount; waveIndex++)
@@ -180,19 +181,19 @@ namespace QFramework.Manager
                 // 当前波逐艘生成：允许每艘船拥有独立起点偏移与落点偏移。
                 for (int shipIndex = 0; shipIndex < shipCountPerWave; shipIndex++)
                 {
-                    SpawnSingleDropper();
+                    SpawnDropper();
                     if (shipIndex >= shipCountPerWave - 1) continue;
 
-                    float interval = Random.Range(0f, _shipSpawnIntervalMaxSeconds);
+                    float interval = Random.Range(0f, _spawnIntervalMax);
                     if (interval > 0f) yield return new WaitForSeconds(interval);
                 }
 
                 // 当前波全部生成后，等待波次间隔再进入下一波（最后一波不等待）。
                 if (waveIndex >= waveCount - 1) continue;
-                if (_waveIntervalSeconds > 0f) yield return new WaitForSeconds(_waveIntervalSeconds);
+                if (_waveInterval > 0f) yield return new WaitForSeconds(_waveInterval);
             }
 
-            _spawnProcessCoroutine = null;
+            _spawnCoroutine = null;
         }
 
         #endregion
@@ -200,18 +201,18 @@ namespace QFramework.Manager
         private bool IsRouteValid()
         {
             if (_startPoint != null && _dropPoint != null && _endPoint != null) return true;
-            DebugUtility.LogError("[EnemySpawnerManager] Route points are not fully assigned.");
+            // DebugUtility.LogError("[EnemySpawnerManager] Route points are not fully assigned.");
             return false;
         }
 
-        private Dropper SpawnSingleDropper()
+        private Dropper SpawnDropper()
         {
-            var startPos = GetRandomPointAround(_startPoint.position, _spawnPointRandomRadius);
-            var dropPos = GetRandomWalkableDropPoint();
-            return SpawnSingleDropper(startPos, dropPos, null, null, null);
+            var startPos = GetRandomPointAround(_startPoint.position, _spawnRadius);
+            var dropPos = GetWalkableDropPos();
+            return SpawnDropper(startPos, dropPos, null, null, null);
         }
 
-        private Dropper SpawnSingleDropper(
+        private Dropper SpawnDropper(
             Vector3 startPos,
             Vector3 dropPos,
             Vector3? patrolStartPoint,
@@ -219,7 +220,7 @@ namespace QFramework.Manager
             float? patrolMoveSpeed
         )
         {
-            var cargoTemplate = GetRandomCargoTemplate();
+            var cargoTemplate = GetRandomTemplate();
 
             var dropper = Instantiate(
                 _dropperPrefab,
@@ -229,7 +230,7 @@ namespace QFramework.Manager
             );
 
             dropper.SetupRoute(startPos, dropPos, _endPoint.position);
-            InitDropperCargos(dropper, cargoTemplate, patrolStartPoint, patrolEndPoint, patrolMoveSpeed);
+            InitCargos(dropper, cargoTemplate, patrolStartPoint, patrolEndPoint, patrolMoveSpeed);
             dropper.LockCargos();
 
             _lastSpawnPoints.Add(startPos);
@@ -240,7 +241,7 @@ namespace QFramework.Manager
         /// <summary>
         /// 将原 Dropper.InitAirEnemy 的实例化职责迁移到管理器。
         /// </summary>
-        private void InitDropperCargos(
+        private void InitCargos(
             Dropper dropper,
             CargoEnemyTemplate cargoTemplate,
             Vector3? patrolStartPoint,
@@ -251,19 +252,19 @@ namespace QFramework.Manager
             if (dropper == null) return;
             if (cargoTemplate == null || cargoTemplate.EnemyTypes == null || cargoTemplate.EnemyTypes.Count == 0)
             {
-                DebugUtility.LogWarning("[EnemySpawnerManager] No valid cargo template found, this dropper will spawn without cargos.");
+                // DebugUtility.LogWarning("[EnemySpawnerManager] No valid cargo template found, this dropper will spawn without cargos.");
                 return;
             }
 
             int slotCount = dropper.GetCargoSlotCount();
             int configCount = cargoTemplate.EnemyTypes.Count;
-            int spawnCount = Mathf.Min(Mathf.Min(slotCount, MaxDropperCargoCount), configCount);
+            int spawnCount = Mathf.Min(Mathf.Min(slotCount, MaxCargoCnt), configCount);
 
-            if (configCount > MaxDropperCargoCount)
+            if (configCount > MaxCargoCnt)
             {
-                DebugUtility.LogWarning(
-                    $"[EnemySpawnerManager] Cargo config count({configCount}) is greater than {MaxDropperCargoCount}, extra entries are ignored."
-                );
+                // DebugUtility.LogWarning(
+                //     $"[EnemySpawnerManager] Cargo config count({configCount}) is greater than {MaxCargoCnt}, extra entries are ignored."
+                // );
             }
 
             // 逐个货舱位生成并绑定敌人，数量受“货舱位上限/配置数量/系统上限”共同约束。
@@ -294,7 +295,7 @@ namespace QFramework.Manager
             var prefab = ResourceLoad.Load<GameObject>("Prefab/Enemy/" + enemyType);
             if (prefab == null)
             {
-                DebugUtility.LogError($"[EnemySpawnerManager] Can not load enemy prefab: {enemyType}");
+                // DebugUtility.LogError($"[EnemySpawnerManager] Can not load enemy prefab: {enemyType}");
                 return null;
             }
 
@@ -302,7 +303,7 @@ namespace QFramework.Manager
             var enemy = obj.GetComponent<AbstractEnemy>();
             if (enemy == null)
             {
-                DebugUtility.LogError($"[EnemySpawnerManager] Enemy prefab missing AbstractEnemy: {enemyType}");
+                // DebugUtility.LogError($"[EnemySpawnerManager] Enemy prefab missing AbstractEnemy: {enemyType}");
                 Destroy(obj);
                 return null;
             }
@@ -316,7 +317,7 @@ namespace QFramework.Manager
         /// 获取随机模板
         /// </summary>
         /// <returns>返回随机模板</returns>
-        private CargoEnemyTemplate GetRandomCargoTemplate()
+        private CargoEnemyTemplate GetRandomTemplate()
         {
             if (_cargoTemplates == null || _cargoTemplates.Count == 0) return null;
 
@@ -336,109 +337,99 @@ namespace QFramework.Manager
 
         #region ----- 随机点与可行走采样 -------------------------
 
-        private Vector3 GetRandomWalkableDropPoint()
+        private Vector3 GetWalkableDropPos()
         {
             // 如果目标半径为0，则直接返回目标点
-            if (_dropPointRandomRadius <= 0f)
+            if (_dropRadius <= 0f)
             {
-                return GetClosestWalkablePointOrDefault(_dropPoint.position, _dropPoint.position);
+                return GetWalkableOrDefault(_dropPoint.position, _dropPoint.position);
             }
 
             var fallback = _dropPoint.position;  // 回退点
-            int attempts = Mathf.Max(1, _walkablePointSampleAttempts);  // 采样尝试次数
+            int attempts = Mathf.Max(1, _walkableSampleCnt);  // 采样尝试次数
 
             // 在目标半径内多次随机采样，只要命中可行走点就立即返回；否则走回退逻辑。
             for (int i = 0; i < attempts; i++)
             {
-                var candidate = GetRandomPointAround(_dropPoint.position, _dropPointRandomRadius);
+                var candidate = GetRandomPointAround(_dropPoint.position, _dropRadius);
                 if (TryGetWalkablePoint(candidate, out var walkablePoint))
                 {
                     return walkablePoint;
                 }
             }
 
-            return GetClosestWalkablePointOrDefault(fallback, fallback);
+            return GetWalkableOrDefault(fallback, fallback);
         }
 
-        private IEnumerator PatrolDropProcessCoroutine()
+        private IEnumerator PatrolSpawnRoutine()
         {
-            float interval = Mathf.Max(0f, _patrolDropIntervalSeconds);
+            float interval = Mathf.Max(0f, _patrolSpawnInterval);
             if (interval > 0f) yield return new WaitForSeconds(interval);
 
             while (true)
             {
-                SpawnPatrolDropBatch();
+                int cnt = Mathf.Max(1, _patrolSpawnCnt);
+                for (int i = 0; i < cnt; i++)
+                    SpawnPatrolFormation();
                 if (interval > 0f) yield return new WaitForSeconds(interval);
                 else yield return null;
             }
         }
 
-        private void SpawnPatrolDropBatch()
+        private void SpawnPatrolFormation()
         {
-            if (!CanSpawnDropper()) return;
+            if (_player == null) return;
 
-            int spawnCount = Mathf.Max(1, _patrolDropShipCountPerInterval);
-            _lastPatrolPathPoints.Clear();
-            for (int i = 0; i < spawnCount; i++)
-            {
-                float shipPatrolMoveSpeed = Random.Range(0.5f, 1f);
-                SpawnSingleDropperAtPointOutsidePlayerRadius(shipPatrolMoveSpeed);
-            }
-        }
-
-        private void SpawnSingleDropperAtPointOutsidePlayerRadius(float shipPatrolMoveSpeed)
-        {
-            if (_player == null)
-            {
-                DebugUtility.LogWarning("[EnemySpawnerManager] Patrol drop player is not assigned, skip this dropper.");
-                return;
-            }
+            var template = GetRandomFormationTemplate();
+            if (template == null) return;
 
             var playerSnapshotPos = _player.position;
             var patrolEndPoint = playerSnapshotPos;
             if (AstarPath.active != null && !TryGetWalkablePoint(playerSnapshotPos, out patrolEndPoint))
-            {
-                DebugUtility.LogWarning("[EnemySpawnerManager] Player snapshot can not snap to a walkable point, skip this dropper.");
                 return;
-            }
 
-            var startPos = GetRandomPointAround(_startPoint.position, _spawnPointRandomRadius);
-            if (!TryGetRandomWalkableDropPointOutsidePlayerRadius(patrolEndPoint, out var dropPos))
-            {
-                DebugUtility.LogWarning("[EnemySpawnerManager] Can not find a valid patrol drop point outside player radius, skip this dropper.");
-                return;
-            }
+            if (!TryGetPatrolDropPos(patrolEndPoint, out var dropPos)) return;
 
-            CachePatrolPath(dropPos, patrolEndPoint);
-            SpawnSingleDropper(startPos, dropPos, dropPos, patrolEndPoint, shipPatrolMoveSpeed);
+            float patrolMoveSpeed = Random.Range(0.5f, 1f);
+
+            var go = new GameObject("Formation_" + template.name);
+            go.transform.position = dropPos;
+            go.transform.SetParent(_spawnRoot);
+            var controller = go.AddComponent<FormationController>();
+            controller.PatrolSpeed = patrolMoveSpeed;
+            controller.RingRadius = 3f;
+            controller.RingSpacing = 2f;
+            controller.SpawnOnStart = false;
+            controller.SetPatrolRoute(dropPos, patrolEndPoint);
+            controller.SpawnFromSO(template);
         }
 
-        private void CachePatrolPath(Vector3 startPoint, Vector3 endPoint)
+        private FormationTypesSO GetRandomFormationTemplate()
         {
-            var pathPoints = new List<Vector3> { startPoint, endPoint };
-            _lastPatrolPathPoints.Add(pathPoints);
+            if (_patrolFormationTemplates == null || _patrolFormationTemplates.Count == 0) return null;
+            return _patrolFormationTemplates[Random.Range(0, _patrolFormationTemplates.Count)];
         }
 
-        private bool TryGetRandomWalkableDropPointOutsidePlayerRadius(Vector3 patrolEndPoint, out Vector3 dropPos)
+        private bool TryGetPatrolDropPos(Vector3 patrolEndPoint, out Vector3 dropPos)
         {
             dropPos = default;
             var player = GetPlayerTransform();
             if (player == null) return false;
-            if (_patrolDropMinDistanceFromPlayer <= 0f)
+            if (_patrolSpawnMinDist <= 0f)
             {
-                dropPos = GetRandomWalkableDropPoint();
+                dropPos = GetWalkableDropPos();
                 return true;
             }
 
-            int attempts = Mathf.Max(1, _walkablePointSampleAttempts * 3);
-            float minDistance = _patrolDropMinDistanceFromPlayer;
+            int attempts = Mathf.Max(1, _walkableSampleCnt * 3);
+            float minDistance = _patrolSpawnMinDist;
             float maxDistance = minDistance + 2f * attempts;
-            var distanceBucket = GetRandomPatrolDistanceBucket();
+            var distanceBucket = GetRandomDistBucket();
 
             for (int i = 0; i < attempts; i++)
             {
                 // 方案C：先固定本船的长度档位，再在该档位内采样，保证不同船路径长度差异更明显。
-                float distance = GetDistanceInBucket(distanceBucket, minDistance, maxDistance);
+                float distance = GetBucketDist(distanceBucket, minDistance, maxDistance);
                 Vector2 dir = Random.insideUnitCircle.normalized;
                 if (dir.sqrMagnitude <= 0.0001f) dir = Vector2.right;
                 var candidate = new Vector3(
@@ -457,7 +448,7 @@ namespace QFramework.Manager
             return false;
         }
 
-        private PatrolDistanceBucket GetRandomPatrolDistanceBucket()
+        private PatrolDistanceBucket GetRandomDistBucket()
         {
             float roll = Random.value;
             if (roll < 0.33f) return PatrolDistanceBucket.Short;
@@ -465,7 +456,7 @@ namespace QFramework.Manager
             return PatrolDistanceBucket.Long;
         }
 
-        private float GetDistanceInBucket(PatrolDistanceBucket bucket, float minDistance, float maxDistance)
+        private float GetBucketDist(PatrolDistanceBucket bucket, float minDistance, float maxDistance)
         {
             float span = Mathf.Max(0.01f, maxDistance - minDistance);
             float startT;
@@ -525,7 +516,7 @@ namespace QFramework.Manager
         /// <param name="candidate">候选点</param>
         /// <param name="fallback">回退点</param>
         /// <returns>返回最近的可行走点或回退点</returns>
-        private Vector3 GetClosestWalkablePointOrDefault(Vector3 candidate, Vector3 fallback)
+        private Vector3 GetWalkableOrDefault(Vector3 candidate, Vector3 fallback)
         {
             return TryGetWalkablePoint(candidate, out var walkablePoint) ? walkablePoint : fallback;
         }
@@ -551,8 +542,8 @@ namespace QFramework.Manager
             walkablePoint.z = candidate.z;
 
             // 如果最大吸附距离为0，则返回最近的可行走点
-            if (_walkableSnapMaxDistance <= 0f) return true;
-            return Vector2.Distance(candidate, walkablePoint) <= _walkableSnapMaxDistance;
+            if (_walkableSnapDist <= 0f) return true;
+            return Vector2.Distance(candidate, walkablePoint) <= _walkableSnapDist;
         }
 
         #endregion
@@ -561,26 +552,26 @@ namespace QFramework.Manager
 
         private void OnDrawGizmosSelected()
         {
-            if (!_drawSpawnGizmos) return;
+            if (!_canDrawGizmos) return;
 
             // 绘制基础随机半径，便于调试起飞点与目标落点的采样范围。
-            if (_startPoint != null && _spawnPointRandomRadius > 0f)
+            if (_startPoint != null && _spawnRadius > 0f)
             {
                 Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.9f);
-                Gizmos.DrawWireSphere(_startPoint.position, _spawnPointRandomRadius);
+                Gizmos.DrawWireSphere(_startPoint.position, _spawnRadius);
             }
 
-            if (_dropPoint != null && _dropPointRandomRadius > 0f)
+            if (_dropPoint != null && _dropRadius > 0f)
             {
                 Gizmos.color = new Color(1f, 0.5f, 0.2f, 0.9f);
-                Gizmos.DrawWireSphere(_dropPoint.position, _dropPointRandomRadius);
+                Gizmos.DrawWireSphere(_dropPoint.position, _dropRadius);
             }
 
             // 绘制“玩家半径外投送”限制圈，便于调试巡逻敌人的最小投送距离。
-            if (_player != null && _patrolDropMinDistanceFromPlayer > 0f)
+            if (_player != null && _patrolSpawnMinDist > 0f)
             {
                 Gizmos.color = new Color(0.35f, 1f, 0.35f, 0.9f);
-                Gizmos.DrawWireSphere(_player.position, _patrolDropMinDistanceFromPlayer);
+                Gizmos.DrawWireSphere(_player.position, _patrolSpawnMinDist);
             }
 
             // 绘制最近一次生成流程中每艘船的起点与落点。
@@ -596,21 +587,7 @@ namespace QFramework.Manager
                 Gizmos.DrawSphere(_lastDropPoints[i], _gizmoPointRadius);
             }
 
-            // 绘制最近一次巡逻投送使用的“投送点 -> player快照点”路径。
-            if (_lastPatrolPathPoints.Count > 0)
-            {
-                Gizmos.color = new Color(1f, 0.15f, 0.9f, 0.95f);
-                for (int pathIndex = 0; pathIndex < _lastPatrolPathPoints.Count; pathIndex++)
-                {
-                    var pathPoints = _lastPatrolPathPoints[pathIndex];
-                    if (pathPoints == null || pathPoints.Count < 2) continue;
-
-                    for (int i = 0; i < pathPoints.Count - 1; i++)
-                    {
-                        Gizmos.DrawLine(pathPoints[i], pathPoints[i + 1]);
-                    }
-                }
-            }
+            // 巡逻队由 FormationController 自身 Gizmos 绘制，此处不再重复绘制。
         }
 
         #endregion

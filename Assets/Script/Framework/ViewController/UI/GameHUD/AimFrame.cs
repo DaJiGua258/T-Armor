@@ -148,7 +148,18 @@ namespace QFramework.ViewController.UI
                 Target = targetPos 
             });
 
+            // 检测目标 layer，更新子弹的 raycast layerMask
+            LayerMask bulletLayerMask;
+            if (_targetCollider != null)
+            {
+                bulletLayerMask = 1 << _targetCollider.gameObject.layer;
+            }
+            else
+            {
+                bulletLayerMask = LayerMask.GetMask("Ground");
+            }
             
+            TypeEventSystem.Global.Send(new WeaponEvent.UpdateBulletLayerMask() { LayerMask = bulletLayerMask });
 
             // ----- 获取敌人信息类的事件，避免重复执行 -------------------------
             if(_targetCollider == null)
@@ -160,10 +171,9 @@ namespace QFramework.ViewController.UI
             
             if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
 
-            // int enemyId = _targetCollider.TryGetComponent<AbstractEnemy>(out var enemy) ? enemy.enemyId : -1;
-            //     _enemyInfo.SetEnemyId(enemyId);
             var enemy = _targetCollider.GetComponentInParent<AbstractEnemy>();
             int enemyId = enemy.enemyId;
+            _enemyInfo.SetEnemyId(enemyId);
 
             
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });

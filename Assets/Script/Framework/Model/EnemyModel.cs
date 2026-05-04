@@ -20,6 +20,7 @@ namespace QFramework.Model
 
 
             {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 100, 1f, 30, 30)},
+            {EnemyTypeEnum.Raider, new EnemeyConfig(15, 100, 0.5f, 30, 30)},
         };
 
         protected override void OnInit()

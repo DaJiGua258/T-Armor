@@ -107,7 +107,7 @@ Transform:
   m_GameObject: {fileID: 7782407028947840349}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.15051882}
+  m_LocalPosition: {x: 0, y: 0, z: -0.35051882}
   m_LocalScale: {x: 1, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -128,7 +128,7 @@ MonoBehaviour:
   StackingMaterial: {fileID: 2100000, guid: a406ca1ecfcaaf1449319e50cb543996, type: 2}
   UseLocalZSort: 1
   OrderParent: {fileID: 0}
-  ZSortOffset: 0
+  ZSortOffset: -2
   HeightLevel: 0
   CanSetScale: 0
   SizeMultiplier: 1

@@ -2,7 +2,10 @@
 using UnityEngine;
 
 public class StackShadow : StackShadowStatic
-{   
+{
+    [Header("位置锁定")]
+    public bool IsLock = true;    // true = 每帧锁定到目标位置，false = 只在初始设一次
+
     protected override bool UseRenderManagerStaticMode => false;
 
     void Update()
@@ -12,8 +15,9 @@ public class StackShadow : StackShadowStatic
             UpdateZSort();
             transform.hasChanged = false;
         }
-        
-        SyncPosition();
+
+        if (IsLock)
+            SyncPosition();
     }
 
     private void SyncPosition()

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(curl -s http://localhost:8090/health)",
+      "Bash(python -c \"import sys, json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash(curl -s http://localhost:8090/skill/scene_context -X POST -H \"Content-Type: application/json\" -d '{\"active_scene_only\": true, \"verbose\": true}')",
+      "Bash(curl -s http://localhost:8090/skill/scene_context -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"----------Scene----------/Player/Mesh/Body\", \"max_depth\": 4}')"
+    ]
+  }
+}

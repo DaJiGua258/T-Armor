@@ -14,7 +14,7 @@ namespace QFramework.ViewController.Player
             Entity.StopMovement();
             Entity.PlayDeathVFX();
             GameManager.Instance.SetGameResultState(GameResultState.GameOver);
-            UIManager.Instance.ShowPanel(UIPanelType.GameOverPanel);
+            UIGameManager.Instance.ShowPanel(UIGamePanelType.GameOverPanel);
         }
 
         public override void OnUpdate()

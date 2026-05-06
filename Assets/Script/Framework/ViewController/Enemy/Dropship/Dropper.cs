@@ -175,6 +175,16 @@ namespace QFramework.ViewController.Enemy
             StartCoroutine(DropCargosEnumerator());
         }
 
+        public void KillAllCargos()
+        {
+            if (_cargoSlots == null) return;
+            foreach (var slot in _cargoSlots)
+            {
+                if (slot.Enemy != null)
+                    slot.Enemy.ChangeState<EnemyDeathState>();
+            }
+        }
+
         IEnumerator DropCargosEnumerator()
         {
             if (_cargoSlots == null || _cargoSlots.Count == 0) yield break;

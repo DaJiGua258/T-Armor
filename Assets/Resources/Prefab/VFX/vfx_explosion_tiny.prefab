@@ -29334,14 +29334,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3388706060836a247b38a7f992fc30d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShakeMode: 5
-  Radius: 0
+  Radius: 0.75
+  BaseDamage: 0
   Force: 0
   Torque: 0
   LayerMask:
     serializedVersion: 2
     m_Bits: 0
-  Results: []
+  ShakeMode: 5
+  UseDamageFalloff: 0
+  DamageFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: -1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8711806827171844535
 GameObject:
   m_ObjectHideFlags: 0

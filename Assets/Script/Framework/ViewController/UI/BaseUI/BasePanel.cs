@@ -1,6 +1,3 @@
-using QFramework.Model;
-using QFramework.System;
-using QFramework.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,30 +7,13 @@ namespace QFramework.ViewController.UI
 {
     /// <summary>
     /// 所有 UI 面板的基类。
-    /// 实现 IController 使面板可通过 QFramework Architecture 访问 System / Model，
-    /// 并可通过 SendCommand 写入数据，保持单向数据流。
+    /// 继承 BaseUIComponent 获得 IController 架构访问能力。
     ///
     /// 生命周期顺序：OnInit → OnShow ↔ OnHide（可重复）→ OnClose
     /// 推荐在 OnShow() 中订阅 BindableProperty / Event，在 OnHide() 中取消订阅。
     /// </summary>
-    public abstract class AbstractBasePanel : MonoBehaviour, IBasePanel, IController, IUIEventBase
+    public abstract class AbstractBasePanel : BaseUIComponent, IBasePanel, IUIEventBase
     {
-        public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
-
-        // ----- Model -------------------------
-        public ILevelTypeModel LevelTypeModel => this.GetModel<ILevelTypeModel>();
-        public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
-        
-        // ----- System -------------------------
-        public IInvenotrySystem InvenotrySystem => this.GetSystem<IInvenotrySystem>();
-        public IPlayerSystem PlayerSystem => this.GetSystem<IPlayerSystem>();
-        public ILevelSystem LevelSystem => this.GetSystem<ILevelSystem>();
-        public IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
-        public IEnemyInstanceSystem EnemyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
-        // ----- Utility -------------------------
-        public IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();
-        public IInputUtility InputUtility => this.GetUtility<IInputUtility>();
-        
 
 
         public void Show()

@@ -1,4 +1,6 @@
 using QFramework.Model;
+using QFramework.System;
+using QFramework.Enum;
 using UnityEngine;
 
 namespace QFramework.Command
@@ -81,6 +83,43 @@ namespace QFramework.Command
                 if (_playerModel.CurrentFuel.Value > _playerModel.MaxFuel.Value)
                 {
                     _playerModel.CurrentFuel.Value = _playerModel.MaxFuel.Value;
+                }
+            }
+        }
+
+        public class UseHotbarItem : AbstractCommand
+        {
+            public static UseHotbarItem Instance = new();
+            private int _index;
+
+            public UseHotbarItem Init(int index)
+            {
+                _index = index;
+                return this;
+            }
+
+            protected override void OnExecute()
+            {
+                var invSystem = this.GetSystem<IInvenotrySystem>();
+                var item = invSystem.GetHotbarItemByIndex(_index);
+
+                if (item == null || item.ItemType == ItemTypeEnum.None || !item.canUse)
+                    return;
+
+                switch (item.ItemType)
+                {
+                    case ItemTypeEnum.Supply_Health:
+                        this.SendCommand(new PlayerCommand.Heal());
+                        break;
+                }
+
+                item.Count.Value--;
+                if (item.Count.Value <= 0)
+                {
+                    item.ItemType = ItemTypeEnum.None;
+                    item.Count.Value = 0;
+                    item.canUse = false;
+                    item.name = "";
                 }
             }
         }

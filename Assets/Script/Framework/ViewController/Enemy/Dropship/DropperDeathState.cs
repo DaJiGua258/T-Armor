@@ -18,8 +18,12 @@ namespace QFramework.ViewController.Enemy
         public override void OnEnter()
         {
             Entity.StopMovement();
-            Entity.Collider.enabled = false;
+            Entity.ColliderTrans.gameObject.SetActive(false);
             _verticalVelocity = 0;
+            Entity.ShowDamageVFX();
+            var dropper = Entity as Dropper;
+            if (!dropper.IsDropped)
+                dropper.KillAllCargos();
         }
 
         public override void OnUpdate()

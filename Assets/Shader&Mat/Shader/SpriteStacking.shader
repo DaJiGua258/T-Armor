@@ -2,10 +2,11 @@ Shader "Custom/SpriteStacking_URP"
 {
     Properties
     {
-        _Color ("MainColor", Color)  = (1, 1, 1, 1) // 统一改为 _Color
+        _Color ("MainColor", Color)  = (1, 1, 1, 1)
         _MainTex ("Sprite Sheet (Left to Right)", 2D) = "white" {}
         _YOffset ("Layer Y Offset", Float) = 0.02
         _StackDir ("Stack Direction (World Space)", Vector) = (0, 1, 0, 0)
+        _FlashAmount ("Flash Amount", Range(0, 1)) = 0
     }
 
     SubShader
@@ -38,6 +39,10 @@ Shader "Custom/SpriteStacking_URP"
                 float4 _StackDir;
                 float4 _MainTex_ST;
             CBUFFER_END
+
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(float, _FlashAmount)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
@@ -113,8 +118,10 @@ Shader "Custom/SpriteStacking_URP"
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                if (col.a < 0.05) discard; 
-                return col * _Color; // 使用统一后的变量
+                if (col.a < 0.05) discard;
+                float flash = UNITY_ACCESS_INSTANCED_PROP(Props, _FlashAmount);
+                col.rgb = lerp(col.rgb, 1.0, flash);
+                return col * _Color;
             }
             ENDHLSL
         }

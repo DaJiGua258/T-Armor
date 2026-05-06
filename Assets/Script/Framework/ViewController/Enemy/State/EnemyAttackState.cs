@@ -19,7 +19,7 @@ namespace QFramework.ViewController.Enemy
         /// <summary>仅当玩家在攻击范围内时才允许进入攻击状态。</summary>
         public override bool OnCondition()
         {
-            Debug.Log("进入攻击状态");
+            // Debug.Log("进入攻击状态");
             return Entity.IsInAttackMaxRange();
         }
 

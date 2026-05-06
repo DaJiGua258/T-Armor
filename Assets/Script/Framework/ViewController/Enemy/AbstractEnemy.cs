@@ -5,8 +5,10 @@ using QFramework.Enum;
 using QFramework.System;
 using QFramework.Utility;
 using QFramework.ViewController.FSM;
+using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -23,6 +25,7 @@ namespace QFramework.ViewController.Enemy
         public int enemyId;
         public EnemyTypeEnum enemyType;
         public bool IsInit = false;
+        public bool debugLock = false;
 
         [Header("寻路与感知")]
         public FollowerEntity Agent;
@@ -37,7 +40,6 @@ namespace QFramework.ViewController.Enemy
         [Header("组件")]
         [SerializeField] private float _moveSpeed = 3f;
         public Rigidbody2D Rb;
-        public Collider2D Collider;
         private static Material s_deathMaterial;
         private static Material s_meshMaterial;
 
@@ -64,6 +66,11 @@ namespace QFramework.ViewController.Enemy
         public Transform Legs;
         public Transform Shadow;
         public Transform ColliderTrans;
+        private GameObject _damageVfxNode;
+
+        // 受击闪白
+        private List<Renderer> _meshRenderers;
+        private MaterialPropertyBlock _flashBlock;
 
         [Header("武器引用")]
         public Transform Weapon;
@@ -125,6 +132,9 @@ namespace QFramework.ViewController.Enemy
                 _fsm.ChangeState<EnemyDeathState>();
             }
 
+            if (debugLock)
+                _fsm.ChangeState<EnemyLockState>();
+
             // 定期扫描范围内最近目标
             _findTargetTimer -= Time.deltaTime;
             if (_findTargetTimer <= 0f)
@@ -182,7 +192,8 @@ namespace QFramework.ViewController.Enemy
             Mesh = transform.Find("Mesh");
             Body = Mesh.Find("Body");
             Legs = Mesh.Find("Legs");
-            ColliderTrans = Mesh.Find("Collider");
+
+            ColliderTrans = Body.Find("Collider");
 
             Shadow = transform.Find("Shadow");
 
@@ -195,9 +206,17 @@ namespace QFramework.ViewController.Enemy
 
             // 物理组件
             Rb = transform.GetComponent<Rigidbody2D>();
-            Collider = ColliderTrans.GetComponent<Collider2D>();
 
             Agent = transform.GetComponent<FollowerEntity>();
+
+            // 损伤特效节点（可选）
+            Transform damageVfxT = Mesh.Find("DamageVFX");
+            if (damageVfxT != null) _damageVfxNode = damageVfxT.gameObject;
+
+            // 收集 Mesh 下所有渲染器（含 Body/Legs/Weapon 等），用于受击闪白
+            _meshRenderers = new List<Renderer>();
+            Mesh.GetComponentsInChildren(true, _meshRenderers);
+            _flashBlock = new MaterialPropertyBlock();
         }
 
         protected virtual void InitData() { }
@@ -590,14 +609,62 @@ namespace QFramework.ViewController.Enemy
 
         public void ShowDeathVFX()
         {
-            var obj = ObjectPoolUtility.GetObject(pf_DeathVFX, transform.position, Quaternion.identity);
+            var obj = ObjectPoolUtility.GetObject(pf_DeathVFX, Mesh.position, Quaternion.identity);
+
+            var explosion = obj.GetComponent<Explosion>();
+            if (explosion != null) explosion.Init(0, 0);
+
             this.GetUtility<ITimerUtility>().AddOnce(() => {
                 this.GetUtility<IObjectPoolUtility>().PushObject(obj);
             }, 5f);
-            
+
             gameObject.SetActive(false);
         }
 
+        public void ShowDamageVFX()
+        {
+            if (_damageVfxNode != null) _damageVfxNode.SetActive(true);
+        }
+
+        private Coroutine _flashCoroutine;
+        private const float FlashDuration = 0.12f;
+
+        public void Flash()
+        {
+            if (_meshRenderers == null || _meshRenderers.Count == 0) return;
+
+            if (_flashCoroutine != null)
+                StopCoroutine(_flashCoroutine);
+            _flashCoroutine = StartCoroutine(FlashRoutine());
+        }
+
+        /// <summary>
+        /// 闪烁效果的协程函数
+        /// </summary>
+        private IEnumerator FlashRoutine()
+        {
+            // 初始化计时器，设置为闪烁持续时间
+            float timer = FlashDuration;
+
+            // 当计时器大于0时，继续闪烁效果
+            while (timer > 0f)
+            {
+                timer -= Time.deltaTime;
+                float t = timer / FlashDuration + 0.5f;
+
+                // 设置材质中的闪烁强度参数
+                _flashBlock.SetFloat("_FlashAmount", t);
+                // 将属性块应用到所有网格渲染器
+                foreach (var r in _meshRenderers)
+                    r.SetPropertyBlock(_flashBlock);
+                // 等待下一帧
+                yield return null;
+            }
+
+            // 清除 PropertyBlock，恢复材质默认状态
+            foreach (var r in _meshRenderers)
+                r.SetPropertyBlock(null);
+        }
 
         // public void InitDeathObject()
         // {
@@ -672,6 +739,8 @@ namespace QFramework.ViewController.Enemy
 
         public void ForcePush(Vector2 forcePos, int force, float torque)
         {
+            ChangeState<EnemyIdleState>();
+
             var dir = (Vector2)transform.position - forcePos;
             Rb.AddForce(dir.normalized * force, ForceMode2D.Impulse);
 
@@ -689,7 +758,8 @@ namespace QFramework.ViewController.Enemy
                 EnemyAttackState => "Attack",
                 EnemyDeathState => "Death",
                 EnemyFallState => "Fall",
-                QFramework.ViewController.Enemy.EnemyPatrolState => "Patrol",
+                EnemyPatrolState => "Patrol",
+                EnemyLockState => "Lock",
                 _ => "Unknown"
             };
         }

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
 {
-    public class MissionPanel : AbstractBasePanel
+    public class MissionPanel : BaseUIComponent
     {
         private const int PrimaryMissionIndex = 0;
 

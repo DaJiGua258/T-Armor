@@ -46,7 +46,7 @@ namespace QFramework.ViewController.UI
         void LateUpdate()
         {
             Vector2 localPoint = UITool
-                .ScreenToCanvasPoint(UIManager.Instance.Canvas.transform as RectTransform, Input.mousePosition);
+                .ScreenToCanvasPoint(UIGameManager.Instance.Canvas.transform as RectTransform, Input.mousePosition);
 
             
             SetTo(localPoint);

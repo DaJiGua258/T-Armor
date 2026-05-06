@@ -9,7 +9,7 @@ using QFramework.Model;
 namespace QFramework.ViewController.UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public class WeaponInfo : AbstractBasePanel
+    public class WeaponInfo : BaseUIComponent
     {
         
         private RectTransform _rectTransform;
@@ -36,6 +36,15 @@ namespace QFramework.ViewController.UI
 
             TypeEventSystem.Global.Register<WeaponInfoEvent.Register>(e => RegisterWeaponInfo())
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            TypeEventSystem.Global.Register<PlayerEvent.SwitchAimingMode>(
+                e =>
+                {
+                    float alpha = e.Mode == AimingModeEnum.Combat ? 1f : 0f;
+                    leftWeaponInfo.CanvasGroup.alpha = alpha;
+                    rightWeaponInfo.CanvasGroup.alpha = alpha;
+                }
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
 
             leftWeaponInfo.Tweener = leftWeaponInfo.Img
                 .DOFillAmount(1f, 0f)

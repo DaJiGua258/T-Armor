@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace QFramework.ViewController.UI
 {
-    public class EnemyInfo : AbstractBasePanel
+    public class EnemyInfo : BaseUIComponent
     {
         [SerializeField] private int _curEnemyId = -1;
         [SerializeField] private RectTransform _bar;
@@ -16,6 +16,10 @@ namespace QFramework.ViewController.UI
         {
             TypeEventSystem.Global.Register<WeaponInfoEvent.UpdateEnemyInfo>(e => UpdateEnemyInfo())
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            TypeEventSystem.Global.Register<PlayerEvent.SwitchAimingMode>(
+                e => enemyInfo.CanvasGroup.alpha = e.Mode == AimingModeEnum.Combat ? 1f : 0f
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
         
 

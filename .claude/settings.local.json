@@ -6,7 +6,10 @@
       "Bash(python -c ' *)",
       "Bash(curl -s http://localhost:8090/skill/scene_find_objects -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"Player\"}')",
       "Bash(curl -s http://localhost:8090/skill/hierarchy_describe -X POST -H \"Content-Type: application/json\" -d '{\"path\": \"----------Scene----------/Player/Mesh/Body\", \"max_depth\": 3}')",
-      "Bash(curl -s http://localhost:8090/skill/editor_get_context -X POST -H \"Content-Type: application/json\" -d '{}')"
+      "Bash(curl -s http://localhost:8090/skill/editor_get_context -X POST -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(grep -A20 \"m_Name: Slot$\" Assets/Resources/Prefab/UI/Panel/InventoryPanel.prefab)",
+      "Bash(grep -E \"---|m_Name:|m_Father:|m_Children:|m_Script\")",
+      "Bash(awk '/7121842619250122689/{found=1} found{print} found && /^---/{found++} found==2{exit}' Assets/Resources/Prefab/UI/Panel/InventoryPanel.prefab)"
     ]
   }
 }

@@ -1,7 +1,6 @@
 using System.Collections;
 using QFramework.Utility;
 using QFramework.ViewController.Player;
-using QFramework.ViewController.Misc;
 using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
@@ -33,8 +32,9 @@ namespace QFramework.ViewController.Enemy
 
             ShoottingVFX.Play();
 
-            AbstractBullet bulletComponent = bullet.GetComponent<AbstractBullet>();
+            Projectile bulletComponent = bullet.GetComponent<Projectile>();
             bulletComponent.InitBullet(shootDir, 20, 10);
+            bulletComponent.SetLayerMask(TargetLayerMask);
         }
     }
 }

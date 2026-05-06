@@ -15,6 +15,8 @@ namespace QFramework.Utility
         public bool GetLeftReloadInput();  // 获取左手武器输入
         public bool GetRightReloadInput();  // 获取右手武器输入
         public bool GetSprintInput();  // 获取冲刺输入
+        public bool GetInventoryInput();  // 获取背包输入
+        public int GetHotbarSelectInput();  // 获取快捷栏数字键输入，返回0-based索引，无输入返回-1
     }
 
     public class InputUtility : IInputUtility
@@ -114,6 +116,22 @@ namespace QFramework.Utility
             }
 
             return false;
+        }
+
+        public bool GetInventoryInput()
+        {
+            return Input.GetKeyDown(KeyCode.B);
+        }
+
+        // 检测数字键1-9，返回0-based索引，无输入返回-1
+        public int GetHotbarSelectInput()
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                    return i;
+            }
+            return -1;
         }
     }
 }

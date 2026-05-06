@@ -19,7 +19,7 @@ namespace QFramework.Model
             {EnemyTypeEnum.Warrior_AR, new EnemeyConfig(10, 100, 0.5f, 20, 20)},
 
 
-            {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 100, 1f, 30, 30)},
+            {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 10, 1f, 30, 30)},
             {EnemyTypeEnum.Raider, new EnemeyConfig(15, 100, 0.5f, 30, 30)},
         };
 

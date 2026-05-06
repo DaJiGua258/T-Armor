@@ -6,6 +6,7 @@ using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.FSM;
 using QFramework.Event;
+using QFramework.ViewController.UI;
 using DG.Tweening;
 using QFramework.Command;
 
@@ -30,6 +31,10 @@ namespace QFramework.ViewController.Player
     
         [Header("其他引用")]
         [SerializeField] private PlayerDeathVFXController _deathVFX;
+
+        [Header("模式状态")]
+        private bool _weaponEnabled = true;
+
         [Header("状态机")]
         private StateMachine<PlayerController> _fsm;
         
@@ -38,16 +43,6 @@ namespace QFramework.ViewController.Player
         protected override void Awake()
         {
             base.Awake();
-
-            // if (!_body) _body = transform.Find("Body");
-
-            
-            // // 获取脚部
-            // Transform legs = transform.Find("Legs");
-            // if (!LegFl) LegFl = legs.Find("FL");
-            // if (!LegFr) LegFr = legs.Find("FR");
-            // if (!LegBr) LegBr = legs.Find("BR");
-            // if (!LegBl) LegBl = legs.Find("BL");
 
             _weapon = GetComponent<WeaponController>();
             _rigid = GetComponent<Rigidbody2D>();
@@ -79,6 +74,10 @@ namespace QFramework.ViewController.Player
 
             TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(
                 e => UpdateTargetPos(e.Target)
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            TypeEventSystem.Global.Register<PlayerEvent.SwitchAimingMode>(
+                e => _weaponEnabled = e.Mode == AimingModeEnum.Combat
             ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
@@ -169,6 +168,8 @@ namespace QFramework.ViewController.Player
 
         public void WeaponInput()
         {
+            if (!_weaponEnabled) return;
+
             // 左手输入
             if(InputUtility.GetLeftReloadInput())
             {

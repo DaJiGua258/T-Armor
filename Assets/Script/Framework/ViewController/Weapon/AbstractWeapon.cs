@@ -4,7 +4,7 @@ using QFramework.Enum;
 using QFramework.System;
 using QFramework.Command;
 using QFramework.Model;
-using QFramework.ViewController.Misc;
+using QFramework.ViewController.Player;
 
 namespace QFramework.ViewController.Player
 {
@@ -115,7 +115,7 @@ namespace QFramework.ViewController.Player
             GameObject bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, Muzzle.position, Muzzle.rotation);
             _vfxShooting.Play();
 
-            AbstractBullet bulletComponent = bullet.GetComponent<AbstractBullet>();
+            Projectile bulletComponent = bullet.GetComponent<Projectile>();
             bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);
         }
     }

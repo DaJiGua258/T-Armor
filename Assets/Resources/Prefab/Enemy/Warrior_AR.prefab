@@ -56,12 +56,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1286695732586011216}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.00003528595, y: -0.100048065, z: 2.610995}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 174613620693680565}
+  m_Father: {fileID: 1139045569603773004}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &6094583835225624877
 BoxCollider2D:
@@ -5083,6 +5083,7 @@ MonoBehaviour:
   enemyId: 0
   enemyType: 2
   IsInit: 0
+  debugLock: 0
   Agent: {fileID: 0}
   DetectionRange: 15
   AttackMaxRange: 8
@@ -5091,7 +5092,6 @@ MonoBehaviour:
   MaxFlankDistance: 5
   _moveSpeed: 3
   Rb: {fileID: 0}
-  Collider: {fileID: 0}
   TargetLayerMask:
     serializedVersion: 2
     m_Bits: 1024
@@ -5099,7 +5099,7 @@ MonoBehaviour:
   _combatScanInterval: 0.3
   Target: {fileID: 0}
   pf_Bullet: {fileID: 617970467497839275, guid: b78afcb6a2c1f2743851aab1fe54c95d, type: 3}
-  pf_DeathVFX: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
+  pf_DeathVFX: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
   ShoottingVFX: {fileID: 6570429024436099198}
   Mesh: {fileID: 174613620693680565}
   Body: {fileID: 1139045569603773004}
@@ -10292,6 +10292,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8438072888979357889}
+  - {fileID: 5738583146330540670}
   m_Father: {fileID: 174613620693680565}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5367069609609833249
@@ -15355,7 +15356,6 @@ Transform:
   m_Children:
   - {fileID: 1139045569603773004}
   - {fileID: 2006955628885956982}
-  - {fileID: 5738583146330540670}
   m_Father: {fileID: 615136173610949797}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7954837734328430922

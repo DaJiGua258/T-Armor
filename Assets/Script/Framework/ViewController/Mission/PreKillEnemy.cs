@@ -21,7 +21,7 @@ namespace QFramework.ViewController.Mission
             {
                 int missionIndex = Index;
                 this.SendCommand(new MissionCommand.SetState(missionIndex, MissionState.InProgress));
-                Debug.Log("当前任务状态: " + MissionSystem.Missions[missionIndex].MissionState.Value);
+                // Debug.Log("当前任务状态: " + MissionSystem.Missions[missionIndex].MissionState.Value);
             }
         }
 
@@ -31,7 +31,7 @@ namespace QFramework.ViewController.Mission
             {
                 int missionIndex = Index;
                 this.SendCommand(new MissionCommand.SetState(missionIndex, MissionState.Pause));
-                Debug.Log("当前任务状态: " + MissionSystem.Missions[missionIndex].MissionState.Value);
+                // Debug.Log("当前任务状态: " + MissionSystem.Missions[missionIndex].MissionState.Value);
             }
         }
 

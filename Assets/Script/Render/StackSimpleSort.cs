@@ -29,7 +29,7 @@ public class StackSimpleSort : StackingCore
     protected override void UpdateZSort()
     {
         var pos = transform.position;
-        pos.z = GetZSort();
+        pos.z = GetZSort(HeightLevelZOffset);
         transform.position = pos;
     }
 }

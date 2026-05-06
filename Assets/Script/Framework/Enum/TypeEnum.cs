@@ -35,9 +35,9 @@ namespace QFramework.Enum
         Supply_Ammo,
 
         // 信标
-        Beacon_AirStrikes,  // 空袭
-        Beacon_AirSupport,  // 空中支援
-        Beacon_Shelling,  // 炮击
+        Marker_AirStrikes,  // 空袭
+        Marker_AirSupport,  // 空中支援
+        Marker_Artillery,  // 炮击
     }
 
     public enum EnemyTypeEnum

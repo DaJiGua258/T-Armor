@@ -31,8 +31,8 @@ namespace QFramework.Model
 
         protected override void OnInit()
         {
-            MaxHealth.Value = 10000;
-            CurrentHealth.Value = 10000;
+            MaxHealth.Value = 999;
+            CurrentHealth.Value = 999;
             Speed.Value = 2;
             MaxFuel.Value = 100;
             CurrentFuel.Value = 100;

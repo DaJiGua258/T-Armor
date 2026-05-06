@@ -14,7 +14,7 @@ namespace QFramework.ViewController.Enemy
         public override void OnEnter()
         {
             verticalVelocity = 0;
-            Entity.Collider.enabled = false;
+            Entity.ColliderTrans.gameObject.SetActive(false);
             Entity.Agent.enabled = false;
         }
 
@@ -33,7 +33,7 @@ namespace QFramework.ViewController.Enemy
         public override void OnExit()
         {
             Entity.Mesh.localPosition = new Vector3(0, 0, Entity.Mesh.localPosition.z);
-            Entity.Collider.enabled = true;
+            Entity.ColliderTrans.gameObject.SetActive(true);
             Entity.Agent.enabled = true;
         }
     }

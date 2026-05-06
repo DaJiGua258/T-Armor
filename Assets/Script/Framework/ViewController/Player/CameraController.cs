@@ -86,7 +86,7 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         transform.position = Vector3.SmoothDamp(
             transform.position, desiredCamPos, ref _camVelocity, _followTime);
     }
-    
+
     public void Shake(float strength)
     {
         _shakeTweener?.Kill();

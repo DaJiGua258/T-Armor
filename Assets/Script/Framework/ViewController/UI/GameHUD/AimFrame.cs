@@ -10,7 +10,13 @@ using UnityEngine;
 
 namespace QFramework.ViewController.UI
 {
-    public class AimFrame : AbstractBasePanel // 继承自 MonoBehaviour 或 AbstractBasePanel
+    public enum AimingModeEnum
+    {
+        Combat,
+        Interaction,
+    }
+
+    public class AimFrame : BaseUIComponent
     {
         [Header("UI 设置")]
         private RectTransform _rectTransform;
@@ -35,6 +41,8 @@ namespace QFramework.ViewController.UI
         [Header("UI 引用")]
         [SerializeField] private EnemyInfo _enemyInfo;
 
+        private AimingModeEnum _currentMode = AimingModeEnum.Combat;
+
         void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
@@ -42,6 +50,12 @@ namespace QFramework.ViewController.UI
 
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                _currentMode = _currentMode == AimingModeEnum.Combat ? AimingModeEnum.Interaction : AimingModeEnum.Combat;
+                TypeEventSystem.Global.Send(new PlayerEvent.SwitchAimingMode { Mode = _currentMode });
+            }
+
             DetectAimTargets();
             UpdateFrameTransform();
             SendEvent();
@@ -53,7 +67,7 @@ namespace QFramework.ViewController.UI
         private void DetectAimTargets()
         {
             Vector2 mouseWorldPos = InputUtility.GetMousePos();
-            
+
             // 执行圆形投射
             int count = Physics2D.BoxCastNonAlloc(
                 mouseWorldPos,
@@ -71,13 +85,14 @@ namespace QFramework.ViewController.UI
                 return;
             }
 
+            string targetTag = _currentMode == AimingModeEnum.Combat ? "Enemy" : "AimTarget";
+
             float minDis = float.MaxValue;
             Collider2D closest = null;
 
             for (int i = 0; i < count; i++)
             {
-                // 只检查Enemy标签的物体
-                if(!_raycastResults[i].collider.CompareTag("Enemy")) continue;
+                if(!_raycastResults[i].collider.CompareTag(targetTag)) continue;
 
                 // 计算目标中心到鼠标的距离
                 float curDis = Vector2.Distance(mouseWorldPos, _raycastResults[i].collider.transform.position);
@@ -100,7 +115,7 @@ namespace QFramework.ViewController.UI
             {
                 // 没目标时，跟随鼠标，恢复默认大小
                 _rectTransform.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
-                float length = UITool.GetCanvasLength(_aimRadius, Camera.main, UIManager.Instance.Canvas);
+                float length = UITool.GetCanvasLength(_aimRadius, Camera.main, UIGameManager.Instance.Canvas);
                 _rectTransform.sizeDelta = new Vector2(length, length);
                 return;
             }
@@ -131,7 +146,7 @@ namespace QFramework.ViewController.UI
             {
                 TypeEventSystem.Global.Send(new GetAimFramePos()
                 {
-                    Pos = UITool.WorldToCanvasPoint(UIManager.Instance.Canvas.transform as RectTransform, targetPos)
+                    Pos = UITool.WorldToCanvasPoint(UIGameManager.Instance.Canvas.transform as RectTransform, targetPos)
                 });
             }
             else  // 目标不存在时，执行返回瞄准框的事件
@@ -176,6 +191,7 @@ namespace QFramework.ViewController.UI
             _enemyInfo.SetEnemyId(enemyId);
 
             
+            TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
             TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = _targetCollider.GetComponent<Rigidbody2D>() });
  

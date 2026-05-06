@@ -1,3 +1,4 @@
+using QFramework.ViewController.UI;
 using UnityEngine;
 
 namespace QFramework.Event
@@ -8,6 +9,12 @@ namespace QFramework.Event
         public struct UpdateTarget
         {
             public Vector2 Target;
+        }
+
+        /// <summary> 瞄准模式切换事件 /// </summary>
+        public struct SwitchAimingMode
+        {
+            public AimingModeEnum Mode;
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
 {
-    public class Viewer : AbstractBasePanel
+    public class Viewer : BaseUIComponent
     {
         private Text _descriptionText;
 

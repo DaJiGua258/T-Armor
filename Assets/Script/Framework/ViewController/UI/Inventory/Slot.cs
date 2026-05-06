@@ -14,53 +14,48 @@ namespace QFramework.ViewController.UI
     {
         None,
         Bag,
-    } 
+        Hotbar,
+    }
 
-    public class Slot : AbstractBasePanel
+    public class Slot : BaseUIComponent, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public int Index;
         public SlotType SlotType;
 
-        private Image _image;  // 图标
-        private Text _text;  // 数量文字
-
-        // 拖拽时跟随鼠标的临时图标
+        [SerializeField] private Image _image;
+        [SerializeField] private Text _text;
         private static GameObject _dragIcon;
-        private static Image      _dragIconImage;
 
-        private UIManager _instance;
-
-
-
-        void Awake()
-        {
-            _image = transform.Find("Icon_Img").GetComponent<Image>();
-            _text = transform.Find("Num_Txt").GetComponent<Text>();
-        }
+        // ----- 跨 Slot 拖拽交换状态（静态，避免耦合到 Manager） -----
+        private static int _dragFromIndex;
+        private static SlotType _dragFromSlotType;
+        private static int _dragToIndex;
+        private static SlotType _dragToSlotType;
 
         void Start()
         {
-            _instance = UIManager.Instance;
+            if (_dragIcon == null)
+            {
+                var inventoryPanel = GetComponentInParent<InventoryPanel>();
+                if (inventoryPanel != null)
+                    _dragIcon = inventoryPanel.transform.Find("DragSlot").gameObject;
+            }
         }
 
         public void UpdateSlot(ItemDataModel itemData)
         {
-            if(itemData.TypeEnum == TypeEnum.None)
+            if (itemData.TypeEnum == TypeEnum.None)
             {
                 _image.gameObject.SetActive(false);
                 _text.gameObject.SetActive(false);
                 return;
             }
-            else
-            {
-                _image.sprite = ResourceLoad.Load<Sprite>(itemData.iconPath);
-                _text.text = itemData.Count.Value.ToString();
-            }
 
-
+            _image.sprite = ResourceLoad.Load<Sprite>(itemData.iconPath);
+            _text.text = itemData.Count.Value.ToString();
         }
 
-        public override void OnPointerEnter(PointerEventData eventData)
+        public void OnPointerEnter(PointerEventData eventData)
         {
             TypeEventSystem.Global.
                 Send<UpdateViewerEvent>(new UpdateViewerEvent
@@ -69,72 +64,48 @@ namespace QFramework.ViewController.UI
                 });
         }
 
-        public override void OnPointerExit(PointerEventData eventData)
-        {
-        }
+        public void OnPointerExit(PointerEventData eventData) { }
 
-
-
-        public override void OnBeginDrag(PointerEventData eventData)
+        public void OnBeginDrag(PointerEventData eventData)
         {
             var itemData = InvenotrySystem.GetInventoryItemByIndex(Index);
-            if(itemData.TypeEnum == TypeEnum.None)
-            {
-                return;
-            }
-            else
-            {
-                UIManager.Instance.currentIndex = Index;
-                UIManager.Instance.currentSlotType = SlotType;
-            }
+            if (itemData.TypeEnum == TypeEnum.None) return;
 
-            // 创建拖拽图标
-            _instance.DragSlot.SetActive(true);
+            _dragFromIndex = Index;
+            _dragFromSlotType = SlotType;
 
-            _instance.DragSlot.GetComponent<RectTransform>().sizeDelta 
-                = this.GetComponent<RectTransform>().sizeDelta;
-
-            _instance.DragSlot.transform.Find("Icon_Img").
+            _dragIcon.SetActive(true);
+            _dragIcon.GetComponent<RectTransform>().sizeDelta
+                = GetComponent<RectTransform>().sizeDelta;
+            _dragIcon.transform.Find("Icon_Img").
                 GetComponent<Image>().sprite = _image.sprite;
-            
-            _instance.DragSlot.transform.Find("Num_Txt").
+            _dragIcon.transform.Find("Num_Txt").
                 GetComponent<Text>().text = _text.text;
-            
         }
 
-        public override void OnDrag(PointerEventData eventData)
+        public void OnDrag(PointerEventData eventData)
         {
-            if(_instance.DragSlot.activeSelf)
-            {
-                _instance.DragSlot.transform.position = eventData.position;
-            }
+            if (_dragIcon.activeSelf)
+                _dragIcon.transform.position = eventData.position;
         }
 
-        public override void OnEndDrag(PointerEventData eventData)
+        public void OnEndDrag(PointerEventData eventData)
         {
-            if(_instance.DragSlot.activeSelf)
+            _dragIcon.SetActive(false);
+
+            if (eventData.pointerEnter != null)
             {
-                _instance.DragSlot.SetActive(false);
-            }
-            
-            if(eventData.pointerEnter != null)
-            {
-                
                 var slot = eventData.pointerEnter.GetComponentInParent<Slot>();
-                if(slot != null)
+                if (slot != null)
                 {
-                    _instance.targetIndex = slot.Index;
-                    _instance.targetSlotType = slot.SlotType;
+                    _dragToIndex = slot.Index;
+                    _dragToSlotType = slot.SlotType;
 
                     this.SendCommand(new UICommand.ExchangeSlot(
-                        _instance.currentIndex,
-                        _instance.currentSlotType,
-                        _instance.targetIndex,
-                        _instance.targetSlotType));
+                        _dragFromIndex, _dragFromSlotType,
+                        _dragToIndex, _dragToSlotType));
                 }
             }
-
         }
-
     }
 }

@@ -37,6 +37,10 @@ namespace QFramework.Command
                 {
                     return _invenotrySystem.GetInventoryItemByIndex(index);
                 }
+                else if(slotType == SlotType.Hotbar)
+                {
+                    return _invenotrySystem.GetHotbarItemByIndex(index);
+                }
                 else
                 {
                     return null;

@@ -666,39 +666,6 @@ namespace QFramework.ViewController.Enemy
                 r.SetPropertyBlock(null);
         }
 
-        // public void InitDeathObject()
-        // {
-        //     DeathVFX.gameObject.SetActive(false);
-
-        //     // if(s_deathMaterial == null)
-        //     // {
-        //     //     s_meshMaterial = new Material(Mesh.GetComponent<Renderer>().material);
-        //     //     s_deathMaterial = new Material(s_meshMaterial);
-        //     //     s_deathMaterial.name += "_death";
-        //     //     float gray = 0.6f;
-        //     //     s_deathMaterial.SetColor("_Color", new Color(gray, gray, gray, 1f));
-        //     // }
-        // }
-
-        // public void LockDeathObject()
-        // {
-        //     DeathVFX.gameObject.transform.rotation = Quaternion.identity;
-        // }
-
-        // public void ActiveDeathMesh()
-        // {
-        //     Mesh.GetComponent<MeshRenderer>().material = s_deathMaterial;
-        //     DeathVFX.gameObject.SetActive(true);
-        // }
-
-
-        // public void SetDeathObjectPos(Vector3 offset)
-        // {
-        //     var pos = transform.position;
-        //     offset = (offset - pos).normalized;
-        //     pos += offset * 0.1f;
-        //     DeathVFX.gameObject.transform.position = pos;
-        // }
 
         #endregion
 

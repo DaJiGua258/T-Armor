@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using QFramework.ViewController.Player;
 using UnityEngine;
@@ -31,6 +32,21 @@ namespace QFramework.ViewController.Misc
         [Header("爆炸检测")]
         public LayerMask BulletLayerMask;  // 子弹爆炸时检测的 LayerMask
 
+        [Header("追踪")]
+        public bool EnableHoming;  // 是否开启追踪（会向发射器位置弯曲）
+
+        [Header("运行状态")]
+        public Action OnFireStarted;
+        public Action OnFireEnded;
+
+        public bool IsFiring { get; private set; }
+
+        /// <summary>
+        /// 总引导时长 = 所有轮次 + 子弹间隔的总时间，用于 GuidanceState 计算 Channeling 持续时间。
+        /// </summary>
+        public float TotalChannelingTime =>
+            (RoundCount - 1) * RoundInterval + (BulletsPerRound - 1) * BulletInterval;
+
         private Vector2 SpawnPoint => (Vector2)transform.position + SpawnOffset;
 
         /// <summary>
@@ -39,40 +55,56 @@ namespace QFramework.ViewController.Misc
         [ContextMenu("Fire")]
         public void Fire()
         {
+            if (IsFiring) return;
+            IsFiring = true;
+            OnFireStarted?.Invoke();
             StartCoroutine(FireRoutine());
         }
 
         private IEnumerator FireRoutine()
         {
-            if (bulletPrefab == null) yield break;
-
-            for (int round = 0; round < RoundCount; round++)
+            try
             {
-                // 首轮不等待，后续每轮按间隔延时
-                if (round > 0)
-                    yield return new WaitForSeconds(RoundInterval);
+                if (bulletPrefab == null) yield break;
 
-                // 发射当前轮次的所有子弹
-                for (int i = 0; i < BulletsPerRound; i++)
+                for (int round = 0; round < RoundCount; round++)
                 {
-                    SpawnBullet();
+                    // 首轮不等待，后续每轮按间隔延时
+                    if (round > 0)
+                        yield return new WaitForSeconds(RoundInterval);
 
-                    // 最后一发不等待
-                    if (i < BulletsPerRound - 1)
-                        yield return new WaitForSeconds(BulletInterval);
+                    // 每轮开始时预随机所有子弹的落点位置（基于当前发射器位置）
+                    Vector2[] roundTargets = new Vector2[BulletsPerRound];
+                    Vector2 currentCenter = transform.position;
+                    for (int i = 0; i < BulletsPerRound; i++)
+                    {
+                        roundTargets[i] = SpreadRadius > 0f
+                            ? currentCenter + (Vector2)UnityEngine.Random.insideUnitCircle * SpreadRadius
+                            : currentCenter;
+                    }
+
+                    // 发射当前轮次的所有子弹
+                    for (int i = 0; i < BulletsPerRound; i++)
+                    {
+                        SpawnBullet(roundTargets[i]);
+
+                        // 最后一发不等待
+                        if (i < BulletsPerRound - 1)
+                            yield return new WaitForSeconds(BulletInterval);
+                    }
                 }
+            }
+            finally
+            {
+                IsFiring = false;
+                OnFireEnded?.Invoke();
             }
         }
 
         // 生成一颗子弹并初始化
-        private void SpawnBullet()
+        private void SpawnBullet(Vector2 targetPos)
         {
             Vector2 spawnPos = SpawnPoint;
-
-            // 在散布范围内随机选取落点
-            Vector2 targetPos = SpreadRadius > 0f
-                ? (Vector2)transform.position + (Vector2)Random.insideUnitCircle * SpreadRadius
-                : (Vector2)transform.position;
 
             var bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
             var projectile = bullet.GetComponent<Projectile>();
@@ -84,6 +116,9 @@ namespace QFramework.ViewController.Misc
             projectile.SetDetectMode(ProjectileMode.PointOnly);
             projectile.SetLayerMask(BulletLayerMask);
             projectile.InitProjectile(targetPos, (int)Speed, Damage);
+
+            if (EnableHoming)
+                projectile.SetHomingTarget(transform);
         }
 
         private void OnDrawGizmosSelected()

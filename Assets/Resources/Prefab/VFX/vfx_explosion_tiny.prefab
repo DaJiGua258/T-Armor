@@ -29336,12 +29336,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Radius: 0.75
   BaseDamage: 0
-  Force: 0
-  Torque: 0
   LayerMask:
     serializedVersion: 2
     m_Bits: 0
   ShakeMode: 5
+  Offset: {x: 0, y: 0}
   UseDamageFalloff: 0
   DamageFalloff:
     serializedVersion: 2
@@ -29350,7 +29349,7 @@ MonoBehaviour:
       time: 0
       value: 1
       inSlope: 0
-      outSlope: -1
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -29358,11 +29357,11 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 0
-      inSlope: -1
-      outSlope: 0
+      inSlope: -1.1489362
+      outSlope: -1.1489362
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.19583333
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

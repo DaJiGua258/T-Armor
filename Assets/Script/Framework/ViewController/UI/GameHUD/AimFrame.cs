@@ -3,6 +3,7 @@ using DG.Tweening;
 using QFramework;
 using QFramework.Event;
 using QFramework.Manager;
+using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Enemy;
 using Unity.VisualScripting;
@@ -41,19 +42,29 @@ namespace QFramework.ViewController.UI
         [Header("UI 引用")]
         [SerializeField] private EnemyInfo _enemyInfo;
 
+        [Header("旋转设置")]
+        private float _interactionRotation = -45f;
+        private float _rotationDuration = 0.1f;
+
         private AimingModeEnum _currentMode = AimingModeEnum.Combat;
+        private Quaternion _combatRotation = Quaternion.identity;
+        private Quaternion _interactionQuaternion;
 
         void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
+            _interactionQuaternion = Quaternion.Euler(0, 0, _interactionRotation);
         }
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.X))
+            if (this.GetUtility<IInputUtility>().GetToggleAimModeInput())
             {
                 _currentMode = _currentMode == AimingModeEnum.Combat ? AimingModeEnum.Interaction : AimingModeEnum.Combat;
                 TypeEventSystem.Global.Send(new PlayerEvent.SwitchAimingMode { Mode = _currentMode });
+
+                Quaternion targetRot = _currentMode == AimingModeEnum.Combat ? _combatRotation : _interactionQuaternion;
+                _rectTransform.DORotate(targetRot.eulerAngles, _rotationDuration).SetEase(Ease.Linear);
             }
 
             DetectAimTargets();
@@ -116,6 +127,12 @@ namespace QFramework.ViewController.UI
                 // 没目标时，跟随鼠标，恢复默认大小
                 _rectTransform.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
                 float length = UITool.GetCanvasLength(_aimRadius, Camera.main, UIGameManager.Instance.Canvas);
+        
+                if(_currentMode == AimingModeEnum.Interaction)
+                {
+                    length *= 0.5f;
+                }
+
                 _rectTransform.sizeDelta = new Vector2(length, length);
                 return;
             }
@@ -158,9 +175,10 @@ namespace QFramework.ViewController.UI
             }
 
             // 执行【返回目标世界空间位置到玩家控制器】事件
-            TypeEventSystem.Global.Send(new PlayerEvent.UpdateTarget() 
-            { 
-                Target = targetPos 
+            TypeEventSystem.Global.Send(new PlayerEvent.UpdateTarget()
+            {
+                Target = targetPos,
+                HasTarget = _targetCollider != null
             });
 
             // 检测目标 layer，更新子弹的 raycast layerMask

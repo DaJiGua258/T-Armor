@@ -49,7 +49,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -80,6 +80,8 @@ MonoBehaviour:
     m_Bits: 0
   _hasExplosion: 1
   _pf_bulletExplosionVFX: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
+  _enableHoming: 0
+  _homingRotationSpeed: 360
   _arrivalThreshold: 1
   _minRayDistance: 0.25
 --- !u!1 &1168464848693939194

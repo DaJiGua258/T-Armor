@@ -25,7 +25,8 @@ namespace QFramework.ViewController.Player
                 _vfxShooting.Play();
 
                 Projectile bulletComponent = bullet.GetComponent<Projectile>();
-                bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);
+                bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, transform.root.gameObject);
+                bulletComponent.SetLayerMask(_bulletLayerMask);
             }
         }
     }

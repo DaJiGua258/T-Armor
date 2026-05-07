@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using QFramework.Enum;
 using QFramework.Event;
 using QFramework.Command;
+using QFramework.Utility;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,11 +26,15 @@ namespace QFramework.ViewController.UI
         private int _selectedIndex = -1;  // 当前选中槽位索引
         private bool _canUseItem = false;
 
+        private HotbarExecutor _hotbarExecutor;
+
         private static readonly Color s_colorBlack = Color.black;
         private static readonly Color s_colorWhite = Color.white;
 
         void Start()
         {
+            _hotbarExecutor = GetComponent<HotbarExecutor>();
+
             InitHotbar();
             RegisterEvents();
             UpdateHotbar();
@@ -42,9 +47,11 @@ namespace QFramework.ViewController.UI
 
         void Update()
         {
-            // Tab 键循环切换选中物品
-            if (Input.GetKeyDown(KeyCode.Tab))
+            // Tab 键循环切换选中物品（战斗/引导中禁用）
+            if (this.GetUtility<IInputUtility>().GetHotbarCycleInput())
             {
+                if (!_canUseItem || _hotbarExecutor.IsChanneling) return;
+
                 int count = _hotbarInfos.Count;
                 for (int i = 1; i <= count; i++)
                 {
@@ -58,13 +65,13 @@ namespace QFramework.ViewController.UI
                 }
             }
 
-            // 交互模式下左键使用选中物品
-            if (_canUseItem && Input.GetMouseButtonDown(0) && _selectedIndex >= 0)
+            // 交互模式下点击使用选中物品（引导中禁用）
+            if (_canUseItem && this.GetUtility<IInputUtility>().GetLeftMouseDownInput() && _selectedIndex >= 0 && !_hotbarExecutor.IsChanneling)
             {
                 var itemData = InvenotrySystem.GetHotbarItemByIndex(_selectedIndex);
                 if (itemData != null && itemData.ItemType != ItemTypeEnum.None && itemData.canUse)
                 {
-                    this.SendCommand(PlayerCommand.UseHotbarItem.Instance.Init(_selectedIndex));
+                    _hotbarExecutor.Execute(itemData.ItemType, _selectedIndex);
                 }
             }
         }
@@ -155,6 +162,9 @@ namespace QFramework.ViewController.UI
             var curr = _hotbarInfos[_selectedIndex];
             curr.NameImg.sprite = null;
             curr.NameTxt.color = s_colorBlack;
+
+            // 选中物品时显示引导激光
+            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserShow());
         }
 
         /// <summary>
@@ -168,6 +178,10 @@ namespace QFramework.ViewController.UI
             prev.NameImg.sprite = _uiFrameSprite;
             prev.NameTxt.color = s_colorWhite;
             _selectedIndex = -1;
+
+            // 取消选中时隐藏引导激光（引导中不隐藏，由 HotbarExecutor 控制）
+            if (!_hotbarExecutor.IsChanneling)
+                TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserHide());
         }
 
         // 刷新所有热栏显示
@@ -197,6 +211,14 @@ namespace QFramework.ViewController.UI
                 int count = itemData.Count.Value;
                 for (int j = 0; j < info.CountImgs.Length; j++)
                     info.CountImgs[j].enabled = (j < count);
+            }
+
+            // 当前选中槽位已变空时清除高亮
+            if (_selectedIndex >= 0)
+            {
+                var selectedItem = InvenotrySystem.GetHotbarItemByIndex(_selectedIndex);
+                if (selectedItem == null || selectedItem.ItemType == ItemTypeEnum.None)
+                    ClearSelected();
             }
 
             // 所有槽位为空时清除选中

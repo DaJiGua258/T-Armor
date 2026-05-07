@@ -38,6 +38,7 @@ namespace QFramework.Enum
         Marker_AirStrikes,  // 空袭
         Marker_AirSupport,  // 空中支援
         Marker_Artillery,  // 炮击
+        Marker_Missile,  // 增援
     }
 
     public enum EnemyTypeEnum

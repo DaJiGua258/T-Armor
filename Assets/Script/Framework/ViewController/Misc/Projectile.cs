@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using QFramework.Event;
 using QFramework.Utility;
 using QFramework.ViewController.Misc;
 
@@ -32,6 +31,10 @@ namespace QFramework.ViewController.Player
         [SerializeField] private bool _hasExplosion;
         [SerializeField] private GameObject _pf_bulletExplosionVFX;
 
+        [Header("追踪参数")]
+        [SerializeField] private bool _enableHoming;
+        [SerializeField] private float _homingRotationSpeed = 360f;  // 每秒转向角度
+
         [Header("终点参数（定点模式）")]
         [SerializeField] private float _arrivalThreshold = 1f;
 
@@ -40,7 +43,10 @@ namespace QFramework.ViewController.Player
 
         private bool _hasExploded;
         private int _damage;
+        private int _speed;
         private Vector3 _targetPosition;
+        private GameObject _owner;  // 发射者，检测时跳过自身
+        private Transform _homingTarget;
 
         private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[16];
         private static readonly string[] _hitTags = { "Player", "Enemy", "Env" };
@@ -62,24 +68,16 @@ namespace QFramework.ViewController.Player
             if (vfxT != null) _vfxNode = vfxT.gameObject;
         }
 
-        void Start()
-        {
-            TypeEventSystem.Global.Register<WeaponEvent.UpdateBulletLayerMask>(OnUpdateBulletLayerMask);
-        }
-
-        private void OnUpdateBulletLayerMask(WeaponEvent.UpdateBulletLayerMask e)
-        {
-            _layerMask = e.LayerMask;
-        }
-
         void Update()
         {
-            
+
         }
 
         void FixedUpdate()
         {
             if (_hasExploded) return;
+            UpdateHoming();
+            UpdateRotation();
             Detect();
         }
 
@@ -104,18 +102,24 @@ namespace QFramework.ViewController.Player
             int hitCount = HitDetectionUtility.BulletRaycastAll(_rb, _layerMask, _minRayDistance, Color.red, _hitBuffer);
             if (hitCount == 0) return;
 
-            // 第一个命中点产生爆炸（仅白名单tag触发）
-            if (!TagMatches(_hitBuffer[0].collider.tag)) return;
-            Explode(_hitBuffer[0].point);
-
-            // 处理所有唯一目标的伤害（去重，避免同一对象多个碰撞箱重复伤害）
             HashSet<GameObject> processed = new HashSet<GameObject>();
+            bool hasExploded = false;
+
             for (int i = 0; i < hitCount; i++)
             {
                 RaycastHit2D hit = _hitBuffer[i];
                 if (!TagMatches(hit.collider.tag)) continue;
+                // 跳过发射者自身碰撞体
+                if (_owner != null && hit.collider.transform.IsChildOf(_owner.transform)) continue;
+
+                if (!hasExploded)
+                {
+                    hasExploded = true;
+                    Explode(hit.point);
+                }
+
                 if (!processed.Add(hit.collider.gameObject)) continue;
-               
+
                 HitDetectionUtility.ProcessHit(hit.collider, _damage);
             }
         }
@@ -125,6 +129,10 @@ namespace QFramework.ViewController.Player
             RaycastHit2D hit = HitDetectionUtility.BulletRaycast(_rb, _layerMask, _minRayDistance, Color.yellow);
 
             bool hasCollision = hit.collider != null;
+            // 如果命中发射者自身，当作未命中处理
+            if (hasCollision && _owner != null && hit.collider.transform.IsChildOf(_owner.transform))
+                hasCollision = false;
+
             bool hasArrived = Vector2.Distance(transform.position, _targetPosition) <= _arrivalThreshold;
 
             if (!hasCollision && !hasArrived) return;
@@ -149,18 +157,55 @@ namespace QFramework.ViewController.Player
             Explode(_targetPosition);
         }
 
-        public void InitBullet(Vector3 direction, int speed, int damage)
+        public void InitBullet(Vector3 direction, int speed, int damage, GameObject owner = null)
         {
             _damage = damage;
+            _speed = speed;
+            _owner = owner;
             _hasExploded = false;
             _bulletMesh.gameObject.SetActive(true);
             _rb.velocity = ((Vector2)direction).normalized * speed;
         }
 
-        public void InitProjectile(Vector3 targetPosition, int speed, int damage)
+        public void InitProjectile(Vector3 targetPosition, int speed, int damage, GameObject owner = null)
         {
             _targetPosition = targetPosition;
-            InitBullet((targetPosition - transform.position).normalized, speed, damage);
+            InitBullet((targetPosition - transform.position).normalized, speed, damage, owner);
+        }
+
+        public void SetHomingTarget(Transform target)
+        {
+            _homingTarget = target;
+            _enableHoming = target != null;
+        }
+
+        private void UpdateHoming()
+        {
+            if (!_enableHoming) return;
+
+            if (_homingTarget == null)
+            {
+                Debug.LogWarning($"[Projectile] 启用了追踪但未设置追踪目标 (预制体: {gameObject.name})");
+                _enableHoming = false;
+                return;
+            }
+
+            // 同步目标位置，使到达检测跟随追踪目标
+            _targetPosition = _homingTarget.position;
+
+            Vector3 targetDir = (_homingTarget.position - transform.position).normalized;
+            Vector3 newDir = Vector3.RotateTowards(_rb.velocity.normalized, targetDir,
+                _homingRotationSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime, 0f);
+            _rb.velocity = newDir * _speed;
+        }
+
+        private void UpdateRotation()
+        {
+            if (_rb.velocity.sqrMagnitude > 0.01f)
+            {
+                float angle = Mathf.Atan2(_rb.velocity.y, _rb.velocity.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            }
         }
 
         private void Explode(Vector3 hitPos)

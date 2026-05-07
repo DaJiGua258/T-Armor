@@ -33,7 +33,7 @@ namespace QFramework.ViewController.Enemy
             ShoottingVFX.Play();
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
-            bulletComponent.InitBullet(shootDir, 20, 10);
+            bulletComponent.InitBullet(shootDir, 20, 10, gameObject);
             bulletComponent.SetLayerMask(TargetLayerMask);
         }
     }

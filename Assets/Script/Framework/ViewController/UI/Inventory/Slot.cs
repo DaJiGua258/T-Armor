@@ -44,13 +44,15 @@ namespace QFramework.ViewController.UI
 
         public void UpdateSlot(ItemDataModel itemData)
         {
-            if (itemData.TypeEnum == TypeEnum.None)
+            if (itemData.ItemType == ItemTypeEnum.None)
             {
                 _image.gameObject.SetActive(false);
                 _text.gameObject.SetActive(false);
                 return;
             }
 
+            _image.gameObject.SetActive(true);
+            _text.gameObject.SetActive(true);
             _image.sprite = ResourceLoad.Load<Sprite>(itemData.iconPath);
             _text.text = itemData.Count.Value.ToString();
         }

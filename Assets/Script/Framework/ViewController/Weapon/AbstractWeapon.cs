@@ -4,6 +4,7 @@ using QFramework.Enum;
 using QFramework.System;
 using QFramework.Command;
 using QFramework.Model;
+using QFramework.Event;
 using QFramework.ViewController.Player;
 
 namespace QFramework.ViewController.Player
@@ -30,6 +31,7 @@ namespace QFramework.ViewController.Player
 
 
         private float _timer;
+        protected LayerMask _bulletLayerMask;
 
         void Awake()
         {
@@ -40,7 +42,9 @@ namespace QFramework.ViewController.Player
 
         void Start()
         {
-            
+            TypeEventSystem.Global.Register<WeaponEvent.UpdateBulletLayerMask>(
+                e => _bulletLayerMask = e.LayerMask
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
         void Update()
@@ -116,7 +120,8 @@ namespace QFramework.ViewController.Player
             _vfxShooting.Play();
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
-            bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);
+            bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, transform.root.gameObject);
+            bulletComponent.SetLayerMask(_bulletLayerMask);
         }
     }
 }

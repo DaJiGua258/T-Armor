@@ -17,6 +17,10 @@ namespace QFramework.Utility
         public bool GetSprintInput();  // 获取冲刺输入
         public bool GetInventoryInput();  // 获取背包输入
         public int GetHotbarSelectInput();  // 获取快捷栏数字键输入，返回0-based索引，无输入返回-1
+        public bool GetToggleAimModeInput();  // 获取切换瞄准模式输入（X键）
+        public bool GetHotbarCycleInput();  // 获取快捷栏切换输入（Tab键）
+        public bool GetLeftMouseDownInput();  // 获取左键按下输入
+        public bool GetLeftMouseUpInput();  // 获取左键抬起输入
     }
 
     public class InputUtility : IInputUtility
@@ -132,6 +136,26 @@ namespace QFramework.Utility
                     return i;
             }
             return -1;
+        }
+
+        public bool GetToggleAimModeInput()
+        {
+            return Input.GetKeyDown(KeyCode.X);
+        }
+
+        public bool GetHotbarCycleInput()
+        {
+            return Input.GetKeyDown(KeyCode.Tab);
+        }
+
+        public bool GetLeftMouseDownInput()
+        {
+            return Input.GetMouseButtonDown(0);
+        }
+
+        public bool GetLeftMouseUpInput()
+        {
+            return Input.GetMouseButtonUp(0);
         }
     }
 }

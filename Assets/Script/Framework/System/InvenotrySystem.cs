@@ -37,21 +37,23 @@ namespace QFramework.System
                 SupportItemCache.AddLast(new ItemDataModel(_itemDataModel.GetItemConfig(ItemTypeEnum.None)));
             }
 
-            AddItemToInventory(ItemTypeEnum.Supply_Ammo);
-            AddItemToInventory(ItemTypeEnum.Supply_Health);
-            AddItemToInventory(ItemTypeEnum.Marker_Artillery);
+            AddItemToInventory(ItemTypeEnum.Supply_Ammo, 3);
+            AddItemToInventory(ItemTypeEnum.Supply_Health, 3);
+            AddItemToInventory(ItemTypeEnum.Marker_Artillery, 3);
+            AddItemToInventory(ItemTypeEnum.Marker_Missile, 3);
         }
 
         /// <summary>
         /// 依据物品类型实例化默认数量，并添加在背包中
         /// </summary>
-        public void AddItemToInventory(ItemTypeEnum itemType)
+        public void AddItemToInventory(ItemTypeEnum itemType, int count)
         {
             for(int i = 0; i < ItemDataCache.Count; i++)
             {
                 if(ItemDataCache[i].ItemType == ItemTypeEnum.None)
                 {
                     ItemDataCache[i].CopyFrom(new ItemDataModel(_itemDataModel.GetItemConfig(itemType)));
+                    ItemDataCache[i].Count.Value = count;
                     return;
                 }
             }

@@ -106,20 +106,19 @@ namespace QFramework.Command
                 if (item == null || item.ItemType == ItemTypeEnum.None || !item.canUse)
                     return;
 
-                switch (item.ItemType)
-                {
-                    case ItemTypeEnum.Supply_Health:
-                        this.SendCommand(new PlayerCommand.Heal());
-                        break;
-                }
-
                 item.Count.Value--;
                 if (item.Count.Value <= 0)
                 {
+                    // 重置物品状态为 None
                     item.ItemType = ItemTypeEnum.None;
-                    item.Count.Value = 0;
-                    item.canUse = false;
                     item.name = "";
+                    item.iconPath = "";
+                    item.description = "";
+                    item.canUse = false;
+                    item.Count.Value = 0;
+
+                    // 触发 InstanceId 事件，强制 UI 刷新（Count 事件在 ItemType 重置前已触发）
+                    item.InstanceId.Value = -1;
                 }
             }
         }

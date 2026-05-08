@@ -130,7 +130,7 @@ namespace QFramework.ViewController.UI
         
                 if(_currentMode == AimingModeEnum.Interaction)
                 {
-                    length *= 0.5f;
+                    length *= 0.25f;
                 }
 
                 _rectTransform.sizeDelta = new Vector2(length, length);

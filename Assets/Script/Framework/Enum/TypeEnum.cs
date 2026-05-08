@@ -22,6 +22,10 @@ namespace QFramework.Enum
 
         // 重型武器
         MRL,  // 火箭发射器
+
+        // 吊架武器
+        VML,  // 垂直导弹发射器
+        MTT,  // 机载自动炮台
     }
 
     public enum ItemTypeEnum

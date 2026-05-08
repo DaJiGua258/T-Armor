@@ -1,121 +1,114 @@
-Shader "Custom/SpriteStackingURP_Instanced"
+Shader "Custom/PlanetFlatSurface_V3"
 {
     Properties
     {
-        _MainColor ("MainColor", Color)  = (1, 1, 1, 1)
-        _MainTex ("Sprite Sheet (Left to Right)", 2D) = "white" {}
-        _LayerCount ("Layer Count", Int) = 16
-        _YOffset ("Layer Y Offset", Float) = 0.02
-        _StackDir ("Stack Direction (World Space)", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _GradientTexture ("Gradient", 2D) = "white" {}
+
+        [Header(Night)]
+        _SeaColorNight ("SeaColorNight", Color) = (0.5, 0.5, 0.5, 1)
+        _LandColorNight ("LandColorNight", Color) = (0.2, 0.2, 0.2, 1)
     }
+
     SubShader
     {
-        Tags { "RenderPipeline" = "UniversalPipeline" "Queue"="Transparent" "RenderType"="Transparent" }
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline" }
+
+        HLSLINCLUDE
+        #define _MAIN_LIGHT_SHADOWS  // 启用阴影图采样
+                
+        #pragma multi_compile _ _MAIN_LIGHT_SHADOWS             // 接收阴影 
+        #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE     // 投射阴影
+        #pragma multi_compile _ _SHADOWS_SOFT                   // 软阴影
         
-        Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite On   
-        ZTest LEqual
-        Cull Off
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+
+        ENDHLSL
 
         Pass
         {
             HLSLPROGRAM
             #pragma vertex vert
-            #pragma geometry geom
             #pragma fragment frag
             
-            // 启用 GPU Instancing
-            #pragma multi_compile_instancing
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            // 实例属性缓冲区
-            UNITY_INSTANCING_BUFFER_START(Props)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _MainColor)
-                UNITY_DEFINE_INSTANCED_PROP(int, _LayerCount)
-                UNITY_DEFINE_INSTANCED_PROP(float, _YOffset)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _StackDir)
-            UNITY_INSTANCING_BUFFER_END(Props)
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID // 输入实例 ID
+            struct Attributes { float4 positionOS : POSITION; };
+            struct Varyings { 
+                float4 positionCS : SV_POSITION; 
+                float3 positionWS : TEXCOORD0;
+                float3 uv3d : TEXCOORD1; 
+                float3 normalWS : TEXCOORD2;
             };
 
-            struct v2g
-            {
-                float4 vertex : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID // 传递实例 ID
-            };
+            TEXTURE3D(_HeightNoise); SAMPLER(sampler_HeightNoise);
+            TEXTURE3D(_MoistureNoise); SAMPLER(sampler_MoistureNoise);
+            TEXTURE2D(_GradientTexture); SAMPLER(sampler_GradientTexture);
 
-            struct g2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID // 最终传递给片元
-            };
+            CBUFFER_START(UnityPerMaterial)
+                float4 _SeaColor; float _SeaLevel;
+                float4 _DryColor; float4 _WetColor;
+                float _MoistureThreshold; float _ClimateMixStrength;
+                float4 _PoleColor; float _PoleThreshold; float _PoleStrength;
 
-            v2g vert(appdata v)
-            {
-                v2g o;
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_TRANSFER_INSTANCE_ID(v, o);
-                
-                o.vertex = v.vertex; 
-                o.uv = v.uv;
-                return o;
+                float4 _LandColorNight;
+                float4 _SeaColorNight;
+            CBUFFER_END
+
+            Varyings vert (Attributes input) {
+                Varyings output;
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.uv3d = input.positionOS.xyz * 0.5 + 0.5;
+                output.normalWS = TransformObjectToWorldNormal(input.positionOS.xyz);
+                return output;
             }
 
-            [maxvertexcount(150)] 
-            void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream)
+            half4 frag (Varyings input) : SV_Target 
             {
-                // 获取当前实例 ID
-                UNITY_SETUP_INSTANCE_ID(input[0]);
+                float hNoise = SAMPLE_TEXTURE3D(_HeightNoise, sampler_HeightNoise, input.uv3d).r;
+                float mNoise = SAMPLE_TEXTURE3D(_MoistureNoise, sampler_MoistureNoise, input.uv3d).r;
 
-                // 从缓冲区读取属性
-                int layers = min(UNITY_ACCESS_INSTANCED_PROP(Props, _LayerCount), 50); 
-                float yOffset = UNITY_ACCESS_INSTANCED_PROP(Props, _YOffset);
-                float4 stackDir = UNITY_ACCESS_INSTANCED_PROP(Props, _StackDir);
-                
-                float uvWidth = 1.0 / (float)max(1, layers);
+                float isLand = step(_SeaLevel, hNoise);
+                half4 surfaceColor;
 
-                for (int i = layers - 1; i >= 0; i--)
+                if (isLand < 0.5) 
                 {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        g2f o;
-                        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                        UNITY_TRANSFER_INSTANCE_ID(input[0], o);
-
-                        float3 worldPos = TransformObjectToWorld(input[j].vertex.xyz);
-                        worldPos += stackDir.xyz * (i * yOffset);
-                        
-                        o.vertex = TransformWorldToHClip(worldPos);
-                        o.vertex.z += i * 0.0001 * o.vertex.w; 
-                        
-                        o.uv.x = (input[j].uv.x * uvWidth) + (i * uvWidth);
-                        o.uv.y = input[j].uv.y;
-
-                        triStream.Append(o);
-                    }
-                    triStream.RestartStrip();
+                    surfaceColor = _SeaColor;
+                } 
+                else 
+                {
+                    float landH = (hNoise - _SeaLevel) / (1.0 - _SeaLevel);
+                    half4 baseColor = SAMPLE_TEXTURE2D(_GradientTexture, sampler_GradientTexture, float2(landH, 0.5));
+                    
+                    // 硬边缘干湿混合
+                    float isWet = step(_MoistureThreshold, mNoise);
+                    half4 climateColor = lerp(_DryColor, _WetColor, isWet);
+                    surfaceColor = lerp(baseColor, climateColor, _ClimateMixStrength);
                 }
-            }   
 
-            float4 frag(g2f i) : SV_Target
-            {
-                UNITY_SETUP_INSTANCE_ID(i);
+                // 极地 (硬边缘覆盖)
+                float3 localPos = (input.uv3d - 0.5) * 2.0;
+                float distY = abs(localPos.y) + (hNoise - 0.5) * 0.5;
+                float poleMask = step(_PoleThreshold, distY);
+                surfaceColor = lerp(surfaceColor, _PoleColor, poleMask * _PoleStrength);
                 
-                float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                if (col.a < 0.05) discard; 
-                
-                return col * UNITY_ACCESS_INSTANCED_PROP(Props, _MainColor);
+                Light light = GetMainLight();  // 获取主光源结构体
+
+                // 漫反射颜色
+                float lDotN = dot(light.direction, normalize(input.normalWS)) * 0.5 + 0.5;
+
+                half4 diffuseColor = lDotN > 0.4 ? 1 : 0.5f;
+
+                surfaceColor = lDotN > 0.4 ? surfaceColor :
+                    (isLand > 0.5 ? _LandColorNight : _SeaColorNight);
+
+                surfaceColor = (lDotN - 0.4) * (lDotN - 0.45) > 0 ? surfaceColor :
+                (isLand > 0.5 ? _LandColorNight : _SeaColorNight);
+
+                surfaceColor *= diffuseColor;
+
+                return half4(surfaceColor.xyz, 1.0);
             }
             ENDHLSL
         }

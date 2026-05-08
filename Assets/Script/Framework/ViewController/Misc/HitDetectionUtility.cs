@@ -16,19 +16,17 @@ namespace QFramework.ViewController
         /// 执行子弹的多重射线检测（RaycastNonAlloc），返回命中数量。
         /// 适用于多个碰撞箱重叠的场景，确保不会漏检。零分配。
         /// </summary>
-        public static int BulletRaycastAll(Rigidbody2D rb, LayerMask layerMask, float minDistance, Color debugColor, RaycastHit2D[] results)
+        public static int BulletRaycastAll(Vector2 origin, Vector2 direction, float speed, LayerMask layerMask, float minDistance, Color debugColor, RaycastHit2D[] results)
         {
-            Vector2 velocity = rb.velocity;
-            bool hasVelocity = velocity.sqrMagnitude > Mathf.Epsilon;
+            bool hasVelocity = speed > Mathf.Epsilon;
             if (!hasVelocity && minDistance <= 0f) return 0;
 
             float distance = minDistance;
-            Vector2 origin = rb.transform.position;
-            Vector2 direction = hasVelocity ? velocity.normalized : (Vector2)rb.transform.right;
+            direction = direction.normalized;
 
             if (hasVelocity)
             {
-                float velDistance = velocity.magnitude * Time.deltaTime + 0.5f;
+                float velDistance = speed * Time.deltaTime + 0.5f;
                 distance = Mathf.Max(minDistance, velDistance);
             }
 
@@ -51,19 +49,17 @@ namespace QFramework.ViewController
         /// <summary>
         /// 执行子弹的射线检测，返回命中的碰撞体。
         /// </summary>
-        public static RaycastHit2D BulletRaycast(Rigidbody2D rb, LayerMask layerMask, float minDistance, Color debugColor)
+        public static RaycastHit2D BulletRaycast(Vector2 origin, Vector2 direction, float speed, LayerMask layerMask, float minDistance, Color debugColor)
         {
-            Vector2 velocity = rb.velocity;
-            bool hasVelocity = velocity.sqrMagnitude > Mathf.Epsilon;
+            bool hasVelocity = speed > Mathf.Epsilon;
             if (!hasVelocity && minDistance <= 0f) return default;
 
             float distance = minDistance;
-            Vector2 origin = rb.transform.position;
-            Vector2 direction = hasVelocity ? velocity.normalized : (Vector2)rb.transform.right;
+            direction = direction.normalized;
 
             if (hasVelocity)
             {
-                float velDistance = velocity.magnitude * Time.deltaTime + 0.5f;
+                float velDistance = speed * Time.deltaTime + 0.5f;
                 distance = Mathf.Max(minDistance, velDistance);
             }
 

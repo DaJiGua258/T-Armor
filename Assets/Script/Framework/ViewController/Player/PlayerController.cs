@@ -19,6 +19,7 @@ namespace QFramework.ViewController.Player
         [SerializeField] private Vector2 _targetPos;
         [Header("武器引用")]
         [SerializeField] private WeaponController _weapon;
+        [SerializeField] private HangerWeaponController _hangerWeapon;
 
         [Header("躯干引用")]
         [SerializeField] private Transform _body;
@@ -45,6 +46,7 @@ namespace QFramework.ViewController.Player
             base.Awake();
 
             _weapon = GetComponent<WeaponController>();
+            _hangerWeapon = GetComponent<HangerWeaponController>();
             _rigid = GetComponent<Rigidbody2D>();
         }
 
@@ -179,7 +181,7 @@ namespace QFramework.ViewController.Player
             {
                 _weapon.WeaponLeft.Shoot();
             }
-            
+
             // 右手输入
             if(InputUtility.GetRightReloadInput())
             {
@@ -188,6 +190,15 @@ namespace QFramework.ViewController.Player
             else if(InputUtility.GetShootRightInput())
             {
                 _weapon.WeaponRight.Shoot();
+            }
+
+            // 吊架武器输入
+            if (_hangerWeapon != null)
+            {
+                if (InputUtility.GetHangerLeftInputDown() && _hangerWeapon.WeaponLeft != null)
+                    _hangerWeapon.WeaponLeft.Trigger();
+                if (InputUtility.GetHangerRightInputDown() && _hangerWeapon.WeaponRight != null)
+                    _hangerWeapon.WeaponRight.Trigger();
             }
         }
 

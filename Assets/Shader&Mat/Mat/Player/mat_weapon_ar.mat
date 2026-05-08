@@ -31,6 +31,7 @@ Material:
     m_Floats:
     - _Angle: 0
     - _Blend: 1
+    - _FlashAmount: 0
     - _LayerCount: 5
     - _LayerOffset: 1
     - _NumSlices: 10

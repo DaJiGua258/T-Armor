@@ -38,14 +38,12 @@ namespace QFramework.ViewController.Misc
         [Header("运行状态")]
         public Action OnFireStarted;
         public Action OnFireEnded;
+        public Action OnAllBulletsLanded;
 
         public bool IsFiring { get; private set; }
 
-        /// <summary>
-        /// 总引导时长 = 所有轮次 + 子弹间隔的总时间，用于 GuidanceState 计算 Channeling 持续时间。
-        /// </summary>
-        public float TotalChannelingTime =>
-            (RoundCount - 1) * RoundInterval + (BulletsPerRound - 1) * BulletInterval;
+        private int _totalBulletCount;
+        private int _explodedBulletCount;
 
         private Vector2 SpawnPoint => (Vector2)transform.position + SpawnOffset;
 
@@ -63,6 +61,9 @@ namespace QFramework.ViewController.Misc
 
         private IEnumerator FireRoutine()
         {
+            _totalBulletCount = RoundCount * BulletsPerRound;
+            _explodedBulletCount = 0;
+
             try
             {
                 if (bulletPrefab == null) yield break;
@@ -110,6 +111,8 @@ namespace QFramework.ViewController.Misc
             var projectile = bullet.GetComponent<Projectile>();
             if (projectile == null) return;
 
+            projectile.OnExploded += OnBulletExploded;
+
             Vector2 dir = (targetPos - spawnPos).normalized;
             bullet.transform.right = dir;
 
@@ -119,6 +122,15 @@ namespace QFramework.ViewController.Misc
 
             if (EnableHoming)
                 projectile.SetHomingTarget(transform);
+        }
+
+        private void OnBulletExploded(Projectile projectile)
+        {
+            projectile.OnExploded -= OnBulletExploded;
+            _explodedBulletCount++;
+
+            if (_explodedBulletCount >= _totalBulletCount)
+                OnAllBulletsLanded?.Invoke();
         }
 
         private void OnDrawGizmosSelected()

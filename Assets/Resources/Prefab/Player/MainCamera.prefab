@@ -19406,7 +19406,7 @@ Camera:
   far clip plane: 60
   field of view: 60
   orthographic: 1
-  orthographic size: 7
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -19447,7 +19447,7 @@ MonoBehaviour:
   _mouseOffsetThreshold: 3
   _mouseMaxOffset: 4
   _mouseOffsetSmoothTime: 0.25
-  _shakeDuration: 0.25
+  _shakeDuration: 0.1
   _shakeVibrato: 20
 --- !u!114 &1626233297703315721
 MonoBehaviour:

@@ -18,26 +18,28 @@ namespace QFramework.ViewController.Player
         [SerializeField] private int _weaponId;
 
         [Header("武器组件")]
-        [SerializeField] public Transform Muzzle;
-        [SerializeField] private Transform _caseSpawnPoint;
+        [SerializeField] private Transform Mesh;
+        [SerializeField] public Transform Muzzle;        
+        [SerializeField] private Transform _case;
         [SerializeField] protected GameObject _pf_bullet;
         [SerializeField] protected ParticleSystem _vfxShooting;
 
         [Header("武器属性")]
         public WeaponDataModel WeaponDataModel;
 
-        
+        private GameObject _ownerRef;
 
-
+        public void SetOwner(GameObject owner) => _ownerRef = owner;
 
         private float _timer;
         protected LayerMask _bulletLayerMask;
 
         void Awake()
         {
-            Muzzle = transform.Find("Muzzle");
-            _caseSpawnPoint = transform.Find("CaseSpawnPoint");
-            _vfxShooting = transform.Find("VFX_Shooting").GetComponent<ParticleSystem>();
+            Mesh = transform.Find("Mesh");
+            Muzzle = Mesh.Find("Muzzle");
+            _case = Mesh.Find("Case");
+            _vfxShooting = Mesh.Find("VFX_Shooting").GetComponent<ParticleSystem>();
         }
 
         void Start()
@@ -104,23 +106,30 @@ namespace QFramework.ViewController.Player
             }
 
             ShootDetal();
-
+            this.SendCommand(WeaponCommand.Shoot.Instance.Init(WeaponDataModel));
             _timer = 0;
         }
 
+        public virtual void AimAt(Vector3 hitPos, float offset) { }
+
         public virtual void ShootDetal()
         {
-            this.SendCommand(WeaponCommand.Shoot.Instance.Init(WeaponDataModel));
             // 计算发射方向：与武器朝向一致
             Vector3 shootDir = Muzzle.right; // local right 是2D武器的默认枪口方向 (一般为右)
-            // 枪口世界坐标
 
-            // 创建子弹和射击特效
+            SpawnBullet(shootDir);
+        }
+
+        /// <summary>
+        /// 生成子弹的工具方法
+        /// </summary>
+        protected void SpawnBullet(Vector3 dir)
+        {
             GameObject bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, Muzzle.position, Muzzle.rotation);
             _vfxShooting.Play();
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
-            bulletComponent.InitBullet(shootDir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, transform.root.gameObject);
+            bulletComponent.InitBullet(dir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, _ownerRef);
             bulletComponent.SetLayerMask(_bulletLayerMask);
         }
     }

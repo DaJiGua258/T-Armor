@@ -39,8 +39,8 @@ namespace QFramework.ViewController.Player
 
         void Start()
         {
-            _playerSystem.PlayerWeapon.WeaponDataLeft.Register(OnWeaponLeftDataChanged);
-            _playerSystem.PlayerWeapon.WeaponDataRight.Register(OnWeaponRightDataChanged);
+            _playerSystem.PlayerWeapon.Left.Register(OnWeaponLeftDataChanged);
+            _playerSystem.PlayerWeapon.Right.Register(OnWeaponRightDataChanged);
 
             TypeEventSystem.Global.Register<WeaponEvent.GetTargetRig>(e => GetTargetRig(e.TargetRig))
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
@@ -145,9 +145,10 @@ namespace QFramework.ViewController.Player
         {
             AbstractWeapon weapon = null;
             var rifle = Instantiate(
-                this.GetUtility<IResourceLoad>().Load<GameObject>("Prefab/Weapon/" + weaponType.ToString()), weaponSlot);
+                this.GetUtility<IResourceLoad>().Load<GameObject>("Prefab/Weapon/Slot/" + weaponType.ToString()), weaponSlot);
             weapon = rifle.GetComponent<AbstractWeapon>();
             weapon.InitWeaponData(weaponData);
+            weapon.SetOwner(gameObject);
 
             return weapon;
         }

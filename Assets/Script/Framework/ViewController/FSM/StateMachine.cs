@@ -59,6 +59,8 @@ namespace QFramework.ViewController.FSM
         /// </summary>
         public void ChangeState<TState>() where TState : IState
         {
+            Debug.Log(_currentStateType + "  " + typeof(TState));
+
             var t = typeof(TState);
 
             if (_currentStateType == t) return;

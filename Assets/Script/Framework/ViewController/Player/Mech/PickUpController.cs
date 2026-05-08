@@ -46,11 +46,11 @@ namespace QFramework.ViewController.Player
 
         private void OnPickUpWeapon(PickUpItems pickUp)
         {
-            int currentWeaponId = this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value;
+            int currentWeaponId = this.GetSystem<IPlayerSystem>().PlayerWeapon.Left.Value.InstanceId.Value;
 
             // 交换数据
             this.SendCommand(new PickUpCommand.PickUpWeapon(
-                this.GetSystem<IPlayerSystem>().PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value,
+                this.GetSystem<IPlayerSystem>().PlayerWeapon.Left.Value.InstanceId.Value,
                 pickUp.GetInstanceId()));
             
             // TODO: 交换武器

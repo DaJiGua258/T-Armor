@@ -129,18 +129,18 @@ namespace QFramework.Command
                 WeaponDataModel currentWeaponData = null;
 
                 // 交换引用触发事件
-                if(_currentId == _playerSystem.PlayerWeapon.WeaponDataLeft.Value.InstanceId.Value)
+                if(_currentId == _playerSystem.PlayerWeapon.Left.Value.InstanceId.Value)
                 {
                     // 先在这里获取到当前持有的武器的引用
-                    currentWeaponData = _playerSystem.PlayerWeapon.WeaponDataLeft.Value;
+                    currentWeaponData = _playerSystem.PlayerWeapon.Left.Value;
                     
                     // 然后在从缓存中移除目标武器，并将从缓存中获取的目标武器赋值给当前武器
-                    _playerSystem.PlayerWeapon.WeaponDataLeft.Value = _weaponInstanceSystem.RemoveWeaponById(_targetId);
+                    _playerSystem.PlayerWeapon.Left.Value = _weaponInstanceSystem.RemoveWeaponById(_targetId);
                 }
-                else if(_currentId == _playerSystem.PlayerWeapon.WeaponDataRight.Value.InstanceId.Value)
+                else if(_currentId == _playerSystem.PlayerWeapon.Right.Value.InstanceId.Value)
                 {
-                    currentWeaponData = _playerSystem.PlayerWeapon.WeaponDataRight.Value;
-                    _playerSystem.PlayerWeapon.WeaponDataRight.Value = _weaponInstanceSystem.RemoveWeaponById(_targetId);
+                    currentWeaponData = _playerSystem.PlayerWeapon.Right.Value;
+                    _playerSystem.PlayerWeapon.Right.Value = _weaponInstanceSystem.RemoveWeaponById(_targetId);
                 }
                 else
                 {

@@ -10,7 +10,8 @@
       "Bash(grep -A20 \"m_Name: Slot$\" Assets/Resources/Prefab/UI/Panel/InventoryPanel.prefab)",
       "Bash(grep -E \"---|m_Name:|m_Father:|m_Children:|m_Script\")",
       "Bash(awk '/7121842619250122689/{found=1} found{print} found && /^---/{found++} found==2{exit}' Assets/Resources/Prefab/UI/Panel/InventoryPanel.prefab)",
-      "Bash(git -C \"d:\\\\Unity\\\\UnityProgram\\\\T-Armor\" diff HEAD -- Assets/Script/Framework/ViewController/Player/GuidanceLaser.cs Assets/Script/Framework/ViewController/UI/GameHUD/HotbarExecutor.cs)"
+      "Bash(git -C \"d:\\\\Unity\\\\UnityProgram\\\\T-Armor\" diff HEAD -- Assets/Script/Framework/ViewController/Player/GuidanceLaser.cs Assets/Script/Framework/ViewController/UI/GameHUD/HotbarExecutor.cs)",
+      "Bash(xargs -I{} basename \"{}\")"
     ]
   }
 }

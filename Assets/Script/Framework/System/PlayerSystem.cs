@@ -6,6 +6,7 @@ namespace QFramework.System
     public interface IPlayerSystem : ISystem
     {
         public void InitPlayerWeapon();
+        public void InitHangerWeapon();
         public PlayerWeapon PlayerWeapon { get; }
     }
 
@@ -18,8 +19,6 @@ namespace QFramework.System
 
         // 左右槽位武器数据（改装槽修改武器数据）
         public PlayerWeapon PlayerWeapon { get; private set; }
-    
-        // 被动武器数据（改装槽修改被动武器数据）
 
 
 
@@ -29,12 +28,19 @@ namespace QFramework.System
         }
 
         public void InitPlayerWeapon()
-        {   
+        {
             var weaponDataLeft = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
-            var weaponDataRight = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
-            PlayerWeapon.WeaponDataLeft.Value = weaponDataLeft;
-            PlayerWeapon.WeaponDataRight.Value = weaponDataRight;
+            var weaponDataRight = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.SG));
+            PlayerWeapon.Left.Value = weaponDataLeft;
+            PlayerWeapon.Right.Value = weaponDataRight;
+        }
 
+        public void InitHangerWeapon()
+        {
+            var hangerLeft = new WeaponDataModel(_weaponModel.GetHangerWeaponConfigModel(WeaponTypeEnum.MTT));
+            var hangerRight = new WeaponDataModel(_weaponModel.GetHangerWeaponConfigModel(WeaponTypeEnum.MTT));
+            PlayerWeapon.HangerLeft.Value = hangerLeft;
+            PlayerWeapon.HangerRight.Value = hangerRight;
         }
         
     }
@@ -42,9 +48,13 @@ namespace QFramework.System
     public class PlayerWeapon
     {
         // 这里使用BindableProperty，后续武器交换时，通过交换引用触发事件
-        public BindableProperty<WeaponDataModel> WeaponDataLeft = new BindableProperty<WeaponDataModel>();
-        public BindableProperty<WeaponDataModel> WeaponDataRight = new BindableProperty<WeaponDataModel>();
-    
+        public BindableProperty<WeaponDataModel> Left = new BindableProperty<WeaponDataModel>();
+        public BindableProperty<WeaponDataModel> Right = new BindableProperty<WeaponDataModel>();
+
+        // 吊架武器数据
+        public BindableProperty<WeaponDataModel> HangerLeft = new BindableProperty<WeaponDataModel>();
+        public BindableProperty<WeaponDataModel> HangerRight = new BindableProperty<WeaponDataModel>();
+
         public PlayerWeapon()
         {
 

@@ -66,7 +66,8 @@ namespace QFramework.ViewController.Enemy
         public Transform Legs;
         public Transform Shadow;
         public Transform ColliderTrans;
-        private GameObject _damageVfxNode;
+        private Transform _damageVfxNode;
+        private List<ParticleSystem> _damageVfxParticles;
 
         // 受击闪白
         private List<Renderer> _meshRenderers;
@@ -115,6 +116,9 @@ namespace QFramework.ViewController.Enemy
             if(IsInit) return;
 
             InitEnemy();
+
+            if (debugLock)
+                _fsm.ChangeState<EnemyLockState>();
         }
 
         
@@ -127,13 +131,13 @@ namespace QFramework.ViewController.Enemy
             if (Target != null && !Target.gameObject.activeInHierarchy)
                 Target = null;
 
-            if(EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
+            if(IsDead())
             {
                 _fsm.ChangeState<EnemyDeathState>();
+                return;
             }
 
-            if (debugLock)
-                _fsm.ChangeState<EnemyLockState>();
+            
 
             // 定期扫描范围内最近目标
             _findTargetTimer -= Time.deltaTime;
@@ -209,9 +213,20 @@ namespace QFramework.ViewController.Enemy
 
             Agent = transform.GetComponent<FollowerEntity>();
 
-            // 损伤特效节点（可选）
-            Transform damageVfxT = Mesh.Find("DamageVFX");
-            if (damageVfxT != null) _damageVfxNode = damageVfxT.gameObject;
+            // 损伤特效粒子（可选）
+            Transform damageVfxT = transform.Find("DamageVFX");
+            _damageVfxNode = damageVfxT;
+            if (damageVfxT != null)
+            {
+                _damageVfxParticles = new List<ParticleSystem>(damageVfxT.GetComponentsInChildren<ParticleSystem>(true));
+                HideDamageVFX();
+            }
+            else
+            {
+                _damageVfxParticles = new List<ParticleSystem>();
+            }
+
+            
 
             // 收集 Mesh 下所有渲染器（含 Body/Legs/Weapon 等），用于受击闪白
             _meshRenderers = new List<Renderer>();
@@ -376,6 +391,7 @@ namespace QFramework.ViewController.Enemy
             Body.rotation = Quaternion.Euler(0, 0, smoothAngle);
             // 应用旋转到阴影
             Shadow.rotation = Quaternion.Euler(0, 0, smoothAngle);
+            RotateDamageVFX();
 
             // 如果武器存在，应用旋转到武器
             if(Weapon != null)
@@ -407,6 +423,18 @@ namespace QFramework.ViewController.Enemy
         {
             // 默认行为与 Rotate 一致；子类可重写为攻击特化朝向
             Rotate(targetPos);
+        }
+
+        public virtual void RotateDamageVFX()
+        {
+            if(_damageVfxNode == null) return;
+
+            _damageVfxNode.rotation = Body.rotation;
+            _damageVfxNode.localPosition = 
+            new Vector3(
+                Mesh.localPosition.x, 
+                Mesh.localPosition.y, 
+                _damageVfxNode.localPosition.z);
         }
 
         /// <summary>
@@ -604,11 +632,17 @@ namespace QFramework.ViewController.Enemy
         #region ----- 死亡相关 -------------------------
         public bool IsDead()
         {
-            return _fsm.CurrentStateType == typeof(EnemyDeathState);
+            if(EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
+            {
+                return true;
+            }
+            return false;
         }
 
         public void ShowDeathVFX()
         {
+            HideDamageVFX();
+
             var obj = ObjectPoolUtility.GetObject(pf_DeathVFX, Mesh.position, Quaternion.identity);
 
             var explosion = obj.GetComponent<Explosion>();
@@ -618,12 +652,30 @@ namespace QFramework.ViewController.Enemy
                 this.GetUtility<IObjectPoolUtility>().PushObject(obj);
             }, 5f);
 
-            gameObject.SetActive(false);
+            Mesh.gameObject.SetActive(false);
+            Shadow.gameObject.SetActive(false);
         }
 
         public void ShowDamageVFX()
         {
-            if (_damageVfxNode != null) _damageVfxNode.SetActive(true);
+            SetDamageVfxEmission(true);
+        }
+
+        public void HideDamageVFX()
+        {
+            SetDamageVfxEmission(false);
+        }
+
+        private void SetDamageVfxEmission(bool enable)
+        {
+            if (_damageVfxParticles == null) return;
+            foreach (var ps in _damageVfxParticles)
+            {
+                if (ps == null) continue;
+                var emission = ps.emission;
+                emission.enabled = enable;
+                ps.Play();
+            }
         }
 
         private Coroutine _flashCoroutine;
@@ -706,6 +758,7 @@ namespace QFramework.ViewController.Enemy
 
         public void ForcePush(Vector2 forcePos, int force, float torque)
         {
+            if (IsDead()) return;
             ChangeState<EnemyIdleState>();
 
             var dir = (Vector2)transform.position - forcePos;

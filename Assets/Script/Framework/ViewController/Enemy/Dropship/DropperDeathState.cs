@@ -14,6 +14,7 @@ namespace QFramework.ViewController.Enemy
         private float _verticalVelocity;
         private float _rotationSpeed = 180f;
         private float _horizontalSpeed = 3f;
+        private bool _isShownDeathVFX;
 
         public override void OnEnter()
         {
@@ -24,15 +25,21 @@ namespace QFramework.ViewController.Enemy
             var dropper = Entity as Dropper;
             if (!dropper.IsDropped)
                 dropper.KillAllCargos();
+
+            _isShownDeathVFX = false;
         }
 
         public override void OnUpdate()
         {
-            if (Entity.IsGrounded())
+            if (Entity.IsGrounded() && !_isShownDeathVFX)
             {
                 Entity.ShowDeathVFX();
+                _isShownDeathVFX = true;
                 return;
             }
+
+            if(_isShownDeathVFX)
+                return;
 
             Entity.ApplyGravityToMesh(ref _verticalVelocity);
             
@@ -42,6 +49,8 @@ namespace QFramework.ViewController.Enemy
             Entity.Body.Rotate(0, 0, rotZ);
             Entity.Legs.Rotate(0, 0, rotZ);
             Entity.Shadow.Rotate(0, 0, rotZ);
+
+            Entity.RotateDamageVFX();
         }
     }
 }

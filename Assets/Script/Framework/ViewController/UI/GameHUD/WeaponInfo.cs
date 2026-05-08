@@ -91,8 +91,8 @@ namespace QFramework.ViewController.UI
         /// </summary>
         private void RegisterWeaponInfo()
         {
-            _leftData = PlayerSystem.PlayerWeapon.WeaponDataLeft.Value;
-            _rightData = PlayerSystem.PlayerWeapon.WeaponDataRight.Value;
+            _leftData = PlayerSystem.PlayerWeapon.Left.Value;
+            _rightData = PlayerSystem.PlayerWeapon.Right.Value;
             // _leftReloadingLastFrame = _leftData.IsReloading;
             // _rightReloadingLastFrame = _rightData.IsReloading;
 

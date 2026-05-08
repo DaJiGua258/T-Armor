@@ -22,9 +22,22 @@ namespace QFramework.Command
             {
                 // 初始化武器数据
                 _playerSystem.InitPlayerWeapon();
-                
+
                 // 通知注册UI事件
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.Register());
+            }
+        }
+
+        /// <summary>
+        /// 初始化吊架武器
+        /// </summary>
+        public class InitHanger : AbstractCommand
+        {
+            private IPlayerSystem _playerSystem => this.GetSystem<IPlayerSystem>();
+
+            protected override void OnExecute()
+            {
+                _playerSystem.InitHangerWeapon();
             }
         }
 

@@ -2,6 +2,7 @@ using QFramework.Command;
 using QFramework.Enum;
 using QFramework.Event;
 using QFramework.Utility;
+using QFramework.ViewController.Misc;
 using UnityEngine;
 
 namespace QFramework.ViewController.UI
@@ -18,12 +19,12 @@ namespace QFramework.ViewController.UI
 
         private bool _isChanneling;
         private int _channelIndex;
+        private GuidanceState _currentGuidance;
 
         void Update()
         {
             if (!_isChanneling) return;
 
-            // 提前松开鼠标则中断引导
             if (this.GetUtility<IInputUtility>().GetLeftMouseUpInput())
                 Interrupt();
         }
@@ -32,22 +33,57 @@ namespace QFramework.ViewController.UI
         {
             if (_isChanneling) return;
 
-            // 按下立即消耗一次使用次数
+            // 消耗使用次数
             this.SendCommand(PlayerCommand.UseHotbarItem.Instance.Init(index));
+
+            // 替换为新的引导：取消订阅旧的、锁定旧的位置
+            ReleaseCurrentGuidance();
 
             _isChanneling = true;
             _channelIndex = index;
 
-            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserSetChanneling());
-
-            // 生成对应的信标预制体（含 Emitter + GuidanceState，自动开火并控制激光）
+            // 生成信标预制体
             GameObject prefab = GetMarkerPrefab(itemType);
-            if (prefab != null)
-            {
-                Vector3 spawnPos = this.GetUtility<IInputUtility>().GetMousePos();
-                spawnPos.z = 0f;
-                Instantiate(prefab, spawnPos, Quaternion.identity);
-            }
+            if (prefab == null) return;
+
+            Vector3 spawnPos = this.GetUtility<IInputUtility>().GetMousePos();
+            spawnPos.z = 0f;
+            var go = Instantiate(prefab, spawnPos, Quaternion.identity);
+            _currentGuidance = go.GetComponent<GuidanceState>();
+            if (_currentGuidance == null) return;
+
+            // 订阅回调后再开火
+            _currentGuidance.OnChannelingEnded += OnCurrentGuidanceEnded;
+
+            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserSetChanneling());
+            _currentGuidance.Fire();
+        }
+
+        private void ReleaseCurrentGuidance()
+        {
+            if (_currentGuidance == null) return;
+
+            _currentGuidance.OnChannelingEnded -= OnCurrentGuidanceEnded;
+            _currentGuidance.LockMouse();
+            _currentGuidance = null;
+        }
+
+        private void OnCurrentGuidanceEnded()
+        {
+            _isChanneling = false;
+            _currentGuidance = null;
+            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserHide());
+        }
+
+        private void Interrupt()
+        {
+            if (!_isChanneling) return;
+
+            if (_currentGuidance != null)
+                _currentGuidance.LockMouse();
+            _isChanneling = false;
+            _currentGuidance = null;
+            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserHide());
         }
 
         private GameObject GetMarkerPrefab(ItemTypeEnum itemType)
@@ -60,13 +96,6 @@ namespace QFramework.ViewController.UI
                 ItemTypeEnum.Marker_Missile => MissilePrefab,
                 _ => null
             };
-        }
-
-        public void Interrupt()
-        {
-            if (!_isChanneling) return;
-            _isChanneling = false;
-            TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserHide());
         }
     }
 }

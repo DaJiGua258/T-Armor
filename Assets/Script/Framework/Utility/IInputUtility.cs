@@ -21,6 +21,8 @@ namespace QFramework.Utility
         public bool GetHotbarCycleInput();  // 获取快捷栏切换输入（Tab键）
         public bool GetLeftMouseDownInput();  // 获取左键按下输入
         public bool GetLeftMouseUpInput();  // 获取左键抬起输入
+        public bool GetHangerLeftInputDown();  // 获取左吊架武器按下输入（Q键按下）
+        public bool GetHangerRightInputDown();  // 获取右吊架武器按下输入（E键按下）
     }
 
     public class InputUtility : IInputUtility
@@ -156,6 +158,16 @@ namespace QFramework.Utility
         public bool GetLeftMouseUpInput()
         {
             return Input.GetMouseButtonUp(0);
+        }
+
+        public bool GetHangerLeftInputDown()
+        {
+            return Input.GetKeyDown(KeyCode.Q);
+        }
+
+        public bool GetHangerRightInputDown()
+        {
+            return Input.GetKeyDown(KeyCode.E);
         }
     }
 }

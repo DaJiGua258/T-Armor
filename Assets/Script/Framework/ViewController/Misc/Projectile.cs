@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using QFramework.Utility;
@@ -7,12 +8,11 @@ namespace QFramework.ViewController.Player
 {
     public enum ProjectileMode
     {
-        Normal,
-        Pointed,
+        Normal,  // 常规检测
+        Pointed,   // 用于空中射向地面的子弹，飞行过程中只检测角色碰撞，碰撞后爆炸，
         PointOnly,  // 飞行不检测碰撞，到目标点后直接爆炸
     }
 
-    [RequireComponent(typeof(Rigidbody2D))]
     public class Projectile : MonoBehaviour, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
@@ -24,7 +24,7 @@ namespace QFramework.ViewController.Player
         [Header("组件")]
         [SerializeField] private LayerMask _layerMask;
         public void SetLayerMask(LayerMask mask) => _layerMask = mask;
-        private Rigidbody2D _rb;
+        private Vector2 _moveDirection;
         private Transform _bulletMesh;
         private GameObject _vfxNode;
         [Header("爆炸参数")]
@@ -41,6 +41,8 @@ namespace QFramework.ViewController.Player
         [Header("检测参数")]
         [SerializeField] private float _minRayDistance = 1f;
 
+        public event Action<Projectile> OnExploded;
+
         private bool _hasExploded;
         private int _damage;
         private int _speed;
@@ -50,6 +52,17 @@ namespace QFramework.ViewController.Player
 
         private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[16];
         private static readonly string[] _hitTags = { "Player", "Enemy", "Env" };
+
+        private void SetVfxEmission(bool enabled)
+        {
+            if (_vfxNode == null) return;
+            var particles = _vfxNode.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (var ps in particles)
+            {
+                var emission = ps.emission;
+                emission.enabled = enabled;
+            }
+        }
 
         private bool TagMatches(string tag)
         {
@@ -62,7 +75,6 @@ namespace QFramework.ViewController.Player
 
         void Awake()
         {
-            _rb = GetComponent<Rigidbody2D>();
             _bulletMesh = transform.Find("Mesh");
             Transform vfxT = transform.Find("VFX");
             if (vfxT != null) _vfxNode = vfxT.gameObject;
@@ -76,6 +88,7 @@ namespace QFramework.ViewController.Player
         void FixedUpdate()
         {
             if (_hasExploded) return;
+            transform.position += (Vector3)_moveDirection * _speed * Time.fixedDeltaTime;
             UpdateHoming();
             UpdateRotation();
             Detect();
@@ -99,7 +112,7 @@ namespace QFramework.ViewController.Player
 
         private void DetectNormal()
         {
-            int hitCount = HitDetectionUtility.BulletRaycastAll(_rb, _layerMask, _minRayDistance, Color.red, _hitBuffer);
+            int hitCount = HitDetectionUtility.BulletRaycastAll(transform.position, _moveDirection, _speed, _layerMask, _minRayDistance, Color.red, _hitBuffer);
             if (hitCount == 0) return;
 
             HashSet<GameObject> processed = new HashSet<GameObject>();
@@ -126,7 +139,7 @@ namespace QFramework.ViewController.Player
 
         private void DetectPointed()
         {
-            RaycastHit2D hit = HitDetectionUtility.BulletRaycast(_rb, _layerMask, _minRayDistance, Color.yellow);
+            RaycastHit2D hit = HitDetectionUtility.BulletRaycast(transform.position, _moveDirection, _speed, _layerMask, _minRayDistance, Color.yellow);
 
             bool hasCollision = hit.collider != null;
             // 如果命中发射者自身，当作未命中处理
@@ -164,7 +177,8 @@ namespace QFramework.ViewController.Player
             _owner = owner;
             _hasExploded = false;
             _bulletMesh.gameObject.SetActive(true);
-            _rb.velocity = ((Vector2)direction).normalized * speed;
+            SetVfxEmission(true);
+            _moveDirection = ((Vector2)direction).normalized;
         }
 
         public void InitProjectile(Vector3 targetPosition, int speed, int damage, GameObject owner = null)
@@ -194,16 +208,15 @@ namespace QFramework.ViewController.Player
             _targetPosition = _homingTarget.position;
 
             Vector3 targetDir = (_homingTarget.position - transform.position).normalized;
-            Vector3 newDir = Vector3.RotateTowards(_rb.velocity.normalized, targetDir,
-                _homingRotationSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime, 0f);
-            _rb.velocity = newDir * _speed;
+            _moveDirection = Vector3.RotateTowards(_moveDirection, targetDir,
+                _homingRotationSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime, 0f).normalized;
         }
 
         private void UpdateRotation()
         {
-            if (_rb.velocity.sqrMagnitude > 0.01f)
+            if (_moveDirection.sqrMagnitude > 0.01f)
             {
-                float angle = Mathf.Atan2(_rb.velocity.y, _rb.velocity.x) * Mathf.Rad2Deg;
+                float angle = Mathf.Atan2(_moveDirection.y, _moveDirection.x) * Mathf.Rad2Deg;
                 transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             }
         }
@@ -213,9 +226,11 @@ namespace QFramework.ViewController.Player
             if (_hasExploded) return;
             _hasExploded = true;
 
-            _rb.velocity = Vector2.zero;
+            OnExploded?.Invoke(this);
+
+            _moveDirection = Vector2.zero;
             _bulletMesh.gameObject.SetActive(false);
-            if (_vfxNode != null) _vfxNode.SetActive(false);
+            SetVfxEmission(false);
 
             var ob = this.GetUtility<IObjectPoolUtility>();
             var timer = this.GetUtility<ITimerUtility>();

@@ -6,6 +6,7 @@ namespace QFramework.Model
     public interface IWeaponConfigModel : IModel
     {
         public WeaponConfig GetWeaponConfigModel(WeaponTypeEnum weaponType);
+        public WeaponConfig GetHangerWeaponConfigModel(WeaponTypeEnum weaponType);
     }
 
     public class WeaponConfigModel : AbstractModel, IWeaponConfigModel
@@ -13,7 +14,7 @@ namespace QFramework.Model
         /// <summary>
         /// 生成在配置中的所有武器数据
         /// </summary>
-        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponModelsConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
             {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
             {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 10, 600)},
@@ -22,14 +23,30 @@ namespace QFramework.Model
             {WeaponTypeEnum.MRL, new WeaponConfig(WeaponTypeEnum.MRL, 4, 30, 2, 20, 10, 120)},
         };
 
+        /// <summary>
+        /// 吊架武器单独配置，数据与主武器隔离
+        /// </summary>
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
+        {
+            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
+            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 10, 600)},
+            {WeaponTypeEnum.VML, new WeaponConfig(WeaponTypeEnum.VML, 8, 40, 3, 25, 15, 30)},
+            {WeaponTypeEnum.MTT, new WeaponConfig(WeaponTypeEnum.MTT, 4, 40, 4, 30, 5, 300)},
+        };
+
         protected override void OnInit()
         {
-            
+
         }
 
         public WeaponConfig GetWeaponConfigModel(WeaponTypeEnum weaponType)
         {
-            return _weaponModelsConfig[weaponType];
+            return _weaponConfig[weaponType];
+        }
+
+        public WeaponConfig GetHangerWeaponConfigModel(WeaponTypeEnum weaponType)
+        {
+            return _hangerWeaponConfig[weaponType];
         }
     }
     

@@ -66,8 +66,8 @@ public class PlanetNodeController : AbstractBasePanel
         transform.localScale = new Vector3(scale, scale, scale);
     }
 
-    public override void OnPointerEnter(PointerEventData eventData)
-    {
-        Debug.Log("射线碰到了: " + gameObject.name);
-    }
+    // public override void OnPointerEnter(PointerEventData eventData)
+    // {
+    //     Debug.Log("射线碰到了: " + gameObject.name);
+    // }
 }

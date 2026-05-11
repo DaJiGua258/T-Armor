@@ -211,7 +211,8 @@ namespace QFramework.ViewController.UI
             
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
             TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
-            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = _targetCollider.GetComponent<Rigidbody2D>() });
+            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = enemy.Rb});
+            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetCollider() { TargetCollider = _targetCollider });
  
             _lastTargetCollider = _targetCollider;
         }

@@ -1,12 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using QFramework.Event;
+using DG.Tweening;
 using QFramework.System;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace QFramework.Manager
 {
@@ -16,11 +14,24 @@ namespace QFramework.Manager
         MainMenuPanel,           // 主菜单（新游戏/继续/加载/设置/退出）
         LevelSelectPanel,        // 选关界面
         LevelDetailPanel,        // 关卡详情/确认
-        EquipmentConfigPanel,    // 玩家装备配置
-        
-        // 通用
-        SettingsPanel,           // 设置（从主菜单或其他地方进入）
-        LoadGamePanel,           // 加载存档列表
+        PlayerConfigPanel,       // 玩家信息 + 装备配置
+
+        // 通用（注释：暂时不用，保留枚举值）
+        // SettingsPanel,        // 设置（从主菜单或其他地方进入）
+        // LoadGamePanel,        // 加载存档列表
+    }
+
+    /// <summary>
+    /// 将多个 Panel 打包为一个导航单位
+    /// </summary>
+    public class UIMainPanelGroup
+    {
+        public List<UIMainPanelType> Panels { get; } = new();
+
+        public UIMainPanelGroup(params UIMainPanelType[] panels)
+        {
+            Panels.AddRange(panels);
+        }
     }
 
     public class MainUIManager : MonoSingleton<MainUIManager>, IController
@@ -34,7 +45,10 @@ namespace QFramework.Manager
 
         // ----- 屏幕空间面板字典 ------------------------------
         private Dictionary<UIMainPanelType, AbstractBasePanel> _panelDict = new();
-        public UIMainPanelType CurrentPanel;
+        private Stack<UIMainPanelGroup> _panelStack = new();
+        private bool _isTransitioning;
+        private Sequence _currentSequence;
+        public UIMainPanelType CurrentPanel => _panelStack.Count > 0 ? _panelStack.Peek().Panels[0] : UIMainPanelType.MainMenuPanel;
 
         // ----- 世界空间面板 ------------------------------
         public PlanetNodeList PlanetNodeList;
@@ -44,108 +58,93 @@ namespace QFramework.Manager
         public PlanetOrbitCamera OrbitOrbitCamera;
 
         // ----- 主菜单全局共享资源 ------------------------------
-        public List<GameObject> NodeS;
-        public Camera Camera;
+        private List<GameObject> _nodeS = new();
+        public IReadOnlyList<GameObject> NodeS => _nodeS;
+        public Camera MainCamera;
         public Vector3 StartCameraPosition;
         public Quaternion StartCameraRotation;
+
+        [Header("镜头过渡")]
+        [SerializeField] private float _cameraTransitionDuration = 1f;
+        [SerializeField] private float _panelFadeDuration = 0.3f;
+        [SerializeField] private Ease _cameraEase = Ease.InOutSine;
+        [SerializeField] private Ease _fadeEase = Ease.OutQuad;
+        [SerializeField] private Vector3 _levelSelectDirection = new Vector3(0f, 0.342f, -0.94f);
 
 
         protected override void Awake()
         {
             base.Awake();
 
-            // 强制更新计算功能
             Canvas.ForceUpdateCanvases();
 
-            // 获取挂载节点
             _canvasWorldSpace = transform.Find("CanvasWorldSpace");
             _canvasScreenSpace = transform.Find("CanvasScreenSpace");
 
-            // 获取世界空间的UI游戏物体
             InitGameWorld();
-
-            // 获取UI面板
             InitWorldPanelDict();
             InitScreenPanelDict();
-        
-            // 初始化主菜单世界UI数据
             InitMainMenuWorldDataInOrder();
 
             PlanetNodeList.gameObject.SetActive(false);
 
-            // 获取必要引用
-            Camera = Camera.main;
-            OrbitOrbitCamera = Camera.GetComponent<PlanetOrbitCamera>();
+            MainCamera = Camera.main;
+            OrbitOrbitCamera = MainCamera.GetComponent<PlanetOrbitCamera>();
         }
 
         void Start()
         {
-            StartCameraPosition = Camera.transform.position;
-            StartCameraRotation = Camera.transform.rotation;
-            
-            if(GameManager.Instance.GetGameResultState() == GameResultState.GameFinished)
-            {
+            StartCameraPosition = MainCamera.transform.position;
+            StartCameraRotation = MainCamera.transform.rotation;
+
+            if (GameManager.Instance.GetGameResultState() == GameResultState.GameFinished)
                 EnterLevelSelect();
-            }
             else
-            {
                 EnterMainMenu();
-            }
-
-            
         }
-        
 
-        
+        void Update()
+        {
+            if (_isTransitioning) return;
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+                PopPanel();
+        }
+
+
         #region ----- 基础面板事件 ------------------------------
-        /// <summary>
-        /// 初始化屏幕面板
-        /// </summary>
+
         private void InitScreenPanelDict()
         {
             void AddPanel(UIMainPanelType type)
             {
-                if (_canvasScreenSpace.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel)) 
+                if (_canvasScreenSpace.Find(type.ToString()).TryGetComponent<AbstractBasePanel>(out AbstractBasePanel panel))
                     _panelDict.Add(type, panel);
             }
 
             AddPanel(UIMainPanelType.MainMenuPanel);
             AddPanel(UIMainPanelType.LevelSelectPanel);
             AddPanel(UIMainPanelType.LevelDetailPanel);
-            AddPanel(UIMainPanelType.EquipmentConfigPanel);
-            AddPanel(UIMainPanelType.SettingsPanel);
-            AddPanel(UIMainPanelType.LoadGamePanel);
+            AddPanel(UIMainPanelType.PlayerConfigPanel);
+            // AddPanel(UIMainPanelType.SettingsPanel);
+            // AddPanel(UIMainPanelType.LoadGamePanel);
 
-            foreach (var item in _panelDict)
+            foreach (var item in _panelDict.Values)
             {
-                item.Value.OnInit();
+                item.OnInit();
             }
         }
 
-
-        /// <summary>
-        /// 初始化世界空间下的面板
-        /// </summary>
         private void InitWorldPanelDict()
         {
             PlanetNodeList = _canvasWorldSpace.Find("PlanetNodeList").GetComponent<PlanetNodeList>();
         }
 
-        /// <summary>
-        /// 初始化游戏物体
-        /// </summary>
         private void InitGameWorld()
         {
             PlanetGenerator = GameObject.Find("Planet").GetComponent<PlanetGenerator>();
-            
         }
 
-        /// <summary>
-        /// 主菜单统一顺序初始化：
-        /// 1) 生成星球纹理
-        /// 2) 同步读回GPU噪声到CPU缓存
-        /// 3) 生成符合地形规则的节点
-        /// </summary>
         private void InitMainMenuWorldDataInOrder()
         {
             if (PlanetGenerator == null || PlanetNodeList == null)
@@ -160,29 +159,138 @@ namespace QFramework.Manager
                 Debug.LogWarning("MainUIManager: 星球噪声读回失败，节点可能为空。");
             }
 
-            NodeS = PlanetNodeList.InitNodes(PlanetGenerator);
+            _nodeS = PlanetNodeList.InitNodes(PlanetGenerator);
+        }
+
+        #endregion
+
+        #region ----- 导航栈 ------------------------------
+
+        /// <summary>
+        /// 入栈一组 Panel，只显示主面板，其余叠加显示
+        /// </summary>
+        private void PushGroup(UIMainPanelGroup group)
+        {
+            if (group.Panels.Count == 0 || _isTransitioning) return;
+
+            bool animate = _panelStack.Count > 0
+                && ShouldAnimate(_panelStack.Peek().Panels[0], group.Panels[0]);
+
+            if (!animate)
+            {
+                _panelStack.Push(group);
+                ApplyPanelGroup(group.Panels);
+                return;
+            }
+
+            _currentSequence?.Kill();
+            _currentSequence = DOTween.Sequence();
+            _isTransitioning = true;
+
+            // 1) 淡出当前主面板
+            var currentPrimary = _panelStack.Peek().Panels[0];
+            var cg = GetPanelCanvasGroup(currentPrimary);
+            if (cg != null)
+                _currentSequence.Append(cg.DOFade(0f, _panelFadeDuration).SetEase(_fadeEase));
+
+            // 2) 摄像机移动（DOLookAt 保证移动过程中自然注视目标）
+            Vector3 targetPos = GetCameraTarget(group.Panels[0]);
+            Vector3 lookTarget = GetLookAtTarget();
+            _currentSequence.Append(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration).SetEase(_cameraEase));
+            _currentSequence.Join(MainCamera.transform.DOLookAt(lookTarget, _cameraTransitionDuration));
+
+            // 3) 完成回调
+            _currentSequence.OnComplete(() =>
+            {
+                // 同步轨道状态（避免 ApplyOrbit 回弹）
+                if (group.Panels[0] == UIMainPanelType.LevelSelectPanel)
+                    OrbitOrbitCamera?.SyncFromPosition();
+
+                _panelStack.Push(group);
+                ApplyPanelGroup(group.Panels);
+
+                _isTransitioning = false;
+            });
         }
 
         /// <summary>
-        /// 只显示当前类型的Panel，其余的全部关闭
+        /// 入栈单个 Panel（便捷方法）
         /// </summary>
+        private void PushPanel(UIMainPanelType type)
+        {
+            PushGroup(new UIMainPanelGroup(type));
+        }
+
+        /// <summary>
+        /// 出栈，回到上一组（保留栈底不空）
+        /// </summary>
+        private void PopPanel()
+        {
+            if (_panelStack.Count <= 1 || _isTransitioning) return;
+
+            bool animate = ShouldAnimate(
+                _panelStack.Peek().Panels[0],
+                _panelStack.ToArray()[1].Panels[0]); // ≈ 栈底
+
+            if (!animate)
+            {
+                _panelStack.Pop();
+                ApplyPanelGroup(_panelStack.Peek().Panels);
+                return;
+            }
+
+            _currentSequence?.Kill();
+            _currentSequence = DOTween.Sequence();
+            _isTransitioning = true;
+
+            var currentGroup = _panelStack.Pop();   // ← 当前页
+            var prevGroup    = _panelStack.Peek();   // ← 目标页
+            var prevPrimary  = prevGroup.Panels[0];
+
+            // 0) 先锁住摄像机
+            _currentSequence.AppendCallback(() => LockCamera());
+
+            // 1) 淡出当前主面板
+            var cg = GetPanelCanvasGroup(currentGroup.Panels[0]);
+            if (cg != null)
+                _currentSequence.Append(cg.DOFade(0f, _panelFadeDuration).SetEase(_fadeEase));
+
+            // 2) 摄像机移回目标位置
+            Vector3 targetPos = GetCameraTarget(prevPrimary);
+            Vector3 lookTarget = GetLookAtTarget();
+            _currentSequence.Append(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration).SetEase(_cameraEase));
+            _currentSequence.Join(MainCamera.transform.DOLookAt(lookTarget, _cameraTransitionDuration));
+
+            // 3) 完成回调
+            _currentSequence.OnComplete(() =>
+            {
+                if (prevPrimary == UIMainPanelType.LevelSelectPanel)
+                    OrbitOrbitCamera?.SyncFromPosition();
+
+                ApplyPanelGroup(prevGroup.Panels);
+
+                _isTransitioning = false;
+            });
+        }
+
+        #endregion
+
+        #region ----- 面板显隐控制 ------------------------------
+
         private void ShowPanelOnly(UIMainPanelType type)
         {
             HideAll();
-            if (!_panelDict.TryGetValue(type, out var panel))
-            {
-                panel = CreatePanel(type);
-                _panelDict[type] = panel;
-            }
-            
+            var panel = GetOrCreatePanel(type);
+            if (panel == null) return;
+
             panel.Show();
             UITool.ForceRebuildFormRoot(panel.GetComponent<RectTransform>());
-            CurrentPanel = type;
+
+            // 切回时重置 CanvasGroup alpha（可能被过渡动画淡出过）
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg != null) cg.alpha = 1f;
         }
 
-        /// <summary>
-        /// 显示当前类型的Panel，其余的状态不变
-        /// </summary>
         private void ShowPanel(UIMainPanelType type)
         {
             if (_panelDict.TryGetValue(type, out var panel))
@@ -190,73 +298,156 @@ namespace QFramework.Manager
                 panel.Show();
                 UITool.ForceRebuildFormRoot(panel.GetComponent<RectTransform>());
             }
-            
-            CurrentPanel = type;
         }
 
-        /// <summary>
-        /// 只关闭当前类型的Panel，其余的状态不变
-        /// </summary>
         private void HidePanel(UIMainPanelType type)
         {
             if (_panelDict.TryGetValue(type, out var panel))
                 panel.Hide();
         }
 
-        /// <summary>
-        /// 关闭所有Panel
-        /// </summary>
         private void HideAll()
         {
             foreach (var panel in _panelDict.Values)
                 panel.Hide();
         }
 
-        private AbstractBasePanel CreatePanel(UIMainPanelType type)
+        private AbstractBasePanel GetOrCreatePanel(UIMainPanelType type)
         {
-            string path = $"UIPanels/{type}";
-            var prefab = Resources.Load<GameObject>(path);
-
-            if (prefab == null)
+            if (!_panelDict.TryGetValue(type, out var panel))
             {
-                Debug.LogError($"找不到面板预制体: {path}");
-                return null;
+                string path = $"UIPanels/{type}";
+                var prefab = Resources.Load<GameObject>(path);
+                if (prefab == null)
+                {
+                    Debug.LogError($"找不到面板预制体: {path}");
+                    return null;
+                }
+                var go = Instantiate(prefab, _canvasScreenSpace);
+                panel = go.GetComponent<AbstractBasePanel>();
+                _panelDict[type] = panel;
             }
-
-            var go = Instantiate(prefab, _canvasScreenSpace);
-            return go.GetComponent<AbstractBasePanel>();
+            return panel;
         }
 
         public T GetPanel<T>(UIMainPanelType type) where T : AbstractBasePanel
         {
-            if (_panelDict.TryGetValue(type, out var panel))
-            {
-                return panel as T;
-            }
-            return null;
+            return _panelDict.TryGetValue(type, out var panel) ? panel as T : null;
         }
 
         #endregion
 
-        #region ----- 主菜单按钮 ------------------------------
+        #region ----- 面板副作用处理 ------------------------------
 
-        /// <summary>
-        /// 进入主菜单
-        /// </summary>
-        public void EnterMainMenu()
+        private void OnPanelGroupShow(List<UIMainPanelType> panels)
         {
-            ShowPanelOnly(UIMainPanelType.MainMenuPanel);
-            LockCamera();
+            var primary = panels[0];
+            switch (primary)
+            {
+                case UIMainPanelType.MainMenuPanel:
+                    LockCamera();
+                    ResetCamera();
+                    PlanetNodeList.gameObject.SetActive(false);
+                    break;
+
+                case UIMainPanelType.LevelSelectPanel:
+                    UnlockCamera();
+                    PlanetNodeList.gameObject.SetActive(true);
+                    break;
+
+                case UIMainPanelType.LevelDetailPanel:
+                    LockCamera();
+                    break;
+            }
         }
 
+        #endregion
+
+        #region ----- 镜头过渡辅助 ------------------------------
+
         /// <summary>
-        /// 进入选关面板
+        /// 应用面板组：显示 + 副作用（动画完成后的最终步骤）
         /// </summary>
+        private void ApplyPanelGroup(List<UIMainPanelType> panels)
+        {
+            ShowPanelOnly(panels[0]);
+            for (int i = 1; i < panels.Count; i++)
+                ShowPanel(panels[i]);
+            OnPanelGroupShow(panels);
+        }
+
+        private static readonly HashSet<UIMainPanelType> _animatablePanels = new()
+        {
+            UIMainPanelType.MainMenuPanel,
+            UIMainPanelType.LevelSelectPanel,
+        };
+
+        /// <summary>
+        /// 仅当 from/to 都在可动画面板集合中时才播放过渡
+        /// </summary>
+        private static bool ShouldAnimate(UIMainPanelType from, UIMainPanelType to)
+        {
+            return _animatablePanels.Contains(from) && _animatablePanels.Contains(to);
+        }
+
+        private CanvasGroup GetPanelCanvasGroup(UIMainPanelType type)
+        {
+            if (_panelDict.TryGetValue(type, out var panel))
+                return panel.GetComponent<CanvasGroup>();
+            return null;
+        }
+
+        private Vector3 GetCameraTarget(UIMainPanelType panelType)
+        {
+            switch (panelType)
+            {
+                case UIMainPanelType.MainMenuPanel:
+                    return StartCameraPosition;
+
+                case UIMainPanelType.LevelSelectPanel:
+                    return CalculateOrbitPosition(_levelSelectDirection);
+
+                default:
+                    return MainCamera.transform.position;
+            }
+        }
+
+        private Vector3 CalculateOrbitPosition(Vector3 direction)
+        {
+            if (OrbitOrbitCamera == null || OrbitOrbitCamera.planetCenter == null)
+                return MainCamera.transform.position;
+
+            Vector3 dir = direction.normalized;
+            float yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
+            float pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+            pitch = Mathf.Clamp(pitch, OrbitOrbitCamera.pitchRange.x, OrbitOrbitCamera.pitchRange.y);
+
+            Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
+            return OrbitOrbitCamera.planetCenter.position
+                 + rot * Vector3.back * OrbitOrbitCamera.orbitRadius;
+        }
+
+        private Vector3 GetLookAtTarget()
+        {
+            return OrbitOrbitCamera != null && OrbitOrbitCamera.planetCenter != null
+                ? OrbitOrbitCamera.planetCenter.position
+                : MainCamera.transform.position + MainCamera.transform.forward * 10f;
+        }
+
+        #endregion
+
+        #region ----- 导航入口 ------------------------------
+
+        public void EnterMainMenu()
+        {
+            PushPanel(UIMainPanelType.MainMenuPanel);
+        }
+
         public void EnterLevelSelect()
         {
-            if(_levelSystem.LevelDataCache.Count > 0)
+            if (_levelSystem.LevelDataCache.Count > 0)
             {
-                NodeS = PlanetNodeList.GenerateFromLevelOrderAndContinue(
+                _nodeS = PlanetNodeList.GenerateFromLevelOrderAndContinue(
                     PlanetGenerator,
                     _levelSystem.LevelDataCache,
                     4,
@@ -264,30 +455,17 @@ namespace QFramework.Manager
             }
             else
             {
-                NodeS = PlanetNodeList.InitNodes(PlanetGenerator);
+                _nodeS = PlanetNodeList.InitNodes(PlanetGenerator);
             }
-            ShowPanelOnly(UIMainPanelType.LevelSelectPanel);
-            UnlockCamera();
+
+            PushPanel(UIMainPanelType.LevelSelectPanel);
         }
 
-        /// <summary>
-        /// 点击星球节点后，进入关卡详情面板
-        /// </summary>
         public void EnterLevelConfirm()
         {
-            LockCamera();
-            ShowPanel(UIMainPanelType.LevelDetailPanel);
-            ShowPanel(UIMainPanelType.EquipmentConfigPanel);
-        }
-
-
-        #endregion
-
-        #region ----- 选关面板事件 ------------------------------
-
-        private void ShowLevelSelectPanel()
-        {
-            
+            PushGroup(new UIMainPanelGroup(
+                UIMainPanelType.LevelDetailPanel,
+                UIMainPanelType.PlayerConfigPanel));
         }
 
         #endregion
@@ -296,7 +474,7 @@ namespace QFramework.Manager
 
         public void ResetCamera()
         {
-            Camera.transform.SetPositionAndRotation(StartCameraPosition, StartCameraRotation);
+            MainCamera.transform.SetPositionAndRotation(StartCameraPosition, StartCameraRotation);
         }
 
         public void LockCamera()
@@ -311,7 +489,5 @@ namespace QFramework.Manager
         }
 
         #endregion
-
-
     }
 }

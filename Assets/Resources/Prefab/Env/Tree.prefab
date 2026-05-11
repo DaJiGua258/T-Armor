@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8703093769169971510}
   - component: {fileID: 4574475980865172078}
-  - component: {fileID: 7572840129468124963}
-  - component: {fileID: 5276204174599603116}
+  - component: {fileID: -4466880448680349757}
+  - component: {fileID: -805079261916272771}
   m_Layer: 10
   m_Name: Stem
   m_TagString: Env
@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 612696172127476699}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 0, z: 3.24161}
+  m_LocalPosition: {x: 0, y: 0, z: 3.04161}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -49,12 +49,12 @@ MonoBehaviour:
   StackingMaterial: {fileID: 2100000, guid: d60c75768e2e36f49b413ab445661cb7, type: 2}
   UseLocalZSort: 1
   OrderParent: {fileID: 4479939543680831436}
-  ZSortOffset: 0
+  ZSortOffset: -2
   HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 1.5
   SizeHeight: 4
---- !u!33 &7572840129468124963
+--- !u!33 &-4466880448680349757
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -62,7 +62,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612696172127476699}
   m_Mesh: {fileID: 0}
---- !u!23 &5276204174599603116
+--- !u!23 &-805079261916272771
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -114,8 +114,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7820035787297941987}
   - component: {fileID: 6879498616134609925}
-  - component: {fileID: 7684138698863366006}
-  - component: {fileID: 7376708201187561817}
+  - component: {fileID: 8183751911629112737}
+  - component: {fileID: 8847526105983668388}
   m_Layer: 10
   m_Name: Leaves
   m_TagString: Env
@@ -132,7 +132,7 @@ Transform:
   m_GameObject: {fileID: 1046981898168560601}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 0.75, z: 3.11661}
+  m_LocalPosition: {x: 0, y: 0.75, z: 2.91661}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -153,12 +153,12 @@ MonoBehaviour:
   StackingMaterial: {fileID: 2100000, guid: b4e11968fa4c47c4a8d53fd4348908c5, type: 2}
   UseLocalZSort: 1
   OrderParent: {fileID: 4479939543680831436}
-  ZSortOffset: -2
+  ZSortOffset: -4
   HeightLevel: 0
   CanSetScale: 1
   SizeMultiplier: 1.5
   SizeHeight: 15
---- !u!33 &7684138698863366006
+--- !u!33 &8183751911629112737
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -166,7 +166,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1046981898168560601}
   m_Mesh: {fileID: 0}
---- !u!23 &7376708201187561817
+--- !u!23 &8847526105983668388
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -218,8 +218,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7157890896657388805}
   - component: {fileID: 2981111567547602567}
-  - component: {fileID: 5191166208430135094}
-  - component: {fileID: 1805314165864632306}
+  - component: {fileID: 6663503525314941586}
+  - component: {fileID: -6992814314671497288}
   m_Layer: 10
   m_Name: Shdaow
   m_TagString: Untagged
@@ -262,7 +262,7 @@ MonoBehaviour:
   CanSetScale: 1
   SizeMultiplier: 2
   ShadowOffset2D: {x: 0, y: -0.5}
---- !u!33 &5191166208430135094
+--- !u!33 &6663503525314941586
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -270,7 +270,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4714923812886872673}
   m_Mesh: {fileID: 0}
---- !u!23 &1805314165864632306
+--- !u!23 &-6992814314671497288
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -9,6 +9,11 @@ namespace QFramework.Event
             public Rigidbody2D TargetRig;
         }
 
+        public struct GetTargetCollider
+        {
+            public Collider2D TargetCollider;
+        }
+
         public struct UpdateBulletLayerMask
         {
             public LayerMask LayerMask;

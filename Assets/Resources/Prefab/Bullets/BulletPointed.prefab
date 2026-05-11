@@ -54,7 +54,10 @@ MonoBehaviour:
   _pf_bulletExplosionVFX: {fileID: 8486971914317455159, guid: 8961c7f1a2ff35f49937309c98e58d0f, type: 3}
   _enableHoming: 0
   _homingRotationSpeed: 360
+  _enableVerticalLaunch: 0
+  _verticalLaunchHeight: 5
   _arrivalThreshold: 1
+  _maxBufferTime: 2
   _minRayDistance: 0.5
 --- !u!1 &4195350858304493009
 GameObject:

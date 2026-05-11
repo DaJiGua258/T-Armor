@@ -122,4 +122,16 @@ public class PlanetOrbitCamera : MonoBehaviour
         _pitch = Mathf.Clamp(_pitch, pitchRange.x, pitchRange.y);
         ApplyOrbit();
     }
+
+    /// <summary>
+    /// 根据当前实际位置同步内部 yaw/pitch（DOTween 移动摄像机后调用，避免 ApplyOrbit 回弹）
+    /// </summary>
+    public void SyncFromPosition()
+    {
+        if (planetCenter == null) return;
+        Vector3 dir = (transform.position - planetCenter.position).normalized;
+        _yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
+        _pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+        _pitch = Mathf.Clamp(_pitch, pitchRange.x, pitchRange.y);
+    }
 }

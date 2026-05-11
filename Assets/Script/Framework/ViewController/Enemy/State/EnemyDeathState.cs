@@ -12,7 +12,6 @@ namespace QFramework.ViewController.Enemy
 
         public override void OnEnter()
         {
-            Debug.Log("EnemyDeathState OnEnter");
             Entity.StopMovement();
             Entity.ShowDeathVFX();
         }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using QFramework.Enum;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace QFramework.Model
     {
         public LevelMissionConfig GetLevelConfig(LevelMissionTypeEnum levelMissionType);
         public MissionConfig GetConfig(MissionTypeEnum missionType);
+        public List<LevelMissionTypeEnum> GetAvailableLevelMissionTypes();
     }
 
     public class MissionConfigModel : AbstractModel, IMissionConfigModel
@@ -16,8 +18,8 @@ namespace QFramework.Model
         {
             {
                 LevelMissionTypeEnum.LevMis_CleaArea,  // 保存关卡信息
-                new(
-                    new()
+                new LevelMissionConfig(
+                    new List<MissionTypeEnum>
                     {
                         // 主任务（None 表示当前关卡无主任务）
                         MissionTypeEnum.Pre_EnemyKill,
@@ -27,6 +29,11 @@ namespace QFramework.Model
                         MissionTypeEnum.Pre_EnemyKill
                     }
                 )
+                {
+                    LevelName = "清空区域",
+                    LevelDescription = "清除指定区域内的所有敌人",
+                    LevelMissionType = LevelMissionTypeEnum.LevMis_CleaArea
+                }
             },
 
         };
@@ -99,6 +106,11 @@ namespace QFramework.Model
         {
             return LevelMissionConfigCache[levelMissionType];
         }
+
+        public List<LevelMissionTypeEnum> GetAvailableLevelMissionTypes()
+        {
+            return LevelMissionConfigCache.Keys.ToList();
+        }
     }
 
     public class MissionConfig
@@ -147,14 +159,22 @@ namespace QFramework.Model
 
     public class LevelMissionConfig
     {
+        // ----- 关卡信息 -------------------------
+        public string LevelName;  // 关卡名称
+        public string LevelDescription;  // 关卡描述
+        public LevelMissionTypeEnum LevelMissionType = LevelMissionTypeEnum.None;  // 关卡任务类型
+
+        // ----- 关卡任务列表 -------------------------
         public List<MissionTypeEnum> MissionTypes = new();
+
+        public LevelMissionConfig() { }
 
         public LevelMissionConfig(
             List<MissionTypeEnum> missionTypes)
         {
             MissionTypes = missionTypes;
         }
-    }   
+    }
 
     public enum MissionState
     {

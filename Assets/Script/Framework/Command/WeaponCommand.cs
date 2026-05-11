@@ -38,6 +38,7 @@ namespace QFramework.Command
             protected override void OnExecute()
             {
                 _playerSystem.InitHangerWeapon();
+                TypeEventSystem.Global.Send(new WeaponInfoEvent.Register());
             }
         }
 

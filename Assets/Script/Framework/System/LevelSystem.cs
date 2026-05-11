@@ -22,6 +22,7 @@ namespace QFramework.System
     public class LevelSystem : AbstractSystem, ILevelSystem
     {
         private IMissionSystem _missionSystem => this.GetSystem<IMissionSystem>();
+        private IMissionConfigModel _missionConfigModel => this.GetModel<IMissionConfigModel>();
         // ----- 已经通过的关卡缓存 -------------------------
         public List<LevelDataModel> LevelDataCache { get; private set; } = new List<LevelDataModel>();
 
@@ -34,7 +35,7 @@ namespace QFramework.System
         protected override void OnInit()
         {
             LoadedLevelData = new LevelDataModel();
-            _missionSystem.InitMission(LoadedLevelData.LevelMissionType);
+            _missionSystem.InitMission(LoadedLevelData.LevelMissionConfig.LevelMissionType);
         }
 
         public void AddLoadLevel()
@@ -42,7 +43,7 @@ namespace QFramework.System
             LevelDataCache.Add(LoadedLevelData);
 
             // 加入关卡后，才进行真正的数据加载
-            _missionSystem.InitMission(LoadedLevelData.LevelMissionType);
+            _missionSystem.InitMission(LoadedLevelData.LevelMissionConfig.LevelMissionType);
         }
 
     
@@ -55,9 +56,13 @@ namespace QFramework.System
             LoadedLevelData.EnvironmentData.plantLevelType = nodeData.environmentData.plantLevelType;
             LoadedLevelData.EnvironmentData.SurfaceNormal = nodeData.environmentData.SurfaceNormal;
 
-            // 通过种子获取关卡任务类型
-            LevelMissionTypeEnum levelMissionType = (LevelMissionTypeEnum)SeedRandom
-                .Range(1, global::System.Enum.GetNames(typeof(LevelMissionTypeEnum)).Length);
+            // 从已配置的关卡任务类型中随机选取，并填充关卡名称/描述
+            var availableTypes = _missionConfigModel.GetAvailableLevelMissionTypes();
+            LevelMissionTypeEnum levelMissionType = availableTypes[SeedRandom.Range(0, availableTypes.Count)];
+            var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
+            LoadedLevelData.LevelMissionConfig.LevelName = levelConfig.LevelName;
+            LoadedLevelData.LevelMissionConfig.LevelDescription = levelConfig.LevelDescription;
+            LoadedLevelData.LevelMissionConfig.LevelMissionType = levelConfig.LevelMissionType;
 
             this.SendEvent<UpdateMapInfo>(new UpdateMapInfo());
         }
@@ -66,9 +71,7 @@ namespace QFramework.System
     public class LevelDataModel
     {
         // ----- 关卡信息 -------------------------
-        public string LevelName;  // 关卡名称
-        public string LevelDescription;  // 关卡描述
-        public LevelMissionTypeEnum LevelMissionType = LevelMissionTypeEnum.None;  // 关卡任务类型
+        public LevelMissionConfig LevelMissionConfig = new LevelMissionConfig();
 
         // ----- 地图信息 -------------------------
         public BindableProperty<int> seed = new BindableProperty<int>();  // 地图种子

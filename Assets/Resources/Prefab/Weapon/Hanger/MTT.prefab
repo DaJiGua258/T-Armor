@@ -10064,7 +10064,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   StackingMaterial: {fileID: 2100000, guid: 6d7866caf13b5e24b943de0bc816e729, type: 2}
-  UseLocalZSort: 1
+  UseLocalZSort: 0
   OrderParent: {fileID: 0}
   ZSortOffset: -2
   HeightLevel: 0

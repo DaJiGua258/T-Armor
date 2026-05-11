@@ -38,7 +38,7 @@ namespace QFramework.System
         public void InitHangerWeapon()
         {
             var hangerLeft = new WeaponDataModel(_weaponModel.GetHangerWeaponConfigModel(WeaponTypeEnum.MTT));
-            var hangerRight = new WeaponDataModel(_weaponModel.GetHangerWeaponConfigModel(WeaponTypeEnum.MTT));
+            var hangerRight = new WeaponDataModel(_weaponModel.GetHangerWeaponConfigModel(WeaponTypeEnum.VML));
             PlayerWeapon.HangerLeft.Value = hangerLeft;
             PlayerWeapon.HangerRight.Value = hangerRight;
         }

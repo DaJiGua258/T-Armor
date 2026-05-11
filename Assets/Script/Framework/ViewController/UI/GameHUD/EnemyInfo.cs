@@ -11,6 +11,7 @@ namespace QFramework.ViewController.UI
         [SerializeField] private RectTransform _enemyRect;
         [SerializeField] private RectTransform _aimRect;
         [SerializeField] private InfoItemSlider enemyInfo;
+        [SerializeField] private CanvasGroup _canvasGroup;
 
         void Start()
         {
@@ -18,7 +19,7 @@ namespace QFramework.ViewController.UI
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
 
             TypeEventSystem.Global.Register<PlayerEvent.SwitchAimingMode>(
-                e => enemyInfo.CanvasGroup.alpha = e.Mode == AimingModeEnum.Combat ? 1f : 0f
+                e => _canvasGroup.alpha = e.Mode == AimingModeEnum.Combat ? 1f : 0f
             ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
         

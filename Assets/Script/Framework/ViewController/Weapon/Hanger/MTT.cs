@@ -1,3 +1,5 @@
+using QFramework.Event;
+using QFramework.ViewController.Enemy;
 using UnityEngine;
 
 namespace QFramework.ViewController.Player
@@ -14,6 +16,14 @@ namespace QFramework.ViewController.Player
         private float _scanTimer;
         private float _autoFireTimer;
         private const float SCAN_INTERVAL = 2f;
+
+        protected override void Start()
+        {
+            base.Start();
+            TypeEventSystem.Global.Register<MissionEvent.KillEnemyEvent>(
+                e => ScanForTarget()
+            ).UnRegisterWhenGameObjectDestroyed(gameObject);
+        }
 
         protected override void OnTrigger()
         {
@@ -55,6 +65,8 @@ namespace QFramework.ViewController.Player
                 if (col == null) continue;
                 if (!col.CompareTag("Enemy")) continue;
                 if (!col.gameObject.activeInHierarchy) continue;
+                var enemyRoot = col.GetComponentInParent<AbstractEnemy>();
+                if (enemyRoot != null && enemyRoot.IsDead()) continue;
 
                 float sq = ((Vector2)col.transform.position - (Vector2)transform.position).sqrMagnitude;
                 if (sq < closestSq)

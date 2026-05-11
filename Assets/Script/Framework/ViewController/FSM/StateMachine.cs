@@ -59,13 +59,13 @@ namespace QFramework.ViewController.FSM
         /// </summary>
         public void ChangeState<TState>() where TState : IState
         {
-            Debug.Log(_currentStateType + "  " + typeof(TState));
+            // Debug.Log(_currentStateType + "  " + typeof(TState));
 
             var t = typeof(TState);
 
             if (_currentStateType == t) return;
 
-            if (!_states.TryGetValue(t, out var next)) 
+            if (!_states.TryGetValue(t, out var next))
             {
                 Debug.LogError($"[FSM] 状态 {t.Name} 尚未注册，请先调用 AddState。");
                 return;
@@ -100,7 +100,7 @@ namespace QFramework.ViewController.FSM
 
         public void CheckState<TState>() where TState : IState
         {
-            if (!_states.TryGetValue(typeof(TState), out var next)) 
+            if (!_states.TryGetValue(typeof(TState), out var next))
             {
                 Debug.LogError($"[FSM] 状态 {typeof(TState).Name} 尚未注册，请先调用 AddState。");
                ;

@@ -48,20 +48,21 @@ namespace QFramework.ViewController.Player
             _weapon = GetComponent<WeaponController>();
             _hangerWeapon = GetComponent<HangerWeaponController>();
             _rigid = GetComponent<Rigidbody2D>();
-        }
 
-        private void Start()
-        {
-            ParamsInit();
-            
             // 初始化状态字典
             _fsm = new StateMachine<PlayerController>();
             _fsm.AddState(new PlayerIdelState(this, _fsm));
             _fsm.AddState(new PlayerMoveState(this, _fsm));
             _fsm.AddState(new PlayerDashState(this, _fsm));
             _fsm.AddState(new PlayerSprintState(this, _fsm));
+            _fsm.AddState(new PlayerLockState(this, _fsm));
             _fsm.AddState(new PlayerDeathState(this, _fsm));
             _fsm.StartState<PlayerIdelState>();
+        }
+
+        private void Start()
+        {
+            ParamsInit();
 
             // 死亡状态注册
             PlayerModel.CurrentHealth.RegisterOnValueChanged(
@@ -85,18 +86,19 @@ namespace QFramework.ViewController.Player
 
         private void Update()
         {
-            // 死亡后状态不更新
-            if(_fsm.CurrentStateType == typeof(PlayerDeathState))
+            if(_fsm.CurrentStateType == typeof(PlayerDeathState)
+                || _fsm.CurrentStateType == typeof(PlayerLockState))
             {
                 return;
             }
 
             _fsm.Update();
-        
-            if(_fsm.CurrentStateType != typeof(PlayerDeathState))
+
+            if(_fsm.CurrentStateType != typeof(PlayerDeathState)
+                || _fsm.CurrentStateType != typeof(PlayerLockState))
             {
                 RotateBody();           // 旋转躯干
-                RotateLegs();           // 
+                RotateLegs();
                 WeaponInput();          // 武器输入
                 CheckFuel();
             }
@@ -106,8 +108,8 @@ namespace QFramework.ViewController.Player
 
         private void FixedUpdate()
         {
-            // 死亡后状态不更新
-            if(_fsm.CurrentStateType == typeof(PlayerDeathState))
+            if(_fsm.CurrentStateType == typeof(PlayerDeathState)
+                || _fsm.CurrentStateType == typeof(PlayerLockState))
             {
                 return;
             }
@@ -164,7 +166,24 @@ namespace QFramework.ViewController.Player
             _deathVFX.PlayVFX();
         }
 
+        public void SetLockState(bool locked)
+        {
+            if (locked)
+                _fsm.ChangeState<PlayerLockState>();
+            else
+                _fsm.ChangeState<PlayerIdelState>();
+        }
+
         #endregion
+
+        /// <summary>
+        /// 预览旋转，只旋转躯干和网格（不涉及游戏逻辑）
+        /// </summary>
+        public void RotatePreview(float deltaAngle)
+        {
+            _body.Rotate(0f, 0f, deltaAngle);
+            _legs.Rotate(0f, 0f, deltaAngle);
+        }
 
         #region ----- 常态检测 -------------------------
 
@@ -294,6 +313,7 @@ namespace QFramework.ViewController.Player
                 PlayerMoveState => "Move",
                 PlayerDashState => "Dash",
                 PlayerSprintState => "Sprint",
+                PlayerLockState => "Lock",
                 PlayerDeathState => "Death",
                 _ => "Unknown"
             };

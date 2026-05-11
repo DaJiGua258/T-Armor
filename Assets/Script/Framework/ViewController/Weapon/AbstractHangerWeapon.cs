@@ -35,15 +35,16 @@ namespace QFramework.ViewController.Player
 
         public void SetOwner(GameObject owner) => _ownerRef = owner;
 
-        void Awake()
+        protected virtual void Awake()
         {
             Mesh = transform.Find("Mesh");
             Muzzle = Mesh.Find("Muzzle");
             _case = Mesh.Find("Case");
             _vfxShooting = Mesh.Find("VFX_Shooting").GetComponent<ParticleSystem>();
+            _vfxShooting.Stop();
         }
 
-        void Start()
+        protected virtual void Start()
         {
             TypeEventSystem.Global.Register<WeaponEvent.UpdateBulletLayerMask>(
                 e => _bulletLayerMask = e.LayerMask

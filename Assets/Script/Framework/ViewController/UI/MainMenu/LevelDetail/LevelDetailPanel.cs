@@ -1,30 +1,43 @@
-using QFramework.Command;
-using QFramework.Manager;
-using UnityEngine;
+using QFramework.Event;
 using UnityEngine.UI;
+using UnityEngine;
 
-namespace QFramework.ViewController.UI  
+namespace QFramework.ViewController.UI
 {
     public class LevelDetailPanel : AbstractBasePanel
     {
-        private MapInfoDetailContainer _mapInfoDetailContainer;
-        private Button _deployBtn;
-        
-        public override void OnInit()
+        [SerializeField] private Text _mapInfoText;         // 地图信息（地形/湿度/植被/威胁）
+        [SerializeField] private Text _levelNameText;        // 任务名称
+        [SerializeField] private Text _levelDescriptionText; // 任务介绍
+
+        public override void OnShow()
         {
-            Canvas.ForceUpdateCanvases();
+            this.RegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+        }
 
-            _mapInfoDetailContainer = transform.Find
-                ("MapInfoContainer/MapInfoDetailContainer").GetComponent<MapInfoDetailContainer>();
+        public override void OnHide()
+        {
+            this.UnRegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+        }
 
-            _mapInfoDetailContainer.InitMapInfoDetail();
+        private void OnUpdateMapInfo(UpdateMapInfo e)
+        {
+            RefreshUI();
+        }
 
-            _deployBtn = transform.Find("DeployBtn/Container/Img").GetComponent<Button>();
-            _deployBtn.onClick.AddListener(() =>
-            {
-                this.SendCommand<LevelCommand.Add>();
-                GameManager.Instance.EnterGameScene();
-            });
+        private void RefreshUI()
+        {
+            var envData = LevelSystem.LoadedLevelData.EnvironmentData;
+            var levelConfig = LevelSystem.LoadedLevelData.LevelMissionConfig;
+
+            _mapInfoText.text = string.Format(
+                "> 地形：{0}\n> 湿度：{1}\n> 植被：{2}\n> 威胁：暂无",
+                LevelTypeModel.GetTerrainTypeName(envData.terrainType),
+                LevelTypeModel.GetMoistureTypeName(envData.moistureType),
+                LevelTypeModel.GetPlantLevelTypeName(envData.plantLevelType));
+
+            _levelNameText.text = $"> {levelConfig.LevelName}";
+            _levelDescriptionText.text = levelConfig.LevelDescription;
         }
     }
 }

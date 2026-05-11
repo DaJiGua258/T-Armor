@@ -40,6 +40,7 @@ namespace QFramework.ViewController.Player
             Muzzle = Mesh.Find("Muzzle");
             _case = Mesh.Find("Case");
             _vfxShooting = Mesh.Find("VFX_Shooting").GetComponent<ParticleSystem>();
+            _vfxShooting.Stop();
         }
 
         void Start()

@@ -1,9 +1,12 @@
+using QFramework.Enum;
 using UnityEngine;
 
 namespace QFramework.ViewController.Player
 {
     public class SG : AbstractWeapon
     {
+        public override SFXType ShootSFXType => SFXType.weapon_shoot_sg;
+
         public override void ShootDetal()
         {
             for (int i = 0; i < 8; i++)

@@ -19,10 +19,10 @@ namespace QFramework.Model
         private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
             {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
-            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 10, 600)},
-            {WeaponTypeEnum.LMG, new WeaponConfig(WeaponTypeEnum.LMG, 10, 60, 2, 20, 10, 840)},
-            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2, 20, 10, 180)},
-            {WeaponTypeEnum.MRL, new WeaponConfig(WeaponTypeEnum.MRL, 4, 30, 2, 20, 10, 120)},
+            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 25, 600)},
+            {WeaponTypeEnum.LMG, new WeaponConfig(WeaponTypeEnum.LMG, 10, 60, 2, 25, 10, 840)},
+            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2, 20, 15, 180)},
+            {WeaponTypeEnum.MRL, new WeaponConfig(WeaponTypeEnum.MRL, 4, 30, 2, 20, 15, 120)},
         };
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace QFramework.Model
         private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
         {
             {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
-            {WeaponTypeEnum.VML, new WeaponConfig(WeaponTypeEnum.VML, 8, 6, 3, 15, 15, 30)},
+            {WeaponTypeEnum.VML, new WeaponConfig(WeaponTypeEnum.VML, 8, 6, 3, 15, 25, 30)},
             {WeaponTypeEnum.MTT, new WeaponConfig(WeaponTypeEnum.MTT, 4, 40, 4, 30, 5, 300)},
         };
 

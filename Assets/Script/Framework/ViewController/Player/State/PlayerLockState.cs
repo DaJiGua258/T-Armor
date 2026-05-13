@@ -6,5 +6,10 @@ namespace QFramework.ViewController.Player
     {
         public PlayerLockState(PlayerController entity, StateMachine<PlayerController> fsm)
             : base(entity, fsm) { }
+
+        public override void OnEnter()
+        {
+            Entity.StopMovement();
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using QFramework.UtilityKit;
+using QFramework.ViewController.Player;
 using QFramework.ViewController.UI;
 using QFramework.Utility;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace QFramework.Manager
         InteractionPanel,
         InventoryPanel,
         PausePanel,
+        SettingsPanel,
         GameOverPanel,
     }
 
@@ -53,6 +55,11 @@ namespace QFramework.Manager
             {
                 ToggleInventory();
             }
+
+            if (_input.GetESCInput())
+            {
+                TogglePause();
+            }
         }
 
         private void InitPanelConfig()
@@ -61,6 +68,7 @@ namespace QFramework.Manager
             SetConfig(UIGamePanelType.InteractionPanel, UIGamePanelLayer.Overlay, false);
             SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  true);
             SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   true);
+            SetConfig(UIGamePanelType.SettingsPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.GameOverPanel,    UIGamePanelLayer.Modal,   true);
         }
 
@@ -85,6 +93,7 @@ namespace QFramework.Manager
             AddPanel(UIGamePanelType.InteractionPanel);
             AddPanel(UIGamePanelType.InventoryPanel);
             AddPanel(UIGamePanelType.PausePanel);
+            AddPanel(UIGamePanelType.SettingsPanel);
             AddPanel(UIGamePanelType.GameOverPanel);
 
             // 按层设置渲染顺序（低层 → 低 sibling index → 先渲染）
@@ -113,6 +122,37 @@ namespace QFramework.Manager
                 ShowPanel(panelType);
         }
 
+        private void TogglePause()
+        {
+            // GameOver 时不允许打开暂停
+            foreach (var kvp in _panelDict)
+            {
+                if (kvp.Key == UIGamePanelType.GameOverPanel && kvp.Value.gameObject.activeSelf)
+                    return;
+            }
+
+            // SettingsPanel 激活 → 回到 PausePanel
+            if (_panelDict.TryGetValue(UIGamePanelType.SettingsPanel, out var settingsPanel)
+                && settingsPanel.gameObject.activeSelf)
+            {
+                HidePanel(UIGamePanelType.SettingsPanel);
+                ShowPanel(UIGamePanelType.PausePanel);
+                return;
+            }
+
+            var panelType = UIGamePanelType.PausePanel;
+            if (_panelDict.TryGetValue(panelType, out var panel) && panel.gameObject.activeSelf)
+            {
+                HidePanel(panelType);
+                GameManager.Instance.SetRuntimeState(RuntimeGameState.Playing);
+            }
+            else
+            {
+                ShowPanel(panelType);
+                GameManager.Instance.SetRuntimeState(RuntimeGameState.Paused);
+            }
+        }
+
         public void ShowPanel(UIGamePanelType panelType)
         {
             if (!_panelDict.TryGetValue(panelType, out var panel)) return;
@@ -135,6 +175,7 @@ namespace QFramework.Manager
 
             panel.Show();
             UpdateCursorState();
+            UpdatePlayerLockState();
         }
 
         public void HidePanel(UIGamePanelType panelType)
@@ -167,6 +208,24 @@ namespace QFramework.Manager
             }
 
             UpdateCursorState();
+            UpdatePlayerLockState();
+        }
+
+        private void UpdatePlayerLockState()
+        {
+            bool shouldLock = false;
+            var lockPanelTypes = new[] { UIGamePanelType.InventoryPanel, UIGamePanelType.PausePanel, UIGamePanelType.SettingsPanel };
+            foreach (var type in lockPanelTypes)
+            {
+                if (_panelDict.TryGetValue(type, out var panel) && panel.gameObject.activeSelf)
+                {
+                    shouldLock = true;
+                    break;
+                }
+            }
+
+            if (GameManager.Instance.Player != null)
+                GameManager.Instance.Player.SetLockState(shouldLock);
         }
 
         private void UpdateCursorState()

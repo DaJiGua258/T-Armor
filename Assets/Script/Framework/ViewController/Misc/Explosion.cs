@@ -1,4 +1,6 @@
+using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.Utility;
 using QFramework.ViewController.Enemy;
 using UnityEngine;
@@ -71,6 +73,21 @@ namespace QFramework.ViewController.Misc
 
             // 相机震动
             TypeEventSystem.Global.Send(new ShakeCamera { strength = (int)ShakeMode });
+
+            // 音效
+            AudioManager.Instance.PlaySFX(ToExplosionSFX(), transform.position);
+        }
+
+        private SFXType ToExplosionSFX()
+        {
+            return ShakeMode switch
+            {
+                ShakeCameraMode.Tiny => SFXType.explosion_tiny,
+                ShakeCameraMode.Small => SFXType.explosion_small,
+                ShakeCameraMode.Mid => SFXType.explosion_mid,
+                ShakeCameraMode.Large => SFXType.explosion_large,
+                _ => SFXType.explosion_mid,
+            };
         }
 
 #if UNITY_EDITOR

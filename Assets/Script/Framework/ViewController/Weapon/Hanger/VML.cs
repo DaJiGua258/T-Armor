@@ -1,6 +1,7 @@
 using System.Collections;
 using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.Model;
 using QFramework.Utility;
 using UnityEngine;
@@ -12,6 +13,8 @@ namespace QFramework.ViewController.Player
         [Header("VML 发射设置")]
         [SerializeField] private Transform[] _launchPositions;
         [SerializeField] private float _launchInterval = 0.3f;
+
+        public override SFXType ShootSFXType => SFXType.misslie_launch;
 
         private int _currentIndex;
         private Vector3 _aimTargetPos;
@@ -82,6 +85,8 @@ namespace QFramework.ViewController.Player
         {
             var bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, pos, Quaternion.identity);
             _launchVfx[launchIndex].Play();
+
+            AudioManager.Instance.PlaySFX(ShootSFXType);
 
             var projectile = bullet.GetComponent<Projectile>();
             projectile.InitProjectile(_aimTargetPos, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);

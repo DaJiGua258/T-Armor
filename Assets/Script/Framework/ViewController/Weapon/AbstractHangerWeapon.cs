@@ -5,6 +5,7 @@ using QFramework.Model;
 using QFramework.System;
 using QFramework.Command;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.ViewController.Player;
 
 namespace QFramework.ViewController.Player
@@ -111,10 +112,13 @@ namespace QFramework.ViewController.Player
             }
         }
 
+        public virtual SFXType ShootSFXType => SFXType.weapon_shoot_ar;
+
         protected void SpawnBullet(Vector3 dir, Vector3 pos, Quaternion rot)
         {
             GameObject bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, pos, rot);
             _vfxShooting.Play();
+            AudioManager.Instance.PlaySFX(ShootSFXType);
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
             bulletComponent.InitBullet(dir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, _ownerRef);

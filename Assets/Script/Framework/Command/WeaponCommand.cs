@@ -1,5 +1,6 @@
 using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.Model;
 using QFramework.System;
 using QFramework.Utility;
@@ -84,6 +85,7 @@ namespace QFramework.Command
                 }
 
                 _weaponData.WeaponState = WeaponStateEnum.Reloading;
+                AudioManager.Instance.PlaySFX(SFXType.weapon_reload);
 
                 int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
                 int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);

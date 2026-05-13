@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
@@ -43,11 +44,21 @@ public class PlanetOrbitCamera : MonoBehaviour
     private Vector3 _lastMousePos;
     private bool  _dragging;
 
+    // ── 聚焦（FocusOnNode）保存/恢复 ──────────────────────────
+    private float _savedYaw;
+    private float _savedPitch;
+    private float _savedRadius;
+    private bool  _hasSavedState;
+
+    // ── 默认轨道（供外部回到初始姿态） ─────────────────────────
+    private float _defaultOrbitRadius;
+
 
     void OnEnable()
     {
         _yaw   = initialYaw;
         _pitch = initialPitch;
+        _defaultOrbitRadius = orbitRadius;
     }
 
     void Update()
@@ -124,14 +135,104 @@ public class PlanetOrbitCamera : MonoBehaviour
     }
 
     /// <summary>
+    /// 根据方向向量计算轨道上的位置（不修改内部 yaw/pitch）
+    /// </summary>
+    public Vector3 GetOrbitPosition(Vector3 direction)
+    {
+        if (planetCenter == null) return transform.position;
+        Vector3 dir = direction.normalized;
+        float yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
+        float pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+        pitch = Mathf.Clamp(pitch, pitchRange.x, pitchRange.y);
+        Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
+        return planetCenter.position + rot * Vector3.back * orbitRadius;
+    }
+
+    /// <summary>
+    /// 获取 initialYaw / initialPitch / 默认半径 决定的初始轨道位置
+    /// </summary>
+    public Vector3 GetDefaultOrbitPosition()
+    {
+        if (planetCenter == null) return transform.position;
+        Quaternion rot = Quaternion.Euler(initialPitch, initialYaw, 0f);
+        return planetCenter.position + rot * Vector3.back * _defaultOrbitRadius;
+    }
+
+    /// <summary>
     /// 根据当前实际位置同步内部 yaw/pitch（DOTween 移动摄像机后调用，避免 ApplyOrbit 回弹）
     /// </summary>
     public void SyncFromPosition()
     {
         if (planetCenter == null) return;
-        Vector3 dir = (transform.position - planetCenter.position).normalized;
-        _yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
-        _pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+        Vector3 offset = transform.position - planetCenter.position;
+        _yaw   = Mathf.Atan2(offset.x, -offset.z) * Mathf.Rad2Deg;
+        _pitch = Mathf.Asin(Mathf.Clamp(offset.y / offset.magnitude, -1f, 1f)) * Mathf.Rad2Deg;
         _pitch = Mathf.Clamp(_pitch, pitchRange.x, pitchRange.y);
+        orbitRadius = Mathf.Clamp(offset.magnitude, radiusRange.x, radiusRange.y);
+    }
+
+    // ── 聚焦节点（拉近 / 恢复）────────────────────────────────
+
+    /// <summary>
+    /// 保存当前轨道状态，供后续 RestoreOrbit 恢复
+    /// </summary>
+    public void SaveOrbitState()
+    {
+        _savedYaw    = _yaw;
+        _savedPitch  = _pitch;
+        _savedRadius = orbitRadius;
+        _hasSavedState = true;
+    }
+
+    /// <summary>
+    /// 平滑聚焦到节点：沿球面法线方向拉到最近距离，正对该点
+    /// </summary>
+    public void FocusOnNode(Vector3 nodeWorldPos, float duration, System.Action onComplete = null)
+    {
+        if (planetCenter == null) return;
+
+        transform.DOKill(false);
+
+        Vector3 surfaceNormal = (nodeWorldPos - planetCenter.position).normalized;
+        float targetRadius = radiusRange.x;
+
+        Vector3 targetPos   = planetCenter.position + surfaceNormal * targetRadius;
+        Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
+
+        var seq = DOTween.Sequence();
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.OnComplete(() =>
+        {
+            SyncFromPosition();
+            orbitRadius = targetRadius;
+            onComplete?.Invoke();
+        });
+    }
+
+    /// <summary>
+    /// 平滑恢复到 SaveOrbitState 保存的轨道状态
+    /// </summary>
+    public void RestoreOrbit(float duration, System.Action onComplete = null)
+    {
+        if (!_hasSavedState || planetCenter == null) return;
+
+        transform.DOKill(false);
+
+        Vector3 targetPos = planetCenter.position
+                          + Quaternion.Euler(_savedPitch, _savedYaw, 0f) * Vector3.back * _savedRadius;
+        Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
+
+        var seq = DOTween.Sequence();
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.OnComplete(() =>
+        {
+            _yaw        = _savedYaw;
+            _pitch      = _savedPitch;
+            orbitRadius = _savedRadius;
+            _hasSavedState = false;
+            onComplete?.Invoke();
+        });
     }
 }

@@ -5,6 +5,7 @@ using QFramework.System;
 using QFramework.Command;
 using QFramework.Model;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.ViewController.Player;
 
 namespace QFramework.ViewController.Player
@@ -107,9 +108,12 @@ namespace QFramework.ViewController.Player
             }
 
             ShootDetal();
+            AudioManager.Instance.PlaySFX(ShootSFXType);
             this.SendCommand(WeaponCommand.Shoot.Instance.Init(WeaponDataModel));
             _timer = 0;
         }
+
+        public virtual SFXType ShootSFXType => SFXType.weapon_shoot_ar;
 
         public virtual void AimAt(Vector3 hitPos, float offset) { }
 

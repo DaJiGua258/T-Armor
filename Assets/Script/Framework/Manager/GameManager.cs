@@ -114,6 +114,8 @@ namespace QFramework.Manager
         {
             _gameResultState = gameResultState;
         }
+
+        public PlayerController Player => _player;
         #endregion
 
         #region ----- 场景流程 ------------------------------

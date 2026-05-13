@@ -23,7 +23,7 @@ public class PlanetNodeController : AbstractBasePanel
         gameObject.GetComponent<Button>().onClick
             .AddListener(() => 
             {
-                MainUIManager.Instance.EnterLevelConfirm();
+                MainUIManager.Instance.EnterLevelConfirm(transform.position);
                 this.SendCommand<MainMenuCommand.SelectLevel>(new MainMenuCommand.SelectLevel(mapData));
             });
 

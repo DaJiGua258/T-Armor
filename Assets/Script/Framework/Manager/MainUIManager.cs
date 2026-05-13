@@ -47,6 +47,8 @@ namespace QFramework.Manager
         private Dictionary<UIMainPanelType, AbstractBasePanel> _panelDict = new();
         private Stack<UIMainPanelGroup> _panelStack = new();
         private bool _isTransitioning;
+        private bool _restoreOrbitPending;
+        private bool _playMainMenuCameraAnimation;
         private Sequence _currentSequence;
         public UIMainPanelType CurrentPanel => _panelStack.Count > 0 ? _panelStack.Peek().Panels[0] : UIMainPanelType.MainMenuPanel;
 
@@ -193,19 +195,9 @@ namespace QFramework.Manager
             if (cg != null)
                 _currentSequence.Append(cg.DOFade(0f, _panelFadeDuration).SetEase(_fadeEase));
 
-            // 2) 摄像机移动（DOLookAt 保证移动过程中自然注视目标）
-            Vector3 targetPos = GetCameraTarget(group.Panels[0]);
-            Vector3 lookTarget = GetLookAtTarget();
-            _currentSequence.Append(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration).SetEase(_cameraEase));
-            _currentSequence.Join(MainCamera.transform.DOLookAt(lookTarget, _cameraTransitionDuration));
-
-            // 3) 完成回调
+            // 2) 完成回调
             _currentSequence.OnComplete(() =>
             {
-                // 同步轨道状态（避免 ApplyOrbit 回弹）
-                if (group.Panels[0] == UIMainPanelType.LevelSelectPanel)
-                    OrbitOrbitCamera?.SyncFromPosition();
-
                 _panelStack.Push(group);
                 ApplyPanelGroup(group.Panels);
 
@@ -235,7 +227,14 @@ namespace QFramework.Manager
             if (!animate)
             {
                 _panelStack.Pop();
+                var targetPrimary = _panelStack.Peek().Panels[0];
+                if (targetPrimary == UIMainPanelType.LevelSelectPanel)
+                    _restoreOrbitPending = true;
                 ApplyPanelGroup(_panelStack.Peek().Panels);
+
+                // 从 LevelDetail 回到 LevelSelect 时恢复轨道
+                if (targetPrimary == UIMainPanelType.LevelSelectPanel)
+                    OrbitOrbitCamera?.RestoreOrbit(_cameraTransitionDuration, () => UnlockCamera());
                 return;
             }
 
@@ -255,16 +254,14 @@ namespace QFramework.Manager
             if (cg != null)
                 _currentSequence.Append(cg.DOFade(0f, _panelFadeDuration).SetEase(_fadeEase));
 
-            // 2) 摄像机移回目标位置
-            Vector3 targetPos = GetCameraTarget(prevPrimary);
-            Vector3 lookTarget = GetLookAtTarget();
-            _currentSequence.Append(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration).SetEase(_cameraEase));
-            _currentSequence.Join(MainCamera.transform.DOLookAt(lookTarget, _cameraTransitionDuration));
-
-            // 3) 完成回调
+            // 2) 完成回调
             _currentSequence.OnComplete(() =>
             {
-                if (prevPrimary == UIMainPanelType.LevelSelectPanel)
+                // 从 LevelSelect 回到 MainMenu 时才播放相机过渡
+                _playMainMenuCameraAnimation = currentGroup.Panels[0] == UIMainPanelType.LevelSelectPanel
+                                            && prevPrimary == UIMainPanelType.MainMenuPanel;
+
+                if (currentGroup.Panels[0] == UIMainPanelType.LevelSelectPanel)
                     OrbitOrbitCamera?.SyncFromPosition();
 
                 ApplyPanelGroup(prevGroup.Panels);
@@ -346,12 +343,74 @@ namespace QFramework.Manager
             {
                 case UIMainPanelType.MainMenuPanel:
                     LockCamera();
-                    ResetCamera();
+                    if (_playMainMenuCameraAnimation && OrbitOrbitCamera != null && OrbitOrbitCamera.planetCenter != null)
+                    {
+                        _playMainMenuCameraAnimation = false;
+                        MainCamera.transform.DOKill();
+
+                        // 初始隐藏 MainMenu，Step 2 再淡入
+                        var menuCG = GetPanelCanvasGroup(UIMainPanelType.MainMenuPanel);
+                        if (menuCG != null) menuCG.alpha = 0f;
+
+                        Vector3 defaultOrbitPos = OrbitOrbitCamera.GetDefaultOrbitPosition();
+                        Quaternion defaultOrbitRot = Quaternion.LookRotation(
+                            OrbitOrbitCamera.planetCenter.position - defaultOrbitPos, Vector3.up);
+
+                        var cameraSeq = DOTween.Sequence();
+                        // Step 1: 回到默认轨道位置（MainMenu 不可见）
+                        cameraSeq.Append(MainCamera.transform.DOMove(defaultOrbitPos, _cameraTransitionDuration).SetEase(_cameraEase));
+                        cameraSeq.Join(MainCamera.transform.DORotateQuaternion(defaultOrbitRot, _cameraTransitionDuration).SetEase(_cameraEase));
+
+                        // Step 2: 回到初始菜单位置 + MainMenu 淡入
+                        cameraSeq.Append(MainCamera.transform.DOMove(StartCameraPosition, _cameraTransitionDuration).SetEase(_cameraEase));
+                        cameraSeq.Join(MainCamera.transform.DORotateQuaternion(StartCameraRotation, _cameraTransitionDuration).SetEase(_cameraEase));
+                        if (menuCG != null)
+                            cameraSeq.Join(menuCG.DOFade(1f, _cameraTransitionDuration).SetEase(_fadeEase));
+                        cameraSeq.OnComplete(() => OrbitOrbitCamera.SyncFromPosition());
+                    }
                     PlanetNodeList.gameObject.SetActive(false);
                     break;
 
                 case UIMainPanelType.LevelSelectPanel:
-                    UnlockCamera();
+                    if (OrbitOrbitCamera != null && OrbitOrbitCamera.planetCenter != null)
+                    {
+                        if (_restoreOrbitPending)
+                        {
+                            _restoreOrbitPending = false;
+                            // 从 LevelDetail 返回，由 RestoreOrbit 处理动画，此处只解锁交互
+                        }
+                        else
+                        {
+                            // 初始隐藏 LevelSelect，相机到达默认轨道后淡入
+                            var levelCG = GetPanelCanvasGroup(UIMainPanelType.LevelSelectPanel);
+                            if (levelCG != null) levelCG.alpha = 0f;
+
+                            Vector3 targetPos = OrbitOrbitCamera.GetDefaultOrbitPosition();
+
+                            MainCamera.transform.DOKill();
+
+                            Quaternion targetRot = Quaternion.LookRotation(
+                                OrbitOrbitCamera.planetCenter.position - targetPos, Vector3.up);
+
+                            var cameraSeq = DOTween.Sequence();
+                            cameraSeq.Join(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration)
+                                .From(StartCameraPosition)
+                                .SetEase(_cameraEase));
+                            cameraSeq.Join(MainCamera.transform.DORotateQuaternion(targetRot, _cameraTransitionDuration)
+                                .SetEase(_cameraEase));
+                            cameraSeq.OnComplete(() =>
+                            {
+                                if (levelCG != null)
+                                    levelCG.DOFade(1f, _panelFadeDuration).SetEase(_fadeEase);
+                                OrbitOrbitCamera.SyncFromPosition();
+                                UnlockCamera();
+                            });
+                        }
+                    }
+                    else
+                    {
+                        UnlockCamera();
+                    }
                     PlanetNodeList.gameObject.SetActive(true);
                     break;
 
@@ -405,26 +464,13 @@ namespace QFramework.Manager
                     return StartCameraPosition;
 
                 case UIMainPanelType.LevelSelectPanel:
-                    return CalculateOrbitPosition(_levelSelectDirection);
+                    return OrbitOrbitCamera != null
+                        ? OrbitOrbitCamera.GetOrbitPosition(_levelSelectDirection)
+                        : MainCamera.transform.position;
 
                 default:
                     return MainCamera.transform.position;
             }
-        }
-
-        private Vector3 CalculateOrbitPosition(Vector3 direction)
-        {
-            if (OrbitOrbitCamera == null || OrbitOrbitCamera.planetCenter == null)
-                return MainCamera.transform.position;
-
-            Vector3 dir = direction.normalized;
-            float yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
-            float pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
-            pitch = Mathf.Clamp(pitch, OrbitOrbitCamera.pitchRange.x, OrbitOrbitCamera.pitchRange.y);
-
-            Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
-            return OrbitOrbitCamera.planetCenter.position
-                 + rot * Vector3.back * OrbitOrbitCamera.orbitRadius;
         }
 
         private Vector3 GetLookAtTarget()
@@ -461,8 +507,13 @@ namespace QFramework.Manager
             PushPanel(UIMainPanelType.LevelSelectPanel);
         }
 
-        public void EnterLevelConfirm()
+        public void EnterLevelConfirm(Vector3 nodeWorldPosition)
         {
+            if (OrbitOrbitCamera != null)
+            {
+                OrbitOrbitCamera.SaveOrbitState();
+                OrbitOrbitCamera.FocusOnNode(nodeWorldPosition, _cameraTransitionDuration);
+            }
             PushGroup(new UIMainPanelGroup(
                 UIMainPanelType.LevelDetailPanel,
                 UIMainPanelType.PlayerConfigPanel));

@@ -1,4 +1,5 @@
 using QFramework.Command;
+using QFramework.Enum;
 using QFramework.Event;
 using QFramework.ViewController.Enemy;
 using QFramework.ViewController.Player;
@@ -94,6 +95,11 @@ namespace QFramework.ViewController
                 if (player != null)
                 {
                     TArmorArchitecture.Interface.SendCommand(PlayerCommand.Damage.Instance.Init(damage));
+                    TypeEventSystem.Global.Send(new StatsEvent.OnDamageTaken
+                    {
+                        Damage = damage,
+                        CurrentHealth = player.PlayerModel.CurrentHealth.Value
+                    });
                 }
                 else
                 {
@@ -115,10 +121,20 @@ namespace QFramework.ViewController
                 TArmorArchitecture.Interface.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, damage));
                 enemy.Flash();
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdateEnemyInfo());
+                TypeEventSystem.Global.Send(new StatsEvent.OnDamageDealt
+                {
+                    EnemyId = enemyId,
+                    Damage = damage,
+                    Type = enemy.enemyType
+                });
 
                 if (enemy.EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
                 {
-                    TypeEventSystem.Global.Send(new MissionEvent.KillEnemyEvent());
+                    TypeEventSystem.Global.Send(new StatsEvent.OnEnemyKilled
+                    {
+                        EnemyId = enemyId,
+                        Type = enemy.enemyType
+                    });
                 }
             }
         }

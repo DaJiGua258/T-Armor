@@ -24,6 +24,9 @@ public class MapGeneratorSettings
     [Header("任务点参数")]
     public MissionPlacementSettings mission = new MissionPlacementSettings();
 
+    [Header("兴趣点参数")]
+    public POISettings poi = new POISettings();
+
     [Header("环境物体参数")]
     public EnvironmentSettings environment = new EnvironmentSettings();
 
@@ -93,6 +96,37 @@ public class MissionPlacementSettings
     [Tooltip("任务点占地区域向外额外留白格数")]
     [Min(0)]
     public int extraMarginCells = 0;
+
+    [Tooltip("任务之间的最小距离（世界坐标），放置时会尽量满足此距离")]
+    [Min(0f)]
+    public float minDistanceBetweenMissions = 3f;
+
+    [Tooltip("距离不满足时递减步长，逐步降低距离要求重试")]
+    [Min(0f)]
+    public float distanceStep = 1f;
+}
+
+[Serializable]
+public class POISettings
+{
+    [Tooltip("兴趣点挂载父节点，为空时挂在本 GameObject 下")]
+    public Transform poiParent;
+
+    [Tooltip("每次生成的 POI 数量")]
+    [Min(1)]
+    public int poiCount = 3;
+
+    [Tooltip("POI 占地区域向外额外留白格数")]
+    [Min(0)]
+    public int extraMarginCells = 0;
+
+    [Tooltip("与任务点保持的最小距离（世界坐标）")]
+    [Min(0f)]
+    public float avoidMissionRadius = 2.5f;
+
+    [Tooltip("POI 之间的最小距离（世界坐标）")]
+    [Min(0f)]
+    public float minPOIDistance = 3f;
 }
 
 [Serializable]

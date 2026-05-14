@@ -22,15 +22,22 @@ namespace QFramework.ViewController.MainMenuUI
         [SerializeField] private RectTransform _container;
 
         [Header("其他")]
-        
+
 
         private Canvas _parentCanvas;
         private Camera _mainCamera;
 
+        private bool _isLocked;              // 锁定状态：点击 node 后固定到该位置
+        private Vector3 _lockedWorldPosition; // 锁定的世界坐标（每帧实时转屏幕坐标，实现镜头移动时追踪）
+        private Vector2 _lockedScreenPos;     // 锁定时最后计算的屏幕坐标
+
         private void Awake()
         {
             _parentCanvas = GetComponentInParent<Canvas>();
-        
+
+            // 从父级面板（LevelSelectPanel）脱离，防止面板切换时被连带禁用
+            transform.SetParent(_parentCanvas.transform, true);
+
             _container = transform.Find("Container").GetComponent<RectTransform>();
 
             _horizontalLine = _container.Find("LineH").GetComponent<RectTransform>();
@@ -40,10 +47,13 @@ namespace QFramework.ViewController.MainMenuUI
 
             InitializeLines();
 
+            // 默认隐藏，由 MainUIManager 在适当时机显示
+            gameObject.SetActive(false);
         }
 
         private void Update()
         {
+            if (!gameObject.activeInHierarchy) return;
             UpdatePosition();
         }
 
@@ -76,38 +86,88 @@ namespace QFramework.ViewController.MainMenuUI
         }
 
         /// <summary>
-        /// 更新位置（包含吸附逻辑）
+        /// 显示十字线（关卡选择界面过渡完成后调用）
+        /// </summary>
+        public void Show()
+        {
+            _isLocked = false;
+            gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// 隐藏十字线（主菜单等不需要十字线的界面）
+        /// </summary>
+        public void Hide()
+        {
+            _isLocked = false;
+            gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 锁定十字线到指定世界坐标的位置（点击 node 后）
+        /// 每帧实时转换世界→屏幕，保证镜头移动时十字线始终追踪 node
+        /// </summary>
+        public void LockAtWorldPosition(Vector3 worldPosition)
+        {
+            _lockedWorldPosition = worldPosition;
+            _isLocked = true;
+        }
+
+        /// <summary>
+        /// 解锁，恢复跟随鼠标
+        /// </summary>
+        public void Unlock()
+        {
+            _isLocked = false;
+        }
+
+        /// <summary>
+        /// 更新位置（包含吸附与锁定逻辑）
         /// </summary>
         private void UpdatePosition()
         {
-            Vector2 mousePos = Input.mousePosition;
-            Vector2 finalScreenPos = mousePos;
-            float minDistance = float.MaxValue;
+            Vector2 finalScreenPos;
 
-            // 1. 遍历目标点，寻找最近的吸附点
-            foreach (var target in _targetTransforms)
+            if (_isLocked)
             {
-                if (target == null) continue;
-
-                // 将世界坐标转换为屏幕坐标
-                Vector3 screenPoint = _mainCamera.WorldToScreenPoint(target.position);
-
-                // 检查目标是否在相机前方（防止吸附到背后的物体）
+                // 锁定状态：每帧将世界坐标转屏幕坐标，实现镜头移动时持续追踪
+                Vector3 screenPoint = _mainCamera.WorldToScreenPoint(_lockedWorldPosition);
                 if (screenPoint.z > 0)
-                {
-                    Vector2 screenPos2D = new Vector2(screenPoint.x, screenPoint.y);
-                    float distance = Vector2.Distance(mousePos, screenPos2D);
+                    _lockedScreenPos = screenPoint;
+                finalScreenPos = _lockedScreenPos;
+            }
+            else
+            {
+                // 正常状态：跟随鼠标 + 吸附到附近目标
+                Vector2 mousePos = Input.mousePosition;
+                finalScreenPos = mousePos;
+                float minDistance = float.MaxValue;
 
-                    // 如果在吸附半径内，且是当前最近的点
-                    if (distance < _snapRadius && distance < minDistance)
+                // 遍历目标点，寻找最近的吸附点
+                foreach (var target in _targetTransforms)
+                {
+                    if (target == null) continue;
+
+                    // 将世界坐标转换为屏幕坐标
+                    Vector3 screenPoint = _mainCamera.WorldToScreenPoint(target.position);
+
+                    // 检查目标是否在相机前方（防止吸附到背后的物体）
+                    if (screenPoint.z > 0)
                     {
-                        minDistance = distance;
-                        finalScreenPos = screenPos2D;
+                        Vector2 screenPos2D = screenPoint;
+                        float distance = Vector2.Distance(mousePos, screenPos2D);
+
+                        // 如果在吸附半径内，且是当前最近的点
+                        if (distance < _snapRadius && distance < minDistance)
+                        {
+                            minDistance = distance;
+                            finalScreenPos = screenPos2D;
+                        }
                     }
                 }
             }
 
-            // 2. 将最终的屏幕位置（鼠标或吸附点）转换为 UI 本地坐标
+            // 将最终的屏幕位置（鼠标或吸附点或锁定位置）转换为 UI 本地坐标
             RenderMode renderMode = _parentCanvas.renderMode;
             Camera uiCamera = (renderMode == RenderMode.ScreenSpaceOverlay) ? null : _parentCanvas.worldCamera;
 
@@ -120,10 +180,6 @@ namespace QFramework.ViewController.MainMenuUI
             );
 
             _container.anchoredPosition = localPoint;
-            
-            // 3. 可选：吸附时改变颜色作为反馈
-            // _horizontalLine.GetComponent<Image>().color = isSnapping ? Color.red : _crosshairColor;
         }
     }
 }
-

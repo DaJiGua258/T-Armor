@@ -275,11 +275,22 @@ namespace QFramework.Manager
                 return false;
             }
 
-            var playerPos = _player.transform.position;
-            _camera.transform.position = new Vector3(playerPos.x, playerPos.y, -5f);
-            _camera.InitCameraTarget(_player.transform);
-
             _map.GenerateMapByLoadAsset(_levelSystem.LoadedLevelData);
+
+            // 读取 Entry 位置，传送玩家并初始化组件
+            var missionSystem = this.GetSystem<IMissionSystem>();
+            if (missionSystem.EntrySpawnPosition.HasValue)
+            {
+                var spawnPos = missionSystem.EntrySpawnPosition.Value;
+                _player.transform.position = new Vector3(spawnPos.x, spawnPos.y, 0f);
+                _camera.transform.position = new Vector3(spawnPos.x, spawnPos.y, -5f);
+                _camera.InitCameraTarget(_player.transform);
+            }
+            else
+            {
+                _camera.InitCameraTarget(_player.transform);
+            }
+
             return true;
         }
 

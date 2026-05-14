@@ -62,6 +62,11 @@ namespace QFramework.Command
                 // 防御性保护，避免任何路径把弹匣打成负数
                 _weaponData.CurMagazine.Value = Mathf.Max(0, _weaponData.CurMagazine.Value - 1);  // 当前弹匣弹药
                 _weaponData.WeaponState = WeaponStateEnum.Idle;
+
+                TypeEventSystem.Global.Send(new StatsEvent.OnShotFired
+                {
+                    WeaponType = _weaponData.WeaponType
+                });
             }
         }
 

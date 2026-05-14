@@ -16,6 +16,27 @@ namespace QFramework.ViewController.Enemy
         private Vector3 _originShadowLocalPos;
         private bool _hasOrigin;
 
+        #region ----- 状态机 -------------------------
+
+        protected override void InitFSM()
+        {
+            base.InitFSM();
+            _fsm.AddState(new AirEnemyDeathState(this, _fsm));
+        }
+
+        protected override void Update()
+        {
+            if (IsDead())
+            {
+                _fsm.ChangeState<AirEnemyDeathState>();
+                _fsm.Update();
+                return;
+            }
+            base.Update();
+        }
+
+        #endregion
+
         /// <summary>
         /// 使用内部计时器驱动浮动（适合 Update 中持续调用）。
         /// </summary>

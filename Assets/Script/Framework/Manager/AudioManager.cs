@@ -20,6 +20,9 @@ namespace QFramework.Manager
         private AudioSource _envSource;
         private AudioSource[] _sfxPool;
 
+        [SerializeField] private float _sfxPitchVariation = 0.1f;
+        [SerializeField] private float _sfxVolumeVariation = 0.05f;
+
         private float _masterVol = 1f;
         private float _bgmVol = 1f;
         private float _envVol = 1f;
@@ -176,8 +179,7 @@ namespace QFramework.Manager
             }
 
             var source = GetAvailableSFXSource();
-            source.volume = GetSFXVolumeMultiplier();
-            source.pitch = 1f;
+            ApplySFXVariation(source);
             source.PlayOneShot(clip);
         }
 
@@ -193,8 +195,7 @@ namespace QFramework.Manager
             }
 
             var source = GetAvailableSFXSource();
-            source.volume = GetSFXVolumeMultiplier();
-            source.pitch = 1f;
+            ApplySFXVariation(source);
             source.transform.position = position;
             source.PlayOneShot(clip);
         }
@@ -211,8 +212,7 @@ namespace QFramework.Manager
             }
 
             var source = GetAvailableSFXSource();
-            source.volume = GetSFXVolumeMultiplier();
-            source.pitch = pitch;
+            ApplySFXVariation(source, pitch);
             source.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
         }
 
@@ -243,6 +243,14 @@ namespace QFramework.Manager
             newPool[_sfxPool.Length] = newSource;
             _sfxPool = newPool;
             return newSource;
+        }
+
+        private void ApplySFXVariation(AudioSource source, float basePitch = 1f)
+        {
+            float pitchMod = UnityEngine.Random.Range(1f - _sfxPitchVariation, 1f + _sfxPitchVariation);
+            float volMod = UnityEngine.Random.Range(1f - _sfxVolumeVariation, 1f + _sfxVolumeVariation);
+            source.pitch = basePitch * pitchMod;
+            source.volume = GetSFXVolumeMultiplier() * volMod;
         }
 
         private void LoadSavedSettings()

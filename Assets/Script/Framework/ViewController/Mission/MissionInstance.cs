@@ -11,7 +11,6 @@ namespace QFramework.ViewController.Mission
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         public IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
         public int Index;
-        public Vector2 AreaSize;
         public List<Action> StepActionList;        
         private Collider2D _collider;
         
@@ -23,7 +22,6 @@ namespace QFramework.ViewController.Mission
         public virtual void Init(MissionDataModel mission)
         {
             _collider = GetComponent<Collider2D>();
-            AreaSize = _collider.bounds.size;
             Index = mission.MissionIndex;
             StepActionList = new List<Action>(mission.MissionConfig.MissionSteps.Length);      
         }

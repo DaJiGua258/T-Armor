@@ -20,6 +20,7 @@ namespace QFramework.ViewController.Player
         private Vector3 _aimTargetPos;
         private Transform _targetTransform;
         private ParticleSystem[] _launchVfx;
+        private bool _hasReceivedTarget;
 
         protected override void Start()
         {
@@ -35,6 +36,7 @@ namespace QFramework.ViewController.Player
             TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(e =>
             {
                 _aimTargetPos = e.Target;
+                _hasReceivedTarget = true;
                 if (!e.HasTarget) _targetTransform = null;
             }).UnRegisterWhenGameObjectDestroyed(gameObject);
 
@@ -60,8 +62,6 @@ namespace QFramework.ViewController.Player
                 yield break;
             }
 
-            Vector3 homingFallbackPos = _aimTargetPos + (Vector3)UnityEngine.Random.insideUnitCircle * 1f;
-
             for (int i = 0; i < _launchPositions.Length; i++)
             {
                 if (WeaponDataModel.CurMagazine.Value <= 0) break;
@@ -71,7 +71,7 @@ namespace QFramework.ViewController.Player
                 var launchPos = _launchPositions[launchIndex];
                 _currentIndex = (_currentIndex + 1) % _launchPositions.Length;
 
-                SpawnMissile(launchPos.position, homingFallbackPos, launchIndex);
+                SpawnMissile(launchPos.position, launchIndex);
                 ConsumeShot();
 
                 if (i < _launchPositions.Length - 1)
@@ -81,8 +81,11 @@ namespace QFramework.ViewController.Player
             IsActive = false;
         }
 
-        private void SpawnMissile(Vector3 pos, Vector3 fallbackPos, int launchIndex)
+        private void SpawnMissile(Vector3 pos, int launchIndex)
         {
+            if (!_hasReceivedTarget)
+                _aimTargetPos = this.GetUtility<IInputUtility>().GetMousePos();
+
             var bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, pos, Quaternion.identity);
             _launchVfx[launchIndex].Play();
 
@@ -96,7 +99,7 @@ namespace QFramework.ViewController.Player
             if (_targetTransform != null)
                 projectile.SetHomingTarget(_targetTransform);
             else
-                projectile.SetHomingPosition(fallbackPos);
+                projectile.SetHomingPosition(_aimTargetPos + (Vector3)UnityEngine.Random.insideUnitCircle * 1f);
         }
     }
 }

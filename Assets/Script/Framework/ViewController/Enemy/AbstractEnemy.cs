@@ -2,6 +2,7 @@ using DG.Tweening;
 using Pathfinding;
 using QFramework.Command;
 using QFramework.Enum;
+using QFramework.Model;
 using QFramework.System;
 using QFramework.Utility;
 using QFramework.ViewController.FSM;
@@ -29,6 +30,7 @@ namespace QFramework.ViewController.Enemy
 
         [Header("寻路与感知")]
         public FollowerEntity Agent;
+        protected EnemeyConfig _enemyConfig;
         public float DetectionRange;
         public float AttackMaxRange;
         public float AttackMinRange;
@@ -170,8 +172,8 @@ namespace QFramework.ViewController.Enemy
         {
             if(IsInit) return;
             InitTransofrm();
-            InitFSM();
             InitData();
+            InitFSM();
             IsInit = true;
         }
 
@@ -211,6 +213,8 @@ namespace QFramework.ViewController.Enemy
             // 物理组件
             Rb = transform.GetComponent<Rigidbody2D>();
 
+            SyncColliderTag();
+
             Agent = transform.GetComponent<FollowerEntity>();
 
             // 损伤特效粒子（可选）
@@ -226,7 +230,7 @@ namespace QFramework.ViewController.Enemy
                 _damageVfxParticles = new List<ParticleSystem>();
             }
 
-            
+
 
             // 收集 Mesh 下所有渲染器（含 Body/Legs/Weapon 等），用于受击闪白
             _meshRenderers = new List<Renderer>();
@@ -234,7 +238,34 @@ namespace QFramework.ViewController.Enemy
             _flashBlock = new MaterialPropertyBlock();
         }
 
-        protected virtual void InitData() { }
+        /// <summary>
+        /// 将 ColliderTrans 及其所有子物体的 Tag 同步为根节点 Tag，
+        /// 避免因子节点 Tag 不一致导致 FindNearestTarget 的 CompareTag 过滤失效。
+        /// </summary>
+        private void SyncColliderTag()
+        {
+            if (ColliderTrans == null) return;
+
+            string rootTag = gameObject.tag;
+
+            ColliderTrans.gameObject.tag = rootTag;
+            foreach (Transform child in ColliderTrans)
+            {
+                child.gameObject.tag = rootTag;
+            }
+        }
+
+        protected virtual void InitData()
+        {
+            var config = this.GetModel<IEnemeyConfigModel>().GetEnemyFromCache(enemyType);
+            if (config == null) return;
+
+            _enemyConfig = config;
+            DetectionRange = config.DetectionRange;
+            AttackMaxRange = config.AttackMaxRange;
+            AttackMinRange = config.AttackMinRange;
+            _moveSpeed = config.MoveSpeed;
+        }
 
         #endregion
 
@@ -252,19 +283,32 @@ namespace QFramework.ViewController.Enemy
         /// 用 OverlapCircle + LayerMask 扫描范围内最近的有效目标。
         /// 依据自身标签自动判断：Player→检测Enemy，Enemy→检测Player。
         /// </summary>
+        /// <summary>
+        /// 在指定范围内查找最近的目标
+        /// </summary>
+        /// <param name="range">搜索范围</param>
+        /// <returns>找到的最近目标的Transform，如果没有找到则返回null</returns>
         public Transform FindNearestTarget(float range)
         {
+            // 使用OverlapCircleNonAlloc在指定范围内检测所有碰撞体
+            // 将结果存储在_scanCache数组中，只检测TargetLayerMask层上的对象
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, range, _scanCache, TargetLayerMask);
 
+            // 初始化最近目标的距离为最大浮点数
             float closestSq = float.MaxValue;
+            // 初始化最近目标为null
             Transform nearest = null;
 
+            // 根据自身标签确定目标标签
+            // 如果自己是Player，则目标是Enemy；反之亦然
             string targetTag = CompareTag("Player") ? "Enemy" : "Player";
 
             for (int i = 0; i < count && i < _scanCache.Length; i++)
             {
                 var col = _scanCache[i];
                 if (col == null) continue;
+                // 跳过自身碰撞体，避免把自己当成目标
+                if (col.transform.IsChildOf(transform)) continue;
 
                 if (!col.CompareTag(targetTag)) continue;
 
@@ -528,7 +572,11 @@ namespace QFramework.ViewController.Enemy
                 if (hit.collider == null) continue;
                 // 跳过自身碰撞体
                 if (hit.collider.transform.IsChildOf(transform)) continue;
-                return true;
+                // 第一个非自身碰撞体是目标 → 视线畅通
+                if (hit.collider.transform == Target || hit.collider.transform.IsChildOf(Target))
+                    return true;
+                // 被其他物体（障碍物）阻挡
+                return false;
             }
             return false;
         }
@@ -541,7 +589,7 @@ namespace QFramework.ViewController.Enemy
             if (pos.sqrMagnitude <= 0.001f || pos.y <= 0) // 0.01f 的平方
             {
                 float z = Mesh.transform.localPosition.z;
-                Mesh.transform.localPosition = new Vector3(0, 0, z);
+                Mesh.transform.localPosition = new Vector3(pos.x, 0, z);
                 return true;
             }
             return false;

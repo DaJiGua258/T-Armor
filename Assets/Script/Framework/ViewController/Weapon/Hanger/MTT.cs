@@ -20,7 +20,7 @@ namespace QFramework.ViewController.Player
         protected override void Start()
         {
             base.Start();
-            TypeEventSystem.Global.Register<MissionEvent.KillEnemyEvent>(
+            TypeEventSystem.Global.Register<StatsEvent.OnEnemyKilled>(
                 e => ScanForTarget()
             ).UnRegisterWhenGameObjectDestroyed(gameObject);
         }

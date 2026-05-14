@@ -13,6 +13,7 @@ public class Debugers : MonoBehaviour, IController
     public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
     public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
     public IEnemyInstanceSystem EnemyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
+    public IStatsSystem StatsSystem => this.GetSystem<IStatsSystem>();
     [Header("敌人数据")]
     [SerializeField] private int _enemyId;
     [SerializeField] private string _enemyState;
@@ -70,6 +71,14 @@ public class Debugers : MonoBehaviour, IController
             info += $"Enemy Instance Id: {enemyData.InstanceId.Value}\n";
             info += $"Enemy Type: {enemyData.TypeEnum}\n";
         }
+
+        info += "\n";
+        info += "── Stats ──\n";
+        info += $"Kills: {StatsSystem.TotalKills}\n";
+        info += $"Damage: {StatsSystem.TotalDamageDealt} dealt / {StatsSystem.TotalDamageTaken} taken\n";
+        info += $"Shots: {StatsSystem.TotalShotsFired} | Acc: {StatsSystem.GetAccuracy():P0}\n";
+        info += $"Time: {StatsSystem.GameTimeSeconds:F1}s\n";
+        info += $"Deaths: {StatsSystem.TotalDeaths} | Missions: {StatsSystem.TotalMissionsCompleted}\n";
 
         _text.text = info;
     }

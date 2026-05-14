@@ -60,7 +60,6 @@ public class MapGeneratorParametersSO : ScriptableObject
     [Range(1, 10)] public int postProcessIterations = 4;
 
     [Header("障碍物")]
-    public float obstacleThreshold = 0.45f;
     public Color obstacleColor = new Color(0.5f, 0.86f, 1f, 1f);
     public GameObject Pf_obstacle1x1;
     public GameObject Pf_obstacle2x2;
@@ -69,6 +68,14 @@ public class MapGeneratorParametersSO : ScriptableObject
     [Header("任务点")]
     public bool preferLowestNoise = true;
     [Min(0)] public int extraMarginCells = 0;
+    [Min(0f)] public float minDistanceBetweenMissions = 3f;
+    [Min(0f)] public float distanceStep = 1f;
+
+    [Header("兴趣点")]
+    public int poiCount = 3;
+    [Min(0)] public int poiExtraMarginCells = 0;
+    [Min(0f)] public float poiAvoidMissionRadius = 2.5f;
+    [Min(0f)] public float poiMinDistance = 3f;
 
     [Header("环境物体")]
     public bool environmentEnabled = true;

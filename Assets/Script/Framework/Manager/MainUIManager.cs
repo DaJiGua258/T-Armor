@@ -4,6 +4,7 @@ using QFramework.System;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.UI;
+using QFramework.ViewController.MainMenuUI;
 using UnityEngine;
 
 namespace QFramework.Manager
@@ -55,6 +56,9 @@ namespace QFramework.Manager
         // ----- 世界空间面板 ------------------------------
         public PlanetNodeList PlanetNodeList;
 
+        // ----- 十字准星 -------------------------------------
+        private ScreenCrosshair _screenCrosshair;
+
         // ----- 世界空间游戏物体 ------------------------------
         public PlanetGenerator PlanetGenerator;
         public PlanetOrbitCamera OrbitOrbitCamera;
@@ -82,6 +86,8 @@ namespace QFramework.Manager
 
             _canvasWorldSpace = transform.Find("CanvasWorldSpace");
             _canvasScreenSpace = transform.Find("CanvasScreenSpace");
+
+            _screenCrosshair = _canvasScreenSpace.GetComponentInChildren<ScreenCrosshair>(true);
 
             InitGameWorld();
             InitWorldPanelDict();
@@ -234,7 +240,12 @@ namespace QFramework.Manager
 
                 // 从 LevelDetail 回到 LevelSelect 时恢复轨道
                 if (targetPrimary == UIMainPanelType.LevelSelectPanel)
-                    OrbitOrbitCamera?.RestoreOrbit(_cameraTransitionDuration, () => UnlockCamera());
+                    OrbitOrbitCamera?.RestoreOrbit(_cameraTransitionDuration, () =>
+                    {
+                        UnlockCamera();
+                        _screenCrosshair?.Show();
+                        _screenCrosshair?.Unlock();
+                    });
                 return;
             }
 
@@ -369,6 +380,7 @@ namespace QFramework.Manager
                         cameraSeq.OnComplete(() => OrbitOrbitCamera.SyncFromPosition());
                     }
                     PlanetNodeList.gameObject.SetActive(false);
+                    _screenCrosshair?.Hide();
                     break;
 
                 case UIMainPanelType.LevelSelectPanel:
@@ -404,12 +416,17 @@ namespace QFramework.Manager
                                     levelCG.DOFade(1f, _panelFadeDuration).SetEase(_fadeEase);
                                 OrbitOrbitCamera.SyncFromPosition();
                                 UnlockCamera();
+
+                                _screenCrosshair?.Show();
+                                _screenCrosshair?.Unlock();
                             });
                         }
                     }
                     else
                     {
                         UnlockCamera();
+                        _screenCrosshair?.Show();
+                        _screenCrosshair?.Unlock();
                     }
                     PlanetNodeList.gameObject.SetActive(true);
                     break;
@@ -509,6 +526,9 @@ namespace QFramework.Manager
 
         public void EnterLevelConfirm(Vector3 nodeWorldPosition)
         {
+            // 立即锁定十字线到 node，后续镜头动画过程中持续追踪
+            _screenCrosshair?.LockAtWorldPosition(nodeWorldPosition);
+
             if (OrbitOrbitCamera != null)
             {
                 OrbitOrbitCamera.SaveOrbitState();

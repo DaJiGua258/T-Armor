@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using QFramework.Enum;
+using QFramework.Event;
 using QFramework.Model;
 using QFramework.UtilityKit;
 using UnityEngine;
@@ -12,13 +13,15 @@ namespace QFramework.System
         public void AddProgress(MissionDataModel mission, int value);
         public void InitMission(LevelMissionTypeEnum levelMissionType);
         public List<MissionDataModel> Missions { get; }
+        public Vector3? EntrySpawnPosition { get; set; }
     }
 
     public class MissionSystem : AbstractSystem, IMissionSystem
     {
-        private const int PrimaryMissionIndex = 0;
+        private const int PrimaryMissionIndex = 1;
         private IMissionConfigModel _missionConfigModel => this.GetModel<IMissionConfigModel>();
         public List<MissionDataModel> Missions { get; private set; } = new();
+        public Vector3? EntrySpawnPosition { get; set; }
 
         
         protected override void OnInit()
@@ -40,12 +43,20 @@ namespace QFramework.System
             var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
             Missions.Clear();
 
-            for(int missionIndex = 0; missionIndex < levelConfig.MissionTypes.Count; missionIndex++)
+            int missionIndex = 0;
+
+            // 1) Entry 进入任务（auto-completed）
+            Missions.Add(InitMission(MissionTypeEnum.Entry, MissionState.Completed, missionIndex++));
+
+            // 2) 玩法任务（第一个为主要任务 NotStarted，后续为前置任务 InProgress）
+            for(int i = 0; i < levelConfig.MissionTypes.Count; i++)
             {
-                var missionType = levelConfig.MissionTypes[missionIndex];
-                var initState = MissionState.NotStarted;
-                Missions.Add(InitMission(missionType, initState, missionIndex));
+                var initState = (i == 0) ? MissionState.NotStarted : MissionState.InProgress;
+                Missions.Add(InitMission(levelConfig.MissionTypes[i], initState, missionIndex++));
             }
+
+            // 3) Extraction 撤离任务（默认未激活）
+            Missions.Add(InitMission(MissionTypeEnum.Extraction, MissionState.NotStarted, missionIndex));
         }
 
         /// <summary>
@@ -76,25 +87,25 @@ namespace QFramework.System
         /// </summary>
         public bool IsPreMissionFinished()
         {
-            for(int missionIndex = 1; missionIndex < Missions.Count; missionIndex++)
+            int extractionIndex = Missions.Count - 1;
+
+            // 检查所有前置任务（Primary 之后、Extraction 之前）是否完成
+            for(int i = PrimaryMissionIndex + 1; i < extractionIndex; i++)
             {
-                var mission = Missions[missionIndex];
-                if(mission.MissionState.Value != MissionState.Completed)
+                if(Missions[i].MissionState.Value != MissionState.Completed)
                 {
                     return false;
                 }
             }
 
-            if(Missions.Count <= PrimaryMissionIndex)
+            if(Missions.Count > PrimaryMissionIndex)
             {
-                return false;
-            }
-
-            var priMission = Missions[PrimaryMissionIndex];
-            if(priMission.MissionType != MissionTypeEnum.None &&
-               priMission.MissionState.Value == MissionState.NotStarted)
-            {
-                priMission.MissionState.Value = MissionState.InProgress;
+                var primary = Missions[PrimaryMissionIndex];
+                if(primary.MissionType != MissionTypeEnum.None &&
+                   primary.MissionState.Value == MissionState.NotStarted)
+                {
+                    primary.MissionState.Value = MissionState.InProgress;
+                }
             }
 
             return true;
@@ -124,10 +135,33 @@ namespace QFramework.System
             if(mission.StepIndex.Value > mission.MissionConfig.MissionSteps.Length - 1)
             {
                 mission.MissionState.Value = MissionState.Completed;
+                TypeEventSystem.Global.Send(new StatsEvent.OnMissionCompleted
+                {
+                    Type = mission.MissionType
+                });
             }
 
             // 判断前置任务是否全部完成
             IsPreMissionFinished();
+
+            // 判断是否需要激活撤离任务
+            TryActivateExtraction(mission);
+        }
+
+        private void TryActivateExtraction(MissionDataModel completedMission)
+        {
+            if(completedMission.MissionState.Value != MissionState.Completed)
+                return;
+
+            if(completedMission.MissionIndex != PrimaryMissionIndex)
+                return;
+
+            int extractionIndex = Missions.Count - 1;
+            if(extractionIndex > PrimaryMissionIndex &&
+               Missions[extractionIndex].MissionState.Value == MissionState.NotStarted)
+            {
+                Missions[extractionIndex].MissionState.Value = MissionState.InProgress;
+            }
         }
 
     }

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"C:/Program Files/Unity/Hub/Editor/2022.3.5f1/Editor/Unity.exe\" -quit -batchmode -logFile -)"
+      "Bash(\"C:/Program Files/Unity/Hub/Editor/2022.3.5f1/Editor/Unity.exe\" -quit -batchmode -logFile -)",
+      "Bash(grep -n \"Raider\\\\|Raider$\" \"Assets/Resources/Prefab/Enemy/Raider.prefab\")"
     ]
   }
 }

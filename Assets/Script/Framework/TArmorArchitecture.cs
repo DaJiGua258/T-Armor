@@ -26,6 +26,9 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         // 玩家系统（引用武器，改装槽系统）
         RegisterSystem<IPlayerSystem>(new PlayerSystem());
         RegisterSystem<ILevelSystem>(new LevelSystem());
+
+        // 统计数据系统
+        RegisterSystem<IStatsSystem>(new StatsSystem());
         
         // 工具注册
         RegisterUtility<IResourceLoad>(new ResouceLoad());

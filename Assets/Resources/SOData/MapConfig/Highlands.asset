@@ -87,13 +87,18 @@ MonoBehaviour:
       borderTiles: []
   enableShapePostProcess: 1
   postProcessIterations: 4
-  obstacleThreshold: 1
   obstacleColor: {r: 0.93710685, g: 0.7755989, b: 0.7043035, a: 1}
   Pf_obstacle1x1: {fileID: 8482001784776433974, guid: 8909adee8f868c541aa547bd76c87371, type: 3}
   Pf_obstacle2x2: {fileID: 8482001784776433974, guid: 2d79fbe12cbcc274b8f24e22653a9888, type: 3}
   Pf_obstacle3x3: {fileID: 8482001784776433974, guid: ea2e60fca168a4444b30bea132190496, type: 3}
   preferLowestNoise: 1
-  extraMarginCells: 0
+  extraMarginCells: 3
+  minDistanceBetweenMissions: 25
+  distanceStep: 3
+  poiCount: 20
+  poiExtraMarginCells: 3
+  poiAvoidMissionRadius: 20
+  poiMinDistance: 20
   environmentEnabled: 1
   environmentRules:
   - prefab: {fileID: 7494403134742495345, guid: 09be885cb91555441bf7adcb89731d51, type: 3}

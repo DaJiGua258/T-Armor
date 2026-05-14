@@ -51,7 +51,19 @@ namespace QFramework.Model
                     null
                 )
             },
-            
+
+            // 进入任务（玩家出生点）
+            {
+                MissionTypeEnum.Entry, new MissionConfig(
+                    MissionTypeEnum.Entry,
+                    null,
+                    "进入任务",
+                    new MissionStep[] { },
+                    "进入任务",
+                    null
+                )
+            },
+
             // 任务1
             {
                 MissionTypeEnum.Pre_EnemyKill, new MissionConfig(
@@ -89,6 +101,15 @@ namespace QFramework.Model
                 "Mission_4",
                 new MissionStep[] { new MissionStep("Mission_4", 1) },
                 "Mission_4",
+                null)},
+
+            // 撤离任务
+            {MissionTypeEnum.Extraction, new MissionConfig(
+                MissionTypeEnum.Extraction,
+                null,
+                "撤离任务",
+                new MissionStep[] { new MissionStep("到达撤离点", 1) },
+                "撤离任务",
                 null)},
         };
 
@@ -180,10 +201,18 @@ namespace QFramework.Model
     {
         None,
         NotStarted,  // 任务未开始（主要针对首要任务）
-        InProgress, 
+        InProgress,
         Pause,  // 任务暂停（如未在任务范围内）
         Completed,
         Failed,
+    }
+
+    public static class MissionTypeHelper
+    {
+        public static bool IsGameplayMission(MissionTypeEnum type) =>
+            type != MissionTypeEnum.Entry &&
+            type != MissionTypeEnum.Extraction &&
+            type != MissionTypeEnum.None;
     }
 
 

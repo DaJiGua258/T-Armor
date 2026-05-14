@@ -13,7 +13,6 @@ namespace QFramework.ViewController.UI
     public struct HotbarInfoData
     {
         public Text NameTxt;  // 名称文本
-        public Image NameImg;  // 名称背景图
         public Image[] CountImgs;  // 数量指示图
     }
 
@@ -22,14 +21,11 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Transform _contentRoot;  // 快捷栏内容根节点
 
         private List<HotbarInfoData> _hotbarInfos = new List<HotbarInfoData>();  // 所有槽位数据
-        private Sprite _uiFrameSprite;  // 名称背景默认帧图
+        private List<UIHighlight> _hotbarHighlights = new List<UIHighlight>();  // 各槽位高亮组件
         private int _selectedIndex = -1;  // 当前选中槽位索引
         private bool _canUseItem = false;
 
         private HotbarExecutor _hotbarExecutor;
-
-        private static readonly Color s_colorBlack = Color.black;
-        private static readonly Color s_colorWhite = Color.white;
 
         void Start()
         {
@@ -84,15 +80,19 @@ namespace QFramework.ViewController.UI
             {
                 var child = _contentRoot.GetChild(i);
                 var nameImg = child.Find("Name")?.GetComponent<Image>();
+                var nameTxt = child.Find("Name/Txt")?.GetComponent<Text>();
 
-                // 从首个槽位缓存默认帧图
-                if (i == 0 && nameImg != null)
-                    _uiFrameSprite = nameImg.sprite;
+                // 为每个槽位挂载高亮组件
+                var highlight = child.Find("Name")?.gameObject.AddComponent<UIHighlight>();
+                if (highlight != null && nameImg != null && nameTxt != null)
+                {
+                    highlight.Setup(nameImg, nameTxt);
+                    _hotbarHighlights.Add(highlight);
+                }
 
                 var info = new HotbarInfoData
                 {
-                    NameTxt = child.Find("Name/Txt")?.GetComponent<Text>(),
-                    NameImg = nameImg,
+                    NameTxt = nameTxt,
                     CountImgs = new Image[3]
                 };
 
@@ -151,17 +151,11 @@ namespace QFramework.ViewController.UI
 
             // 恢复上一个槽位的未选中状态
             if (_selectedIndex >= 0)
-            {
-                var prev = _hotbarInfos[_selectedIndex];
-                prev.NameImg.sprite = _uiFrameSprite;
-                prev.NameTxt.color = s_colorWhite;
-            }
+                _hotbarHighlights[_selectedIndex].SetHighlight(false);
 
             _selectedIndex = index;
 
-            var curr = _hotbarInfos[_selectedIndex];
-            curr.NameImg.sprite = null;
-            curr.NameTxt.color = s_colorBlack;
+            _hotbarHighlights[_selectedIndex].SetHighlight(true);
 
             // 选中物品时显示引导激光
             TypeEventSystem.Global.Send(new PlayerEvent.GuidanceLaserShow());
@@ -174,9 +168,7 @@ namespace QFramework.ViewController.UI
         {
             if (_selectedIndex < 0) return;
 
-            var prev = _hotbarInfos[_selectedIndex];
-            prev.NameImg.sprite = _uiFrameSprite;
-            prev.NameTxt.color = s_colorWhite;
+            _hotbarHighlights[_selectedIndex].SetHighlight(false);
             _selectedIndex = -1;
 
             // 取消选中时隐藏引导激光（引导中不隐藏，由 HotbarExecutor 控制）
@@ -198,8 +190,7 @@ namespace QFramework.ViewController.UI
                 if (itemData == null || itemData.ItemType == ItemTypeEnum.None)
                 {
                     info.NameTxt.text = "NONE";
-                    info.NameTxt.color = s_colorWhite;
-                    info.NameImg.sprite = _uiFrameSprite;
+                    _hotbarHighlights[i].SetHighlight(false);
                     foreach (var img in info.CountImgs)
                         img.enabled = false;
                     continue;

@@ -15,7 +15,7 @@ MonoBehaviour:
   RingRadius: 0.5
   RingSpacing: 0.5
   Types:
-  - EnemyType: 2
+  - EnemyType: 1
     Count: 4
   - EnemyType: 1
     Count: 5

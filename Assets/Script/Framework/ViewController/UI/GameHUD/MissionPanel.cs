@@ -13,7 +13,7 @@ namespace QFramework.ViewController.UI
 {
     public class MissionPanel : BaseUIComponent
     {
-        private const int PrimaryMissionIndex = 0;
+        private const int PrimaryMissionIndex = 1;
 
         [SerializeField] private GameObject _pf_priItem;
         [SerializeField] private MissionItem _primaryMissionItem;
@@ -105,8 +105,8 @@ namespace QFramework.ViewController.UI
         {
             int missionCount = MissionSystem.Missions.Count;
 
-            // 遍历初始化前置任务
-            for(int missionIndex = 1; missionIndex < missionCount; missionIndex++)
+            // 遍历初始化前置任务（跳过 Entry[0]、Primary[1]、Extraction[last]）
+            for(int missionIndex = 2; missionIndex < missionCount - 1; missionIndex++)
             {
                 var mission = MissionSystem.Missions[missionIndex];
                 if(mission.MissionType == MissionTypeEnum.None)

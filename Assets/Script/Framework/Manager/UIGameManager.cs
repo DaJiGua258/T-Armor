@@ -60,6 +60,19 @@ namespace QFramework.Manager
             {
                 TogglePause();
             }
+
+#if UNITY_EDITOR
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                GameManager.Instance.SetGameResultState(GameResultState.GameFinished);
+                ShowPanel(UIGamePanelType.GameOverPanel);
+            }
+            if (Input.GetKeyDown(KeyCode.F6))
+            {
+                GameManager.Instance.SetGameResultState(GameResultState.GameOver);
+                ShowPanel(UIGamePanelType.GameOverPanel);
+            }
+#endif
         }
 
         private void InitPanelConfig()

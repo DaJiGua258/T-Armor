@@ -11,9 +11,9 @@ namespace QFramework.ViewController.UI.WeaponConfig
         [SerializeField] private Text _nameText;
         [SerializeField] private RawImage _iconImage;
         [SerializeField] private Image _nameImage;
+        [SerializeField] private UIHighlight _highlight;
 
         private WeaponTypeEnum _weaponType;
-        private Sprite _uiFrameSprite;
         private bool _isSelected;
         private bool _isHovered;
 
@@ -23,7 +23,13 @@ namespace QFramework.ViewController.UI.WeaponConfig
         private void Awake()
         {
             Button = GetComponent<Button>();
-            _uiFrameSprite = _nameImage.sprite;
+
+            // 自动初始化高亮组件（未在预制体拖拽绑定时）
+            if (_highlight == null && _nameImage != null && _nameText != null)
+            {
+                _highlight = gameObject.AddComponent<UIHighlight>();
+                _highlight.Setup(_nameImage, _nameText);
+            }
         }
 
         public void Init(WeaponTypeEnum weaponType)
@@ -49,16 +55,8 @@ namespace QFramework.ViewController.UI.WeaponConfig
 
         private void RefreshState()
         {
-            if (_isSelected || _isHovered)
-            {
-                _nameImage.sprite = null;
-                _nameText.color = Color.black;
-            }
-            else
-            {
-                _nameImage.sprite = _uiFrameSprite;
-                _nameText.color = Color.white;
-            }
+            if (_highlight != null)
+                _highlight.SetHighlight(_isSelected || _isHovered);
         }
 
         private void OnDisable()

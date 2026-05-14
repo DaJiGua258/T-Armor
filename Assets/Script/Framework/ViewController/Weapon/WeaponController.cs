@@ -61,18 +61,18 @@ namespace QFramework.ViewController.Player
                 // 计算旋转角度
                 float targetZ = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + aimZOffsetDeg;
 
-                // 平滑插值
-                float currentZ = weapon.transform.rotation.eulerAngles.z;
-                
-                // 提前量计算
+                // 提前量计算：加到目标角度上，使武器指向目标的预测位置
                 if(_targetRig != null)
                 {
-                    currentZ += MathTool.CalculateLeadAngle2D(
-                        weapon.transform.position, 
-                        weapon.WeaponDataModel.BulletSpeed, 
-                        _targetRig.position, 
+                    targetZ += MathTool.CalculateLeadAngle2D(
+                        weapon.transform.position,
+                        weapon.WeaponDataModel.BulletSpeed,
+                        _targetRig.position,
                         _targetRig.velocity);
                 }
+
+                // 平滑插值
+                float currentZ = weapon.transform.rotation.eulerAngles.z;
                 float smoothZ = Mathf.LerpAngle(currentZ, targetZ, 10f * Time.deltaTime);
 
                 // 设置旋转

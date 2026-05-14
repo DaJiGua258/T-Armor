@@ -270,9 +270,6 @@ namespace QFramework.ViewController.Player
             if (_hitbox != null)
             {
                 _hitbox.rotation = _body.rotation;
-                Vector3 pos = _body.position;
-                pos.z = _hitbox.localPosition.z;
-                _hitbox.position = pos;
             }
 
             // 当Body旋转到目标朝向时，小于10度，则允许Weapon旋转

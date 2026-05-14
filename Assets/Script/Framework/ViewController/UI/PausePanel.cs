@@ -11,30 +11,20 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Button _settingBtn;
         [SerializeField] private Button _quitBtn;
 
-        private Text[] _btnTexts;
-        private Image[] _btnImages;
-        private Sprite _defaultSprite;
-
-        private static readonly Color s_colorBlack = Color.black;
-        private static readonly Color s_colorWhite = Color.white;
-
         public override void OnInit()
         {
-            _btnTexts = new[]
-            {
-                _continueBtn.transform.Find("Txt").GetComponent<Text>(),
-                _settingBtn.transform.Find("Txt").GetComponent<Text>(),
-                _quitBtn.transform.Find("Txt").GetComponent<Text>(),
-            };
+            var buttons = new[] { _continueBtn, _settingBtn, _quitBtn };
 
-            _btnImages = new[]
+            for (int i = 0; i < buttons.Length; i++)
             {
-                _continueBtn.GetComponent<Image>(),
-                _settingBtn.GetComponent<Image>(),
-                _quitBtn.GetComponent<Image>(),
-            };
-
-            _defaultSprite = _btnImages[0].sprite;
+                var btn = buttons[i];
+                var highlight = btn.gameObject.AddComponent<UIHighlight>();
+                highlight.Setup(
+                    btn.GetComponent<Image>(),
+                    btn.transform.Find("Txt").GetComponent<Text>()
+                );
+                AddHoverHandler(btn, highlight);
+            }
 
             _continueBtn.onClick.AddListener(() =>
             {
@@ -52,29 +42,19 @@ namespace QFramework.ViewController.UI
             {
                 GameManager.Instance.EnterMainScene();
             });
-
-            AddHoverHandler(_continueBtn, 0);
-            AddHoverHandler(_settingBtn, 1);
-            AddHoverHandler(_quitBtn, 2);
         }
 
-        private void AddHoverHandler(Button btn, int index)
+        private void AddHoverHandler(Button btn, UIHighlight highlight)
         {
             var trigger = btn.gameObject.AddComponent<EventTrigger>();
 
             var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            enter.callback.AddListener(_ => SetHighlight(index, true));
+            enter.callback.AddListener(_ => highlight.SetHighlight(true));
             trigger.triggers.Add(enter);
 
             var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
-            exit.callback.AddListener(_ => SetHighlight(index, false));
+            exit.callback.AddListener(_ => highlight.SetHighlight(false));
             trigger.triggers.Add(exit);
-        }
-
-        private void SetHighlight(int index, bool highlighted)
-        {
-            _btnTexts[index].color = highlighted ? s_colorBlack : s_colorWhite;
-            _btnImages[index].sprite = highlighted ? null : _defaultSprite;
         }
     }
 }

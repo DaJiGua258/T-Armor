@@ -1,3 +1,4 @@
+using QFramework.Event;
 using QFramework.Manager;
 using QFramework.ViewController.FSM;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace QFramework.ViewController.Player
             Entity.PlayDeathVFX();
             GameManager.Instance.SetGameResultState(GameResultState.GameOver);
             UIGameManager.Instance.ShowPanel(UIGamePanelType.GameOverPanel);
+            TypeEventSystem.Global.Send(new StatsEvent.OnPlayerDeath());
         }
 
         public override void OnUpdate()

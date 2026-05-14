@@ -86,11 +86,13 @@ namespace QFramework.Enum
     public enum MissionTypeEnum
     {
         None,
+        Entry,
         Pre_EnemyKill,
         Mission_2,
         Mission_3,
         Mission_4,
         Mission_5,
+        Extraction,
     }
 
         public enum LevelMissionTypeEnum

@@ -45,6 +45,7 @@ namespace QFramework.ViewController.Enemy
 
         protected override void InitData()
         {
+            base.InitData();
             LockCargos();
         }
 

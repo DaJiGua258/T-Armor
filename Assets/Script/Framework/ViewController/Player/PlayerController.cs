@@ -33,6 +33,9 @@ namespace QFramework.ViewController.Player
         [Header("其他引用")]
         [SerializeField] private PlayerDeathVFXController _deathVFX;
 
+        [Header("Leg VFX")]
+        private ParticleSystem[] _legParticles;
+
         [Header("模式状态")]
         private bool _weaponEnabled = true;
 
@@ -48,6 +51,8 @@ namespace QFramework.ViewController.Player
             _weapon = GetComponent<WeaponController>();
             _hangerWeapon = GetComponent<HangerWeaponController>();
             _rigid = GetComponent<Rigidbody2D>();
+
+            FindLegParticles();
 
             // 初始化状态字典
             _fsm = new StateMachine<PlayerController>();
@@ -164,6 +169,33 @@ namespace QFramework.ViewController.Player
         {
             if (_deathVFX == null) return;
             _deathVFX.PlayVFX();
+        }
+
+        private void FindLegParticles()
+        {
+            Transform vfxNode = _legs?.Find("vfx");
+            if (vfxNode != null)
+            {
+                _legParticles = vfxNode.GetComponentsInChildren<ParticleSystem>();
+            }
+        }
+
+        public void StopLegParticles()
+        {
+            if (_legParticles == null) return;
+            foreach (var ps in _legParticles)
+            {
+                ps.Stop();
+            }
+        }
+
+        public void ResumeLegParticles()
+        {
+            if (_legParticles == null) return;
+            foreach (var ps in _legParticles)
+            {
+                ps.Play();
+            }
         }
 
         public void SetLockState(bool locked)

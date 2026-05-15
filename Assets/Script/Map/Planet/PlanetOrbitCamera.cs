@@ -30,6 +30,10 @@ public class PlanetOrbitCamera : MonoBehaviour
     [Tooltip("滚轮缩放速度")]
     public float zoomSpeed = 1f;
 
+    [Header("回退距离")]
+    [Tooltip("从节点聚焦状态沿法线回退的目标距离")]
+    public float focusReturnRadius = 5f;
+
     [Header("拖拽旋转速度")]
     public float dragSpeed = 0.3f;
 
@@ -49,6 +53,8 @@ public class PlanetOrbitCamera : MonoBehaviour
     private float _savedPitch;
     private float _savedRadius;
     private bool  _hasSavedState;
+
+    // ── 沿法线回退 ──────────────────────────────────────────
 
     // ── 默认轨道（供外部回到初始姿态） ─────────────────────────
     private float _defaultOrbitRadius;
@@ -128,7 +134,7 @@ public class PlanetOrbitCamera : MonoBehaviour
     public void FocusDirection(Vector3 direction)
     {
         // 从单位向量反算 yaw / pitch
-        _yaw   = Mathf.Atan2(direction.x, -direction.z) * Mathf.Rad2Deg;
+        _yaw   = Mathf.Atan2(-direction.x, -direction.z) * Mathf.Rad2Deg;
         _pitch = Mathf.Asin(Mathf.Clamp(direction.y, -1f, 1f)) * Mathf.Rad2Deg;
         _pitch = Mathf.Clamp(_pitch, pitchRange.x, pitchRange.y);
         ApplyOrbit();
@@ -141,7 +147,7 @@ public class PlanetOrbitCamera : MonoBehaviour
     {
         if (planetCenter == null) return transform.position;
         Vector3 dir = direction.normalized;
-        float yaw   = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
+        float yaw   = Mathf.Atan2(-dir.x, -dir.z) * Mathf.Rad2Deg;
         float pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
         pitch = Mathf.Clamp(pitch, pitchRange.x, pitchRange.y);
         Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
@@ -165,7 +171,7 @@ public class PlanetOrbitCamera : MonoBehaviour
     {
         if (planetCenter == null) return;
         Vector3 offset = transform.position - planetCenter.position;
-        _yaw   = Mathf.Atan2(offset.x, -offset.z) * Mathf.Rad2Deg;
+        _yaw   = Mathf.Atan2(-offset.x, -offset.z) * Mathf.Rad2Deg;
         _pitch = Mathf.Asin(Mathf.Clamp(offset.y / offset.magnitude, -1f, 1f)) * Mathf.Rad2Deg;
         _pitch = Mathf.Clamp(_pitch, pitchRange.x, pitchRange.y);
         orbitRadius = Mathf.Clamp(offset.magnitude, radiusRange.x, radiusRange.y);
@@ -232,6 +238,31 @@ public class PlanetOrbitCamera : MonoBehaviour
             _pitch      = _savedPitch;
             orbitRadius = _savedRadius;
             _hasSavedState = false;
+            onComplete?.Invoke();
+        });
+    }
+
+    /// <summary>
+    /// 从当前摄像机位置沿法线方向回退到默认轨道距离
+    /// </summary>
+    public void ReturnFromFocus(float duration, System.Action onComplete = null)
+    {
+        if (planetCenter == null) return;
+
+        transform.DOKill(false);
+
+        // 从当前实际位置反算法线方向，不依赖 _lastFocusNormal
+        Vector3 currentNormal = (transform.position - planetCenter.position).normalized;
+        float returnRadius = focusReturnRadius;
+        Vector3 targetPos = planetCenter.position + currentNormal * returnRadius;
+        Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
+
+        var seq = DOTween.Sequence();
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.OnComplete(() =>
+        {
+            SyncFromPosition();
             onComplete?.Invoke();
         });
     }

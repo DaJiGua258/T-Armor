@@ -96,6 +96,8 @@ namespace QFramework.UtilityKit
     {
         private static T s_instance;
 
+        public static T Instance => s_instance;
+
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         public IDebugUtility DebugUtility => this.GetUtility<IDebugUtility>();
         public IResourceLoad ResourceLoad => this.GetUtility<IResourceLoad>();

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,15 +22,18 @@ namespace QFramework.ViewController.MainMenuUI
         [SerializeField] private RectTransform _verticalLine;
         [SerializeField] private RectTransform _container;
 
-        [Header("其他")]
+        [Header("淡入淡出")]
+        [SerializeField] private float _fadeDuration = 0.25f;
 
 
         private Canvas _parentCanvas;
         private Camera _mainCamera;
 
         private bool _isLocked;              // 锁定状态：点击 node 后固定到该位置
+        private bool _isVisible;             // 可见状态：隐藏时依然跟随鼠标，仅透明
         private Vector3 _lockedWorldPosition; // 锁定的世界坐标（每帧实时转屏幕坐标，实现镜头移动时追踪）
         private Vector2 _lockedScreenPos;     // 锁定时最后计算的屏幕坐标
+        private CanvasGroup _containerCg;     // 用于控制容器透明度
 
         private void Awake()
         {
@@ -40,6 +44,11 @@ namespace QFramework.ViewController.MainMenuUI
 
             _container = transform.Find("Container").GetComponent<RectTransform>();
 
+            // 获取/添加 Container 的 CanvasGroup，用于透明控制
+            _containerCg = _container.GetComponent<CanvasGroup>();
+            if (_containerCg == null)
+                _containerCg = _container.gameObject.AddComponent<CanvasGroup>();
+
             _horizontalLine = _container.Find("LineH").GetComponent<RectTransform>();
             _verticalLine = _container.Find("LineV").GetComponent<RectTransform>();
 
@@ -47,13 +56,13 @@ namespace QFramework.ViewController.MainMenuUI
 
             InitializeLines();
 
-            // 默认隐藏，由 MainUIManager 在适当时机显示
-            gameObject.SetActive(false);
+            // 初始不可见（透明），但保持 active 以运行 Update 跟随鼠标
+            _containerCg.alpha = 0f;
+            _isVisible = false;
         }
 
         private void Update()
         {
-            if (!gameObject.activeInHierarchy) return;
             UpdatePosition();
         }
 
@@ -91,16 +100,21 @@ namespace QFramework.ViewController.MainMenuUI
         public void Show()
         {
             _isLocked = false;
-            gameObject.SetActive(true);
+            _isVisible = true;
+            _containerCg.DOKill();
+            _containerCg.DOFade(1f, _fadeDuration);
         }
 
         /// <summary>
         /// 隐藏十字线（主菜单等不需要十字线的界面）
+        /// 隐藏时保持 active 以继续跟随鼠标，仅透明不可见
         /// </summary>
         public void Hide()
         {
             _isLocked = false;
-            gameObject.SetActive(false);
+            _isVisible = false;
+            _containerCg.DOKill();
+            _containerCg.DOFade(0f, _fadeDuration);
         }
 
         /// <summary>

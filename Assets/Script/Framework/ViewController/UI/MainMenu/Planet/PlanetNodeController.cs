@@ -11,15 +11,23 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
     private Transform planet;
     private Transform mainCam;
     private CanvasGroup _canvasGroup;
+    private Image[] _nodeImages;
+    private bool _isHighlighted;
+    private bool _isClicked;
     public PlanetNodeMapData MapData { get; private set; }
 
-    private const float NORMAL_ALPHA = 0.5f;
     private const float HIGHLIGHT_ALPHA = 1f;
+    private static readonly Color DefaultNodeColor = Color.gray;
+    private static readonly Color HighlightNodeColor = Color.white;
 
     [Header("缩放设置")]
     public float baseScale = 0.01f;     // World Space UI 基础大小
     public float minScaleLimit = 0.4f;  // 在边缘时的最小比例
     public float maxScaleLimit = 1.0f;  // 正对时的最大比例
+
+    [Header("透明度设置")]
+    public float minAlpha = 0.3f;       // 法线垂直相机时的最小透明度
+    public float maxAlpha = 1.0f;       // 法线正对相机时的最大透明度
 
     private void Awake()
     {
@@ -28,13 +36,11 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         if (_canvasGroup == null)
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
-        // 将所有子 Image 的 alpha 置为 1，由 CanvasGroup 整体控制
-        var images = GetComponentsInChildren<Image>(true);
-        foreach (var img in images)
+        // 保存所有子 Image 引用，将颜色设为灰色，alpha 统一为 1 由 CanvasGroup 控制
+        _nodeImages = GetComponentsInChildren<Image>(true);
+        foreach (var img in _nodeImages)
         {
-            Color c = img.color;
-            c.a = 1f;
-            img.color = c;
+            img.color = DefaultNodeColor;
         }
 
         // 禁用 Button 的 ColorTint，避免与 CanvasGroup 冲突
@@ -42,7 +48,7 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         if (button != null)
             button.transition = Selectable.Transition.None;
 
-        _canvasGroup.alpha = NORMAL_ALPHA;
+        _canvasGroup.alpha = 1f;
     }
 
     public void Init(Transform planetTransform, PlanetNodeMapData mapData)
@@ -51,7 +57,8 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         gameObject.GetComponent<Button>().onClick
             .AddListener(() =>
             {
-                _canvasGroup.alpha = HIGHLIGHT_ALPHA;
+                _isClicked = true;
+                _isHighlighted = true;
                 MainUIManager.Instance.EnterLevelConfirm(transform.position);
                 this.SendCommand<MainMenuCommand.SelectLevel>(new MainMenuCommand.SelectLevel(mapData));
             });
@@ -64,12 +71,19 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        _canvasGroup.alpha = HIGHLIGHT_ALPHA;
+        _isHighlighted = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        _canvasGroup.alpha = NORMAL_ALPHA;
+        if (!_isClicked)
+            _isHighlighted = false;
+    }
+
+    public void SetHighlighted(bool highlighted)
+    {
+        _isClicked = false;
+        _isHighlighted = highlighted;
     }
 
     void LateUpdate()
@@ -98,5 +112,20 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         float dot = Mathf.Clamp01(Vector3.Dot(nodeNormal, dirToCam.normalized));
         float scale = Mathf.Lerp(minScaleLimit, maxScaleLimit, dot) * baseScale;
         transform.localScale = new Vector3(scale, scale, scale);
+
+        // 3. 透明度与颜色：点击/悬停时白色不透明，否则根据法线与相机夹角动态变化
+        if (_isHighlighted || _isClicked)
+        {
+            _canvasGroup.alpha = HIGHLIGHT_ALPHA;
+            foreach (var img in _nodeImages)
+                img.color = HighlightNodeColor;
+        }
+        else
+        {
+            float alpha = Mathf.Lerp(minAlpha, maxAlpha, dot);
+            _canvasGroup.alpha = alpha;
+            foreach (var img in _nodeImages)
+                img.color = DefaultNodeColor;
+        }
     }
 }

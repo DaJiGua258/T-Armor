@@ -11,6 +11,7 @@ namespace QFramework.ViewController.Player
         public override void OnEnter()
         {
             Entity.StopMovement();
+            Entity.ResumeLegParticles();
         }
 
         public override void OnUpdate()

@@ -1,6 +1,7 @@
+using DG.Tweening;
 using QFramework.Event;
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
 {
@@ -10,14 +11,43 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Text _levelNameText;        // 任务名称
         [SerializeField] private Text _levelDescriptionText; // 任务介绍
 
+        [Header("滑入滑出")]
+        [SerializeField] private float _slideDuration = 0.35f;
+        [SerializeField] private float _hiddenY = -600f;
+
+        private Tween _slideTween;
+        private RectTransform _rectTransform;
+
+        private void Awake()
+        {
+            _rectTransform = transform as RectTransform;
+        }
+
         public override void OnShow()
         {
             this.RegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+
+            // 从隐藏位置滑入
+            _slideTween?.Kill();
+            var pos = _rectTransform.anchoredPosition;
+            pos.y = _hiddenY;
+            _rectTransform.anchoredPosition = pos;
+            _slideTween = _rectTransform.DOAnchorPosY(0, _slideDuration).SetEase(Ease.OutSine);
         }
 
         public override void OnHide()
         {
             this.UnRegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+        }
+
+        public override void Hide()
+        {
+            OnHide();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
+
+            _slideTween?.Kill();
+            _slideTween = _rectTransform.DOAnchorPosY(_hiddenY, _slideDuration).SetEase(Ease.InSine)
+                .OnComplete(() => { gameObject.SetActive(false); });
         }
 
         private void OnUpdateMapInfo(UpdateMapInfo e)

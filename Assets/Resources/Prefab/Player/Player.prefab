@@ -230,7 +230,7 @@ Transform:
   m_GameObject: {fileID: 1588524159053269109}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3000002, y: -0.14999962, z: -2.4340038}
+  m_LocalPosition: {x: -0.3, y: -0.15, z: -2.4340038}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -398,8 +398,8 @@ ParticleSystem:
     enabled: 1
     startLifetime:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 1
+      minMaxState: 0
+      scalar: 0.25
       minScalar: 0.75
       maxCurve:
         serializedVersion: 2
@@ -1206,7 +1206,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -5237,8 +5237,8 @@ ParticleSystem:
     enabled: 1
     startLifetime:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 1
+      minMaxState: 0
+      scalar: 0.25
       minScalar: 0.75
       maxCurve:
         serializedVersion: 2
@@ -6045,7 +6045,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -10076,8 +10076,8 @@ ParticleSystem:
     enabled: 1
     startLifetime:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 1
+      minMaxState: 0
+      scalar: 0.25
       minScalar: 0.75
       maxCurve:
         serializedVersion: 2
@@ -10884,7 +10884,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -14915,8 +14915,8 @@ ParticleSystem:
     enabled: 1
     startLifetime:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 1
+      minMaxState: 0
+      scalar: 0.25
       minScalar: 0.75
       maxCurve:
         serializedVersion: 2
@@ -15723,7 +15723,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -20066,7 +20066,7 @@ Transform:
   m_GameObject: {fileID: 6596778487776070649}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3000002, y: 0.35000038, z: -2.4340038}
+  m_LocalPosition: {x: -0.3, y: 0.35, z: -2.4340038}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -20194,14 +20194,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7259554538435511267}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.41022083, w: 0.91198623}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3027422256639384964}
   m_Father: {fileID: 7129977459079710536}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 48.437}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2757679199047761586
 MonoBehaviour:
   m_ObjectHideFlags: 0

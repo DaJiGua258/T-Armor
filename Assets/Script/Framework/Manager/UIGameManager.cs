@@ -23,6 +23,7 @@ namespace QFramework.Manager
         PausePanel,
         SettingsPanel,
         GameOverPanel,
+        TerminalPanel,
     }
 
     public class UIGameManager : MonoSingleton<UIGameManager>, IController
@@ -83,6 +84,7 @@ namespace QFramework.Manager
             SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.SettingsPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.GameOverPanel,    UIGamePanelLayer.Modal,   true);
+            SetConfig(UIGamePanelType.TerminalPanel,    UIGamePanelLayer.Modal,   true);
         }
 
         private void SetConfig(UIGamePanelType type, UIGamePanelLayer layer, bool hideLower)
@@ -108,6 +110,7 @@ namespace QFramework.Manager
             AddPanel(UIGamePanelType.PausePanel);
             AddPanel(UIGamePanelType.SettingsPanel);
             AddPanel(UIGamePanelType.GameOverPanel);
+            AddPanel(UIGamePanelType.TerminalPanel);
 
             // 按层设置渲染顺序（低层 → 低 sibling index → 先渲染）
             foreach (var kvp in _panelDict)
@@ -227,7 +230,7 @@ namespace QFramework.Manager
         private void UpdatePlayerLockState()
         {
             bool shouldLock = false;
-            var lockPanelTypes = new[] { UIGamePanelType.InventoryPanel, UIGamePanelType.PausePanel, UIGamePanelType.SettingsPanel };
+            var lockPanelTypes = new[] { UIGamePanelType.InventoryPanel, UIGamePanelType.PausePanel, UIGamePanelType.SettingsPanel, UIGamePanelType.TerminalPanel };
             foreach (var type in lockPanelTypes)
             {
                 if (_panelDict.TryGetValue(type, out var panel) && panel.gameObject.activeSelf)
@@ -239,6 +242,15 @@ namespace QFramework.Manager
 
             if (GameManager.Instance.Player != null)
                 GameManager.Instance.Player.SetLockState(shouldLock);
+
+            // UI 打开时摄像机回归玩家中心，关闭时恢复偏移
+            if (CameraController.Instance != null)
+            {
+                if (shouldLock)
+                    CameraController.Instance.ResetOffset();
+                else
+                    CameraController.Instance.ResumeOffset();
+            }
         }
 
         private void UpdateCursorState()

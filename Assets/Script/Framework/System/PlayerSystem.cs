@@ -29,7 +29,7 @@ namespace QFramework.System
 
         public void InitPlayerWeapon()
         {
-            var weaponDataLeft = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.AR));
+            var weaponDataLeft = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.LMG));
             var weaponDataRight = new WeaponDataModel(_weaponModel.GetWeaponConfigModel(WeaponTypeEnum.SG));
             PlayerWeapon.Left.Value = weaponDataLeft;
             PlayerWeapon.Right.Value = weaponDataRight;

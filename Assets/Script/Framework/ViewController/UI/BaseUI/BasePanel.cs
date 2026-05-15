@@ -19,7 +19,7 @@ namespace QFramework.ViewController.UI
             RebuildLayout();
         }
 
-        public void Hide()
+        public virtual void Hide()
         {
             OnHide();
             RebuildLayout();

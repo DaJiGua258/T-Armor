@@ -238,14 +238,17 @@ namespace QFramework.Manager
                     _restoreOrbitPending = true;
                 ApplyPanelGroup(_panelStack.Peek().Panels);
 
-                // 从 LevelDetail 回到 LevelSelect 时恢复轨道
+                // 从 LevelDetail 回到 LevelSelect：沿法线回退，十字准星立即解锁
                 if (targetPrimary == UIMainPanelType.LevelSelectPanel)
-                    OrbitOrbitCamera?.RestoreOrbit(_cameraTransitionDuration, () =>
+                {
+                    _screenCrosshair?.Show();
+                    _screenCrosshair?.Unlock();
+                    PlanetNodeList?.ResetNodeHighlight();
+                    OrbitOrbitCamera?.ReturnFromFocus(_cameraTransitionDuration, () =>
                     {
                         UnlockCamera();
-                        _screenCrosshair?.Show();
-                        _screenCrosshair?.Unlock();
                     });
+                }
                 return;
             }
 
@@ -389,7 +392,7 @@ namespace QFramework.Manager
                         if (_restoreOrbitPending)
                         {
                             _restoreOrbitPending = false;
-                            // 从 LevelDetail 返回，由 RestoreOrbit 处理动画，此处只解锁交互
+                            // 从 LevelDetail 返回，由 ReturnFromFocus 处理相机动画，此处只恢复面板
                         }
                         else
                         {
@@ -531,7 +534,6 @@ namespace QFramework.Manager
 
             if (OrbitOrbitCamera != null)
             {
-                OrbitOrbitCamera.SaveOrbitState();
                 OrbitOrbitCamera.FocusOnNode(nodeWorldPosition, _cameraTransitionDuration);
             }
             PushGroup(new UIMainPanelGroup(

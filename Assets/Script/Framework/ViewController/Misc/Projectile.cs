@@ -198,7 +198,7 @@ namespace QFramework.ViewController.Player
 
                 if (hasCollision)
                 {
-                    Debug.Log($"[Projectile] Hit: {hit.collider.name} | Tag: {hit.collider.tag} | Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
+                    // Debug.Log($"[Projectile] Hit: {hit.collider.name} | Tag: {hit.collider.tag} | Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
                     HitDetectionUtility.ProcessHit(hit.collider, _damage);
                 }
 

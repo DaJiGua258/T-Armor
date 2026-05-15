@@ -375,6 +375,29 @@ namespace QFramework.ViewController.UI
         #endregion
 
         #region ----- 清理逻辑 ------------------------------
+        /// <summary>
+        /// 重置所有节点的高亮状态（返回 LevelSelect 时调用）
+        /// </summary>
+        public void ResetNodeHighlight()
+        {
+            for (int i = 0; i < _finishedNodes.Count; i++)
+            {
+                if (_finishedNodes[i] != null)
+                {
+                    var controller = _finishedNodes[i].GetComponent<PlanetNodeController>();
+                    if (controller != null) controller.SetHighlighted(false);
+                }
+            }
+            for (int i = 0; i < _newNodes.Count; i++)
+            {
+                if (_newNodes[i] != null)
+                {
+                    var controller = _newNodes[i].GetComponent<PlanetNodeController>();
+                    if (controller != null) controller.SetHighlighted(false);
+                }
+            }
+        }
+
         private void ClearGeneratedObjects()
         {
             ClearObjectList(_lineObjects);

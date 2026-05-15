@@ -1,3 +1,4 @@
+using DG.Tweening;
 using QFramework.Enum;
 using QFramework.Model;
 using QFramework.System;
@@ -32,16 +33,52 @@ namespace QFramework.ViewController.UI
 
         private WeaponSlot _currentSlot;
 
+        [Header("滑入滑出")]
+        [SerializeField] private float _slideDuration = 0.35f;
+        [SerializeField] private float _panelHiddenY = -600f;
+
+        private float _hiddenY;
+        private bool _isListShowing;
+        private Tween _listTween;
+
+        private Tween _panelTween;
+        private RectTransform _rectTransform;
+
         private void Awake()
         {
             _playerSystem = this.GetSystem<IPlayerSystem>();
             _weaponConfigModel = this.GetModel<IWeaponConfigModel>();
             _weaponSelect = _weaponListNode.GetComponent<WeaponSelectList>();
+            _hiddenY = _weaponListNode.localPosition.y;
+            _rectTransform = transform as RectTransform;
 
             _leftSideBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.LeftSide));
             _rightSideBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.RightSide));
             _leftHangerBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.LeftHanger));
             _rightHangerBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.RightHanger));
+        }
+
+        public override void OnShow()
+        {
+            UpdatePlayerRT();
+
+            // 从隐藏位置滑入
+            _panelTween?.Kill();
+            var pos = _rectTransform.anchoredPosition;
+            pos.y = _panelHiddenY;
+            _rectTransform.anchoredPosition = pos;
+            _panelTween = _rectTransform.DOAnchorPosY(0, _slideDuration).SetEase(Ease.OutSine);
+        }
+
+        public override void Hide()
+        {
+            OnHide();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
+
+            _isListShowing = false;
+            _panelTween?.Kill();
+            _panelTween = _rectTransform.DOAnchorPosY(_panelHiddenY, _slideDuration).SetEase(Ease.InSine)
+                .OnComplete(() => { gameObject.SetActive(false); });
         }
 
         private void OnEnable()
@@ -57,7 +94,6 @@ namespace QFramework.ViewController.UI
                 _playerSystem.InitHangerWeapon();
 
             _weaponSelect.OnWeaponConfirmed += OnWeaponSelected;
-            _weaponListNode.gameObject.SetActive(false);
 
             UpdatePlayerRT();
         }
@@ -86,8 +122,28 @@ namespace QFramework.ViewController.UI
                 WeaponSlot.RightHanger => playerWeapon.HangerRight.Value,
             };
 
-            _weaponListNode.gameObject.SetActive(true);
-            _weaponSelect.ShowWeapons(isHanger, currentWeapon?.WeaponType ?? WeaponTypeEnum.None);
+            _listTween?.Kill();
+
+            if (_isListShowing)
+            {
+                // 滑出到隐藏位 → 更新内容 → 滑入到 0
+                _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.3f).SetEase(Ease.OutSine)
+                    .OnComplete(() =>
+                    {
+                        _weaponSelect.ShowWeapons(isHanger, currentWeapon?.WeaponType ?? WeaponTypeEnum.None);
+                        _listTween = _weaponListNode.DOLocalMoveY(0, 0.3f).SetEase(Ease.OutSine);
+                    });
+            }
+            else
+            {
+                var pos = _weaponListNode.localPosition;
+                pos.y = _hiddenY;
+                _weaponListNode.localPosition = pos;
+
+                _weaponSelect.ShowWeapons(isHanger, currentWeapon?.WeaponType ?? WeaponTypeEnum.None);
+                _listTween = _weaponListNode.DOLocalMoveY(0, 0.3f).SetEase(Ease.OutSine);
+                _isListShowing = true;
+            }
         }
 
         private void OnWeaponSelected(WeaponTypeEnum weaponType)
@@ -116,7 +172,10 @@ namespace QFramework.ViewController.UI
                     break;
             }
 
-            _weaponListNode.gameObject.SetActive(false);
+            // 滑出到隐藏位
+            _listTween?.Kill();
+            _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.3f).SetEase(Ease.OutSine)
+                .OnComplete(() => _isListShowing = false);
         }
     }
 }

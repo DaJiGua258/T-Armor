@@ -22,6 +22,7 @@ public class CameraController : OverrideMonoSingleton<CameraController>
     private Vector3 _currentOffset;
     private Vector3 _offsetVelocity;      // 用于 SmoothDamp
     private Vector3 _camVelocity;         // 用于 SmoothDamp
+    private bool _offsetLocked;           // UI 打开时锁定偏移
 
     [Header("震动")]
     [SerializeField] private float _shakeDuration = 0.3f;
@@ -52,6 +53,24 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         }
     }
 
+    /// <summary>
+    /// UI 打开时锁定偏移，摄像机回归玩家中心。
+    /// </summary>
+    public void ResetOffset()
+    {
+        _offsetLocked = true;
+        _currentOffset = Vector3.zero;
+        _offsetVelocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// UI 关闭后恢复鼠标偏移。
+    /// </summary>
+    public void ResumeOffset()
+    {
+        _offsetLocked = false;
+    }
+
     void LateUpdate()
     {
         if (!_target) return;
@@ -59,16 +78,19 @@ public class CameraController : OverrideMonoSingleton<CameraController>
         Vector3 targetPos = _target.position;
         Vector3 mouseWorld = InputUtility.GetMousePos();
 
-        // 计算鼠标偏移
-        Vector3 mouseDelta = mouseWorld - targetPos;
-        mouseDelta.z = 0f;
-        float mouseDist = mouseDelta.magnitude;
-
+        // 计算鼠标偏移（UI 打开时锁定偏移，平滑回归中心）
         Vector3 desiredOffset = Vector3.zero;
-        if (mouseDist > _mouseOffsetThreshold)
+        if (!_offsetLocked)
         {
-            float offsetMag = Mathf.Min(mouseDist - _mouseOffsetThreshold, _mouseMaxOffset);
-            desiredOffset = mouseDelta.normalized * offsetMag;
+            Vector3 mouseDelta = mouseWorld - targetPos;
+            mouseDelta.z = 0f;
+            float mouseDist = mouseDelta.magnitude;
+
+            if (mouseDist > _mouseOffsetThreshold)
+            {
+                float offsetMag = Mathf.Min(mouseDist - _mouseOffsetThreshold, _mouseMaxOffset);
+                desiredOffset = mouseDelta.normalized * offsetMag;
+            }
         }
 
         // ✅ 用 SmoothDamp 平滑偏移（比 Lerp 更自然，有速度连续性）

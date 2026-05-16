@@ -1,6 +1,6 @@
-using System;
-using System.Collections.Generic;
+using QFramework.Command;
 using QFramework.System;
+using QFramework.Model;
 using UnityEngine;
 
 namespace QFramework.ViewController.Mission
@@ -9,13 +9,11 @@ namespace QFramework.ViewController.Mission
     public abstract class AbstractMissionInstance : MonoBehaviour, IController
     {
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
-        public IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
-        public int Index;
-        public List<Action> StepActionList;        
-        private Collider2D _collider;
-        
 
-        // TODO: 在地图生成器中，读取mission中的列表，读取物体实例化路径，实例化同时调用该初始化传入索引
+        public int Index { get; private set; }
+        protected IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
+        private Collider2D _collider;
+
         /// <summary>
         /// 初始化
         /// </summary>
@@ -23,8 +21,16 @@ namespace QFramework.ViewController.Mission
         {
             _collider = GetComponent<Collider2D>();
             Index = mission.MissionIndex;
-            StepActionList = new List<Action>(mission.MissionConfig.MissionSteps.Length);      
         }
 
+        protected void AddProgress(int amount = 1)
+        {
+            this.SendCommand(new MissionCommand.Add(Index, amount));
+        }
+
+        protected void SetState(MissionState state)
+        {
+            this.SendCommand(new MissionCommand.SetState(Index, state));
+        }
     }
 }

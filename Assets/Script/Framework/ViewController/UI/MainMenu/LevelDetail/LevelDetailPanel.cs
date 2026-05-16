@@ -1,5 +1,6 @@
 using DG.Tweening;
 using QFramework.Event;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,6 +54,16 @@ namespace QFramework.ViewController.UI
         private void OnUpdateMapInfo(UpdateMapInfo e)
         {
             RefreshUI();
+            StartCoroutine(RefreshLayoutRoutine());
+        }
+
+        private IEnumerator RefreshLayoutRoutine()
+        {
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
+            yield return null;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
         }
 
         private void RefreshUI()

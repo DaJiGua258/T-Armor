@@ -88,7 +88,9 @@ namespace QFramework.Enum
         None,
         Entry,
         Pre_EnemyKill,
-        Mission_2,
+        Pre_GetKey,
+        Pre_DestroyBackupHub,   // 破坏备用处理中枢
+        InvasionSystem,
         Mission_3,
         Mission_4,
         Mission_5,
@@ -99,6 +101,7 @@ namespace QFramework.Enum
     {
         None,
         LevMis_CleaArea,
+        LevMis_NodeInvasion,
         LevelMission_2,
     }
 

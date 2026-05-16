@@ -4,6 +4,7 @@ using QFramework.Model;
 using QFramework.System;
 using QFramework.ViewController.UI.WeaponConfig;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
@@ -14,6 +15,12 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Button _leftSideBtn;
         [SerializeField] private Button _rightHangerBtn;
         [SerializeField] private Button _rightSideBtn;
+
+        private UIHighlight _leftHangerHighlight;
+        private UIHighlight _leftSideHighlight;
+        private UIHighlight _rightHangerHighlight;
+        private UIHighlight _rightSideHighlight;
+
         [SerializeField] private RawImage _playerRawImage;
         private RenderTexture _rt;
 
@@ -56,6 +63,11 @@ namespace QFramework.ViewController.UI
             _rightSideBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.RightSide));
             _leftHangerBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.LeftHanger));
             _rightHangerBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.RightHanger));
+
+            _leftSideHighlight = SetupSlotHighlight(_leftSideBtn, WeaponSlot.LeftSide);
+            _rightSideHighlight = SetupSlotHighlight(_rightSideBtn, WeaponSlot.RightSide);
+            _leftHangerHighlight = SetupSlotHighlight(_leftHangerBtn, WeaponSlot.LeftHanger);
+            _rightHangerHighlight = SetupSlotHighlight(_rightHangerBtn, WeaponSlot.RightHanger);
         }
 
         public override void OnShow()
@@ -109,7 +121,9 @@ namespace QFramework.ViewController.UI
 
         private void OnSlotBtnClick(WeaponSlot slot)
         {
+            var isSameSlot = _currentSlot == slot;
             _currentSlot = slot;
+            UpdateSlotHighlights();
 
             var isHanger = slot is WeaponSlot.LeftHanger or WeaponSlot.RightHanger;
 
@@ -124,9 +138,15 @@ namespace QFramework.ViewController.UI
 
             _listTween?.Kill();
 
-            if (_isListShowing)
+            if (_isListShowing && isSameSlot)
             {
-                // 滑出到隐藏位 → 更新内容 → 滑入到 0
+                // 点击相同按钮 → 关闭 list
+                _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.3f).SetEase(Ease.OutSine)
+                    .OnComplete(() => _isListShowing = false);
+            }
+            else if (_isListShowing)
+            {
+                // 切换到不同按钮 → 滑出 → 更新内容 → 滑入
                 _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.3f).SetEase(Ease.OutSine)
                     .OnComplete(() =>
                     {
@@ -136,6 +156,7 @@ namespace QFramework.ViewController.UI
             }
             else
             {
+                // 列表未显示 → 从隐藏位置滑入
                 var pos = _weaponListNode.localPosition;
                 pos.y = _hiddenY;
                 _weaponListNode.localPosition = pos;
@@ -144,6 +165,39 @@ namespace QFramework.ViewController.UI
                 _listTween = _weaponListNode.DOLocalMoveY(0, 0.3f).SetEase(Ease.OutSine);
                 _isListShowing = true;
             }
+        }
+
+        private UIHighlight SetupSlotHighlight(Button btn, WeaponSlot slot)
+        {
+            var highlight = btn.gameObject.AddComponent<UIHighlight>();
+            highlight.Setup(btn.GetComponent<Image>(), btn.GetComponentInChildren<Text>());
+
+            var trigger = btn.gameObject.AddComponent<EventTrigger>();
+            var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener(_ => highlight.SetHighlight(true));
+            trigger.triggers.Add(enter);
+
+            var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exit.callback.AddListener(_ =>
+            {
+                if (_currentSlot != slot)
+                    highlight.SetHighlight(false);
+            });
+            trigger.triggers.Add(exit);
+
+            return highlight;
+        }
+
+        private void UpdateSlotHighlights()
+        {
+            if (_leftSideHighlight != null)
+                _leftSideHighlight.SetHighlight(_currentSlot == WeaponSlot.LeftSide);
+            if (_rightSideHighlight != null)
+                _rightSideHighlight.SetHighlight(_currentSlot == WeaponSlot.RightSide);
+            if (_leftHangerHighlight != null)
+                _leftHangerHighlight.SetHighlight(_currentSlot == WeaponSlot.LeftHanger);
+            if (_rightHangerHighlight != null)
+                _rightHangerHighlight.SetHighlight(_currentSlot == WeaponSlot.RightHanger);
         }
 
         private void OnWeaponSelected(WeaponTypeEnum weaponType)
@@ -172,10 +226,7 @@ namespace QFramework.ViewController.UI
                     break;
             }
 
-            // 滑出到隐藏位
-            _listTween?.Kill();
-            _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.3f).SetEase(Ease.OutSine)
-                .OnComplete(() => _isListShowing = false);
+            // 选择后保持 list 开启，不关闭
         }
     }
 }

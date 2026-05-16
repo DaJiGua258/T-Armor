@@ -95,8 +95,11 @@ namespace QFramework.UtilityKit
     public class OverrideMonoSingleton<T> : MonoBehaviour, IController where T : OverrideMonoSingleton<T>
     {
         private static T s_instance;
-
-        public static T Instance => s_instance;
+        public static T Instance
+        {
+            get { return s_instance; }
+            set { s_instance = value; }
+        }
 
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
         public IDebugUtility DebugUtility => this.GetUtility<IDebugUtility>();

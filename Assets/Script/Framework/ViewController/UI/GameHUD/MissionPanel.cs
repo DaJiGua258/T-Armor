@@ -32,28 +32,23 @@ namespace QFramework.ViewController.UI
             StartCoroutine(RefreshLayOut());
         }
 
+        void OnEnable()
+        {
+            StartCoroutine(RefreshLayOut());
+        }
+
         void Update()
         {
-            // if(Input.GetKeyDown(KeyCode.Space))
-            // {
-            //     this.SendCommand(new MissionCommand.Update(0, 1));
-            // }
 
-            // if(Input.GetKeyDown(KeyCode.R))
-            // {
-            //     this.SendCommand(new MissionCommand.Update(1, 1));
-            // }
-
-            // if(Input.GetKeyDown(KeyCode.T))
-            // {
-            //     this.SendCommand(new MissionCommand.Update(2, 1));
-            // }
         }
 
         IEnumerator RefreshLayOut()
         {
+            Canvas.ForceUpdateCanvases();
             yield return null;
-            UITool.ForceRebuildFormRoot(transform as RectTransform);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
+            yield return null;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
         }
 
         private void RegisterMissionEvent(MissionItem item, MissionDataModel mission)
@@ -156,8 +151,9 @@ namespace QFramework.ViewController.UI
                 }
             }
 
-            StartCoroutine(RefreshLayOut());
-        } 
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(RefreshLayOut());
+        }
 
 
 
@@ -182,8 +178,9 @@ namespace QFramework.ViewController.UI
                 item.TipText.text = "  > 返回任务地点";
             }
 
-            StartCoroutine(RefreshLayOut());
-        }  
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(RefreshLayOut());
+        }
     }
 
     [Serializable]

@@ -12,7 +12,7 @@ namespace QFramework.ViewController.Player
     {
         [Header("VML 发射设置")]
         [SerializeField] private Transform[] _launchPositions;
-        [SerializeField] private float _launchInterval = 0.3f;
+        [SerializeField] private float _launchInterval = 0.1f;
 
         public override SFXType ShootSFXType => SFXType.misslie_launch;
 
@@ -86,7 +86,7 @@ namespace QFramework.ViewController.Player
             if (!_hasReceivedTarget)
                 _aimTargetPos = this.GetUtility<IInputUtility>().GetMousePos();
 
-            var bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, pos, Quaternion.identity);
+            var bullet = this.GetUtility<IObjectPoolUtility>().GetObject(_pf_bullet, pos + Vector3.forward * 0.1f, Quaternion.Euler(0, 0, 90));
             _launchVfx[launchIndex].Play();
 
             AudioManager.Instance.PlaySFX(ShootSFXType);

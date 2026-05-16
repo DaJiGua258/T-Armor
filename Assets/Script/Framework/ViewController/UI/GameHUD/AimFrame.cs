@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using QFramework;
+using QFramework.Enum;
 using QFramework.Event;
 using QFramework.Manager;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Enemy;
+using QFramework.ViewController.Player;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -23,7 +25,7 @@ namespace QFramework.ViewController.UI
         private RectTransform _rectTransform;
         [SerializeField] private float _frameScale = 1.2f;
         [SerializeField] private Vector2 _defaultFrameSize = new Vector2(200, 200);
-        
+
 
         [Header("检测设置")]
         [SerializeField] private float _aimRadius = 2f;      // 圆形探测的半径
@@ -31,9 +33,14 @@ namespace QFramework.ViewController.UI
         [SerializeField] private float _castDistance = 0.1f; // 投射距离（设为很小的值即等同于原地覆盖检测）
         [SerializeField] private Vector2 _castDirection = Vector2.zero;
         [SerializeField] private LayerMask _layerMask;
-        
+
         // 预分配数组，避免 GC
         private RaycastHit2D[] _raycastResults = new RaycastHit2D[10];
+
+        [Header("交互检测设置")]
+        [SerializeField] private float _interactionRange = 3f;
+        [SerializeField] private LayerMask _interactionLayerMask;
+        private Collider2D[] _interactionResults = new Collider2D[16];
 
         [Header("目标信息 (仅查看)")]
         [SerializeField] private int _enemyId = -1;
@@ -49,6 +56,9 @@ namespace QFramework.ViewController.UI
         private AimingModeEnum _currentMode = AimingModeEnum.Combat;
         private Quaternion _combatRotation = Quaternion.identity;
         private Quaternion _interactionQuaternion;
+
+        // 对外暴露：当前锁定的交互目标，InteractionController 读取用
+        public static GameObject CurrentAimTarget { get; private set; }
 
         void Awake()
         {
@@ -67,19 +77,26 @@ namespace QFramework.ViewController.UI
                 _rectTransform.DORotate(targetRot.eulerAngles, _rotationDuration).SetEase(Ease.Linear);
             }
 
-            DetectAimTargets();
+            if (_currentMode == AimingModeEnum.Combat)
+                DetectCombatTargets();
+            else
+                DetectInteractionTargets();
+
             UpdateFrameTransform();
             SendEvent();
         }
 
         /// <summary>
-        /// 使用 CircleCastNonAlloc 寻找最近的目标
+        /// 战斗模式检测：BoxCast 从鼠标位置 → 找最近敌人 (已有逻辑)
         /// </summary>
-        private void DetectAimTargets()
+        private void DetectCombatTargets()
         {
+            // 切到战斗模式时清除交互 UI
+            TypeEventSystem.Global.Send(new InteractionEvent.HideDots());
+            TypeEventSystem.Global.Send(new InteractionEvent.HidePrompt());
+
             Vector2 mouseWorldPos = InputUtility.GetMousePos();
 
-            // 执行圆形投射
             int count = Physics2D.BoxCastNonAlloc(
                 mouseWorldPos,
                 new Vector2(_aimRadius, _aimRadius),
@@ -96,16 +113,13 @@ namespace QFramework.ViewController.UI
                 return;
             }
 
-            string targetTag = _currentMode == AimingModeEnum.Combat ? "Enemy" : "AimTarget";
-
             float minDis = float.MaxValue;
             Collider2D closest = null;
 
             for (int i = 0; i < count; i++)
             {
-                if(!_raycastResults[i].collider.CompareTag(targetTag)) continue;
+                if(!_raycastResults[i].collider.CompareTag("Enemy")) continue;
 
-                // 计算目标中心到鼠标的距离
                 float curDis = Vector2.Distance(mouseWorldPos, _raycastResults[i].collider.transform.position);
                 if (curDis < minDis)
                 {
@@ -115,6 +129,160 @@ namespace QFramework.ViewController.UI
             }
 
             _targetCollider = closest;
+            CurrentAimTarget = closest != null ? closest.gameObject : null;
+        }
+
+        /// <summary>
+        /// 交互模式检测：
+        /// - OverlapCircle 从玩家位置 → dots（玩家周围所有可交互目标）
+        /// - BoxCast 从鼠标位置 → 锁定（和战斗模式一样，只锁鼠标附近的）
+        /// </summary>
+        private void DetectInteractionTargets()
+        {
+            Vector2 playerPos = PlayerController.Instance.transform.position;
+            Vector2 mouseWorldPos = InputUtility.GetMousePos();
+
+            // ── dots：玩家范围 OverlapCircle ──
+            int dotCount = Physics2D.OverlapCircleNonAlloc(playerPos, _interactionRange, _interactionResults, _interactionLayerMask);
+            InteractionEvent.DotScreenPositions.Clear();
+
+            for (int i = 0; i < dotCount; i++)
+            {
+                Collider2D col = _interactionResults[i];
+                if (!col.CompareTag("AimTarget")) continue;
+                if (!IsTargetAllowed(col)) continue;
+                InteractionEvent.DotScreenPositions.Add(Camera.main.WorldToScreenPoint(col.transform.position));
+            }
+
+            if (InteractionEvent.DotScreenPositions.Count > 0)
+                TypeEventSystem.Global.Send(new InteractionEvent.ShowDots());
+            else
+                TypeEventSystem.Global.Send(new InteractionEvent.HideDots());
+
+            // ── 锁定：鼠标位置 BoxCast（和战斗模式一样）──
+            int lockCount = Physics2D.BoxCastNonAlloc(
+                mouseWorldPos,
+                new Vector2(_interactionRange, _interactionRange),
+                0,
+                Vector2.zero,
+                _raycastResults,
+                0,
+                _interactionLayerMask
+            );
+
+            GameObject closestTarget = null;
+            float closestDist = float.MaxValue;
+            Vector2 closestScreenPos = Vector2.zero;
+
+            for (int i = 0; i < lockCount; i++)
+            {
+                Collider2D col = _raycastResults[i].collider;
+                if (!col.CompareTag("AimTarget")) continue;
+                if (!IsTargetAllowed(col)) continue;
+
+                float curDis = Vector2.Distance(mouseWorldPos, col.transform.position);
+                if (curDis < closestDist)
+                {
+                    closestDist = curDis;
+                    closestTarget = col.gameObject;
+                    closestScreenPos = Camera.main.WorldToScreenPoint(col.transform.position);
+                }
+            }
+
+            if (closestTarget != null)
+            {
+                // 锁定前确认目标在玩家范围内
+                float distToPlayer = Vector2.Distance(closestTarget.transform.position, playerPos);
+                if (distToPlayer <= _interactionRange)
+                {
+                    _targetCollider = closestTarget.GetComponent<Collider2D>();
+                    CurrentAimTarget = closestTarget;
+                    SendShowPrompt(closestTarget, closestScreenPos);
+                }
+                else
+                {
+                    _targetCollider = null;
+                    CurrentAimTarget = null;
+                    TypeEventSystem.Global.Send(new InteractionEvent.HidePrompt());
+                }
+            }
+            else
+            {
+                _targetCollider = null;
+                CurrentAimTarget = null;
+                TypeEventSystem.Global.Send(new InteractionEvent.HidePrompt());
+            }
+        }
+
+        private void SendShowPrompt(GameObject target, Vector2 screenPos)
+        {
+            string actionText = "";
+            string nameText = "";
+
+            PickUpItems pickUp = target.GetComponent<PickUpItems>();
+            if (pickUp != null)
+            {
+                actionText = "拾取";
+                nameText = GetPickUpDisplayName(pickUp);
+            }
+            else
+            {
+                IInteractable interactable = target.GetComponent<IInteractable>();
+                if (interactable != null)
+                {
+                    actionText = interactable.InteractionText;
+                    nameText = interactable.DisplayName;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(actionText))
+            {
+                TypeEventSystem.Global.Send(new InteractionEvent.ShowPrompt
+                {
+                    ActionText = actionText,
+                    NameText = nameText,
+                    ScreenPosition = screenPos
+                });
+            }
+        }
+
+        private string GetPickUpDisplayName(PickUpItems pickUp)
+        {
+            switch (pickUp._type)
+            {
+                case QFramework.Enum.TypeEnum.Weapon:
+                    return pickUp._weaponType.ToString();
+                case QFramework.Enum.TypeEnum.Item:
+                    return this.GetModel<QFramework.Model.IItemConfigModel>()
+                        .GetItemConfig(pickUp._pickUpType).name;
+                default:
+                    return "未知";
+            }
+        }
+
+        /// <summary>
+        /// 持有可放置物体时只显示匹配的放置点，其余全部隐藏；锁定目标始终不显示
+        /// </summary>
+        private bool IsTargetAllowed(Collider2D col)
+        {
+            // 锁定目标始终过滤
+            Grabbable grabbable = col.GetComponent<Grabbable>();
+            if (grabbable != null && grabbable.IsLocked) return false;
+
+            Interactable interactable = col.GetComponent<Interactable>();
+            if (interactable != null && interactable.IsLocked) return false;
+
+            var held = InteractionController.HeldGrabbable;
+            if (held != null && held.ItemType != GrabbableType.None)
+            {
+                // 持有可放置物体时，只显示类型匹配的放置点
+                return interactable != null
+                    && interactable.HasSocket
+                    && interactable.AcceptedType == held.ItemType;
+            }
+
+            // 未持有物体 / 持有不可放置物体时，所有目标都显示
+            return true;
         }
 
         /// <summary>
@@ -175,9 +343,13 @@ namespace QFramework.ViewController.UI
             }
 
             // 执行【返回目标世界空间位置到玩家控制器】事件
+            // 交互模式下即使有锁定目标，玩家也朝向鼠标方向而非物体
+            Vector2 aimTargetPos = _currentMode == AimingModeEnum.Interaction
+                ? InputUtility.GetMousePos()
+                : targetPos;
             TypeEventSystem.Global.Send(new PlayerEvent.UpdateTarget()
             {
-                Target = targetPos,
+                Target = aimTargetPos,
                 HasTarget = _targetCollider != null
             });
 
@@ -205,6 +377,8 @@ namespace QFramework.ViewController.UI
             if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
 
             var enemy = _targetCollider.GetComponentInParent<AbstractEnemy>();
+            if (enemy == null) return;
+
             int enemyId = enemy.enemyId;
             _enemyInfo.SetEnemyId(enemyId);
 

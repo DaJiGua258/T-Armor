@@ -5,7 +5,10 @@
       "Bash(grep -n \"Raider\\\\|Raider$\" \"Assets/Resources/Prefab/Enemy/Raider.prefab\")",
       "Bash(ls -la *.sln)",
       "Bash(ls -la *.csproj)",
-      "Bash(dotnet build *)"
+      "Bash(dotnet build *)",
+      "Bash(grep -E \"\\\\.meta$|\\\\.cs$\")",
+      "Bash(findstr /i \"AutoWrap\")",
+      "Bash(findstr /v \"->\")"
     ]
   }
 }

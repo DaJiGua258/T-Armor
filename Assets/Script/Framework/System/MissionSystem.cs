@@ -36,7 +36,7 @@ namespace QFramework.System
         {
             if(levelMissionType == LevelMissionTypeEnum.None)
             {
-                levelMissionType = LevelMissionTypeEnum.LevMis_CleaArea;
+                levelMissionType = LevelMissionTypeEnum.LevMis_NodeInvasion;
                 UnityEngine.Debug.LogWarning("LevelMissionType is None, use LevelMission_1");
             }
 

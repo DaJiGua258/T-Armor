@@ -71,7 +71,7 @@ namespace QFramework.ViewController.Player
         private float _launchStartY;  // 发射起始Y坐标
 
         private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[16];  // 碰撞检测缓存
-        private static readonly string[] _hitTags = { "Player", "Enemy", "Env" };  // 可命中标签列表
+        private static readonly string[] _hitTags = { "Player", "Enemy", "Env", "DesEnv" };  // 可命中标签列表
 
         #region ----- 工具方法 -------------------------
 
@@ -117,9 +117,9 @@ namespace QFramework.ViewController.Player
         void FixedUpdate()
         {
             if (_hasExploded) return;
+            UpdateHoming();
             transform.position += (Vector3)_moveDirection * _speed * Time.fixedDeltaTime;
             _distanceTraveled += _speed * Time.fixedDeltaTime;
-            UpdateHoming();
             UpdateRotation();
             Detect();
         }
@@ -328,7 +328,7 @@ namespace QFramework.ViewController.Player
             if (_enableVerticalLaunch)
             {
                 UpdateVerticalLaunch();
-                return;
+                if (_enableVerticalLaunch) return;
             }
 
             // 标准追踪：确定目标位置

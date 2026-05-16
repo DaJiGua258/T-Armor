@@ -73,7 +73,7 @@ namespace QFramework.Manager
         [Header("镜头过渡")]
         [SerializeField] private float _cameraTransitionDuration = 1f;
         [SerializeField] private float _panelFadeDuration = 0.3f;
-        [SerializeField] private Ease _cameraEase = Ease.InOutSine;
+        [SerializeField] private Ease _cameraEase = Ease.InOutQuad;
         [SerializeField] private Ease _fadeEase = Ease.OutQuad;
         [SerializeField] private Vector3 _levelSelectDirection = new Vector3(0f, 0.342f, -0.94f);
 

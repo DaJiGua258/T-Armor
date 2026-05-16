@@ -112,6 +112,12 @@ namespace QFramework.ViewController
                     }
                 }
             }
+            else if (tag == "DesEnv")
+            {
+                var destructible = collider.GetComponentInParent<DestructibleEnv>();
+                if (destructible != null)
+                    destructible.TakeDamage(damage);
+            }
             else if (tag != "Env")
             {
                 var enemy = collider.GetComponentInParent<AbstractEnemy>();

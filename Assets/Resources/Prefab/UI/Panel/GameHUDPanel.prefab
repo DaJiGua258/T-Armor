@@ -864,7 +864,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '> LS'
+  m_Text: '> R SIDE'
 --- !u!1 &381595625902044428
 GameObject:
   m_ObjectHideFlags: 0
@@ -1053,7 +1053,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 5, y: -41.5}
-  m_SizeDelta: {x: 10, y: 0}
+  m_SizeDelta: {x: 10, y: 83}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &989438079019099378
 CanvasRenderer:
@@ -1221,7 +1221,7 @@ GameObject:
   - component: {fileID: 2778276358002863175}
   - component: {fileID: 6770671027577361011}
   m_Layer: 5
-  m_Name: Item (1)
+  m_Name: '> R SIDE'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1382,7 +1382,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8039270536382380895
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1403,7 +1403,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -34, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 25, y: 83}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1284302580862835737
 MonoBehaviour:
@@ -1628,6 +1628,7 @@ GameObject:
   - component: {fileID: 1111299730076369068}
   - component: {fileID: 8243736454938452590}
   - component: {fileID: 4478424340760419444}
+  - component: {fileID: 2260638947455124745}
   m_Layer: 5
   m_Name: WeaponsPanel
   m_TagString: Untagged
@@ -1718,10 +1719,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed69680f9a629114cbd35d09d16c7806, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hangerLeftTxt: {fileID: 0}
-  hangerRightTxt: {fileID: 0}
-  sideLeftTxt: {fileID: 0}
-  sideRightTxt: {fileID: 0}
+--- !u!225 &2260638947455124745
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1521593025672374488}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1617043253641756839
 GameObject:
   m_ObjectHideFlags: 0
@@ -2934,9 +2943,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7324113014909833536}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 5, y: -41.5}
   m_SizeDelta: {x: 2, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8104269674702376841
@@ -3530,7 +3539,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3793070670933954121
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3551,7 +3560,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 5, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 25, y: 83}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &7848372860084171382
 MonoBehaviour:
@@ -4699,6 +4708,7 @@ GameObject:
   - component: {fileID: 6353651738804382514}
   - component: {fileID: 8948713995770611317}
   - component: {fileID: 1916702435445257794}
+  - component: {fileID: 5157225432800224507}
   m_Layer: 5
   m_Name: HotBar
   m_TagString: Untagged
@@ -4806,6 +4816,18 @@ MonoBehaviour:
   AirSupportPrefab: {fileID: 0}
   ArtilleryPrefab: {fileID: 2926728549385574601, guid: 9349d25f277ddbe418c7350d97fe9c4a, type: 3}
   MissilePrefab: {fileID: 128393572326679453, guid: 1e53ef474dff41246a5e44df9d599c73, type: 3}
+--- !u!225 &5157225432800224507
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4319283271267261833}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4375188734688273271
 GameObject:
   m_ObjectHideFlags: 0
@@ -5135,7 +5157,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '> LS'
+  m_Text: '> L HANGER'
 --- !u!1 &4581750967656136252
 GameObject:
   m_ObjectHideFlags: 0
@@ -5303,6 +5325,7 @@ GameObject:
   - component: {fileID: 5220182671721849477}
   - component: {fileID: 81058424162912082}
   - component: {fileID: 8435559726785797859}
+  - component: {fileID: 8623268955398754482}
   m_Layer: 5
   m_Name: PlayerPanel
   m_TagString: Untagged
@@ -5399,6 +5422,18 @@ MonoBehaviour:
   _healthBar:
     Img: {fileID: 650960295345133970}
     txt: {fileID: 4381834641665134094}
+--- !u!225 &8623268955398754482
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4817361887962605267}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4967352174628036941
 GameObject:
   m_ObjectHideFlags: 0
@@ -6198,9 +6233,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5737768552936286560}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 5, y: -29}
   m_SizeDelta: {x: 2, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3370421124925862550
@@ -6714,7 +6749,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '> LS'
+  m_Text: '> R HANGER'
 --- !u!1 &5600374157092442604
 GameObject:
   m_ObjectHideFlags: 0
@@ -7133,7 +7168,7 @@ GameObject:
   - component: {fileID: 6071236272211797474}
   - component: {fileID: 8428662111558386732}
   m_Layer: 5
-  m_Name: Item (3)
+  m_Name: '> R HANGER'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7416,7 +7451,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 20, y: -54}
-  m_SizeDelta: {x: 10, y: 0}
+  m_SizeDelta: {x: 10, y: 58}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1030971479238536718
 CanvasRenderer:
@@ -7845,7 +7880,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 20, y: -41.5}
-  m_SizeDelta: {x: 10, y: 0}
+  m_SizeDelta: {x: 10, y: 83}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1890116733756821724
 CanvasRenderer:
@@ -7937,7 +7972,7 @@ GameObject:
   - component: {fileID: 160590818701296744}
   - component: {fileID: 1500124549457402567}
   m_Layer: 5
-  m_Name: Item (2)
+  m_Name: '> L HANGER'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8180,7 +8215,7 @@ GameObject:
   - component: {fileID: 3770506883836575392}
   - component: {fileID: 8274628594082552610}
   m_Layer: 5
-  m_Name: Item
+  m_Name: '> L SIDE'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8359,9 +8394,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8185819851178846807}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 5, y: -41.5}
   m_SizeDelta: {x: 2, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &558144724348406982
@@ -8440,7 +8475,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 5, y: -54}
-  m_SizeDelta: {x: 10, y: 0}
+  m_SizeDelta: {x: 10, y: 58}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &303399891274293910
 CanvasRenderer:
@@ -9481,6 +9516,10 @@ MonoBehaviour:
   _layerMask:
     serializedVersion: 2
     m_Bits: 7680
+  _interactionRange: 3
+  _interactionLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
   _enemyId: -1
   _targetCollider: {fileID: 0}
   _lastTargetCollider: {fileID: 0}
@@ -9715,9 +9754,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 9012477759213915782}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 5, y: -29}
   m_SizeDelta: {x: 2, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4187193084758484582

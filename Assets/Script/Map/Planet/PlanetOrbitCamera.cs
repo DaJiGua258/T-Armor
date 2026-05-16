@@ -206,8 +206,8 @@ public class PlanetOrbitCamera : MonoBehaviour
         Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
 
         var seq = DOTween.Sequence();
-        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
-        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutQuad));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutQuad));
         seq.OnComplete(() =>
         {
             SyncFromPosition();
@@ -230,8 +230,8 @@ public class PlanetOrbitCamera : MonoBehaviour
         Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
 
         var seq = DOTween.Sequence();
-        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
-        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutQuad));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutQuad));
         seq.OnComplete(() =>
         {
             _yaw        = _savedYaw;
@@ -258,8 +258,8 @@ public class PlanetOrbitCamera : MonoBehaviour
         Quaternion targetRot = Quaternion.LookRotation(planetCenter.position - targetPos, Vector3.up);
 
         var seq = DOTween.Sequence();
-        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutSine));
-        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutSine));
+        seq.Join(transform.DOMove(targetPos, duration).SetEase(Ease.InOutQuad));
+        seq.Join(transform.DORotateQuaternion(targetRot, duration).SetEase(Ease.InOutQuad));
         seq.OnComplete(() =>
         {
             SyncFromPosition();

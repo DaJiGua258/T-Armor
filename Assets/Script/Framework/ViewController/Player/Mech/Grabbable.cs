@@ -1,60 +1,67 @@
 using UnityEngine;
-using QFramework;
+using QFramework.Enum;
 using QFramework.ViewController.Player;
 
 public class Grabbable : MonoBehaviour, IInteractable
 {
     [SerializeField] private string _displayName = "物体";
     public string DisplayName => _displayName;
-    public string InteractionText => "移动";
+    public string InteractionText => _isGrabbed ? "放下" : "移动";
 
     [SerializeField] private float _followDistance = 1.5f;
+    public float FollowDistance => _followDistance;
+
+    [SerializeField] private GrabbableType _itemType = GrabbableType.None;
+    public GrabbableType ItemType => _itemType;
+
+    public bool IsGrabbed => _isGrabbed;
+    public bool IsLocked { get; private set; }
+
+    public void Lock() => IsLocked = true;
 
     private bool _isGrabbed;
     private Rigidbody2D _rb;
-    private Collider2D _collider;
-    private Transform _targetGrabPoint;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _collider = GetComponent<Collider2D>();
-    }
-
-    private void Update()
-    {
-        if (!_isGrabbed || _targetGrabPoint == null) return;
-        transform.position = _targetGrabPoint.position;
     }
 
     public void OnInteract(GameObject player)
     {
+        if (IsLocked) return;
+
+        Debug.Log($"[Grabbable] OnInteract: {_displayName}, isGrabbed={_isGrabbed}");
+
         _isGrabbed = !_isGrabbed;
 
         if (_isGrabbed)
         {
+            if (_rb == null)
+            {
+                Debug.LogError("[Grabbable] 缺少 Rigidbody2D");
+                _isGrabbed = false;
+                return;
+            }
             _rb.isKinematic = true;
-            _collider.enabled = false;
-
-            _targetGrabPoint = new GameObject("GrabPoint_Temp").transform;
-            _targetGrabPoint.SetParent(player.transform.Find("Body") ?? player.transform);
-            _targetGrabPoint.localPosition = new Vector3(_followDistance, 0, 0);
         }
         else
         {
-            _rb.isKinematic = false;
-            _collider.enabled = true;
-            _rb.velocity = Vector2.zero;
-
-            if (_targetGrabPoint != null)
-                Destroy(_targetGrabPoint.gameObject);
-            _targetGrabPoint = null;
+            if (_rb != null)
+            {
+                _rb.isKinematic = false;
+                _rb.velocity = Vector2.zero;
+            }
         }
     }
 
-    private void OnDestroy()
+    public void AttachToSocket(Transform socket)
     {
-        if (_targetGrabPoint != null)
-            Destroy(_targetGrabPoint.gameObject);
+        transform.SetParent(socket);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+        _isGrabbed = false;
+        IsLocked = true;
+        // 保持 kinematic，不受物理影响
     }
 }

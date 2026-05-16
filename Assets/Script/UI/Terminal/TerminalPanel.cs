@@ -41,6 +41,7 @@ namespace QFramework.ViewController.UI
         private bool[] _commandTriggered;      // 标记指令是否已被触发
         private bool _isBooting;               // 开机协程运行中
         private CommandEntry[] _pendingCommands; // 待显示的指令（OnShow 时消费）
+        private int _postCmdLineCount;         // 指令列表输出后累积行数，用于逐行上移
 
         private static readonly Color DimColor = new Color(0.6f, 0.6f, 0.6f, 1f);
         private static readonly Color BrightColor = Color.white;
@@ -103,7 +104,7 @@ namespace QFramework.ViewController.UI
             string[] lines = new string[]
             {
                 "> 系统初始化...",
-                "> 已检测到用户登入...已登入",
+                "> 已检测到[]登入...已登入",
                 ">...",
                 "> 按下 F 退出终端",
                 "> 右侧输入对应的密码执行指令",
@@ -121,7 +122,8 @@ namespace QFramework.ViewController.UI
             GeneratePuzzle();
             PopulateGrid();
             RefreshCommandList();
-            _commandListText.text += "> ...\n";
+            _postCmdLineCount = 0;
+            AppendPostCommandText("> ...\n");
             RefreshVisual();
             RefreshHighlights();
 
@@ -315,6 +317,23 @@ namespace QFramework.ViewController.UI
             }
         }
 
+        /// <summary>
+        /// 指令列表输出后追加文本，每输出一行将 _commandListText 的 Y 轴上移 20。
+        /// </summary>
+        private void AppendPostCommandText(string text)
+        {
+            _commandListText.text += text;
+
+            int lineCount = 0;
+            for (int i = 0; i < text.Length; i++)
+                if (text[i] == '\n') lineCount++;
+
+            _postCmdLineCount += lineCount;
+            var pos = _commandListText.rectTransform.anchoredPosition;
+            pos.y += lineCount * 20;
+            _commandListText.rectTransform.anchoredPosition = pos;
+        }
+
         private void CheckCommands()
         {
             for (int i = 0; i < _commands.Length; i++)
@@ -353,7 +372,7 @@ namespace QFramework.ViewController.UI
                     // 添加反馈文本
                     string codes = string.Join(", ", _commands[i].AnswerCodes);
                     string name = _commands[i].Name;
-                    _commandListText.text += $"> 已输入命令 [{codes}]\n> 执行：[{name}]\n";
+                    AppendPostCommandText($"> 已输入命令 [{codes}]\n> 执行：[{name}]\n");
 
                     _commands[i].Callback?.Invoke();
                 }

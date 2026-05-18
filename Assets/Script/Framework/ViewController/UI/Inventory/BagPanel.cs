@@ -11,11 +11,9 @@ namespace QFramework.ViewController.UI
     public class BagPanel : BaseUIComponent
     {
         [SerializeField] private Transform _inventoryRoot;  // 背包 Slot 容器
-        [SerializeField] private Transform _hotbarRoot;  // 快捷栏 Slot 容器
         [SerializeField] private Text _descriptionText;
 
         private List<Slot> _inventorySlots = new List<Slot>();
-        private List<Slot> _hotbarSlots = new List<Slot>();
         private StringBuilder _sb = new StringBuilder();
 
         void Awake()
@@ -26,14 +24,6 @@ namespace QFramework.ViewController.UI
                 var slot = _inventoryRoot.GetChild(i).GetComponent<Slot>();
                 slot.SlotType = SlotType.Bag;
                 _inventorySlots.Add(slot);
-            }
-
-            // 收集快捷栏槽位
-            for (int i = 0; i < _hotbarRoot.childCount; i++)
-            {
-                var slot = _hotbarRoot.GetChild(i).GetComponent<Slot>();
-                slot.SlotType = SlotType.Hotbar;
-                _hotbarSlots.Add(slot);
             }
         }
 
@@ -50,14 +40,6 @@ namespace QFramework.ViewController.UI
             {
                 InvenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(UpdateSlots);
                 InvenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(UpdateSlots);
-            }
-
-            // 注册快捷栏刷新事件
-            for (int i = 0; i < InvenotrySystem.SupportItemCache.Count; i++)
-            {
-                var item = InvenotrySystem.GetHotbarItemByIndex(i);
-                item.Count.RegisterOnValueChanged(UpdateSlots);
-                item.InstanceId.RegisterOnValueChanged(UpdateSlots);
             }
         }
 
@@ -98,13 +80,6 @@ namespace QFramework.ViewController.UI
             {
                 _inventorySlots[i].Index = i;
                 _inventorySlots[i].UpdateSlot(InvenotrySystem.ItemDataCache[i]);
-            }
-
-            // 更新快捷栏槽位
-            for (int i = 0; i < InvenotrySystem.SupportItemCache.Count; i++)
-            {
-                _hotbarSlots[i].Index = i;
-                _hotbarSlots[i].UpdateSlot(InvenotrySystem.GetHotbarItemByIndex(i));
             }
         }
     }

@@ -16,6 +16,7 @@ namespace QFramework.System
         public ItemDataModel GetHotbarItemByIndex(int index);
         public void SetItemCount(int slotIndex, int count);
         public ItemDataModel GetInventoryItemByIndex(int slotIndex);
+        public void InitHotbarItems(List<ItemTypeEnum> itemTypes);
     }
 
     public class InvenotrySystem : AbstractSystem, IInvenotrySystem
@@ -87,6 +88,20 @@ namespace QFramework.System
             for (int i = 0; i < index; i++)
                 node = node.Next;
             return node.Value;
+        }
+
+        public void InitHotbarItems(List<ItemTypeEnum> itemTypes)
+        {
+            int i = 0;
+            var node = SupportItemCache.First;
+            while (node != null && i < itemTypes.Count)
+            {
+                var config = _itemDataModel.GetItemConfig(itemTypes[i]);
+                if (config != null)
+                    node.Value.CopyFrom(new ItemDataModel(config));
+                node = node.Next;
+                i++;
+            }
         }
     }
 

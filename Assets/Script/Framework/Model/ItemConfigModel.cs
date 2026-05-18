@@ -24,16 +24,21 @@ namespace QFramework.Model
                     ItemTypeEnum.Supply_Ammo, "弹药箱", true, 3,
                         "Texture/UI/Icon/icon_ammo", "恢复弹药", true)},
 
+            {ItemTypeEnum.Marker_AirStrikes, new ItemConfig(
+                    ItemTypeEnum.Marker_AirStrikes, "空袭指令", true, 3,
+                        "Texture/UI/Icon/icon_marker_artillery", "在指定位置进行空袭打击", true)},
+
+            {ItemTypeEnum.Marker_AirSupport, new ItemConfig(
+                    ItemTypeEnum.Marker_AirSupport, "空中支援", true, 3,
+                        "Texture/UI/Icon/icon_marker_artillery", "呼叫空中支援火力", true)},
+
             {ItemTypeEnum.Marker_Artillery, new ItemConfig(
                     ItemTypeEnum.Marker_Artillery, "炮击指令", true, 3,
                         "Texture/UI/Icon/icon_marker_artillery", "在指定位置进行一连串的炮火支援", true)},
-            
+
             {ItemTypeEnum.Marker_Missile, new ItemConfig(
                     ItemTypeEnum.Marker_Missile, "制导导弹", true, 3,
                         "Texture/UI/Icon/icon_missile", "在指定位置发射一枚制导导弹", true)},
-                        
-            // {ItemTypeEnum.Beacon_AirSupport, new ItemConfig(ItemTypeEnum.Beacon_AirSupport, true, 3)},   
-            // {ItemTypeEnum.Beacon_Shelling, new ItemConfig(ItemTypeEnum.Beacon_Shelling, true, 3)},
         };
 
         protected override void OnInit()

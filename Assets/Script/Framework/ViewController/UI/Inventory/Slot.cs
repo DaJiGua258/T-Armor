@@ -70,6 +70,8 @@ namespace QFramework.ViewController.UI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            if (_dragIcon == null) return;
+
             var itemData = InvenotrySystem.GetInventoryItemByIndex(Index);
             if (itemData.TypeEnum == TypeEnum.None) return;
 
@@ -87,12 +89,13 @@ namespace QFramework.ViewController.UI
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (_dragIcon.activeSelf)
+            if (_dragIcon != null && _dragIcon.activeSelf)
                 _dragIcon.transform.position = eventData.position;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            if (_dragIcon == null) return;
             _dragIcon.SetActive(false);
 
             if (eventData.pointerEnter != null)

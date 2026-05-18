@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using QFramework.Enum;
 using QFramework.Model;
 using QFramework.System;
+using QFramework.ViewController.UI.SupportConfig;
 using QFramework.ViewController.UI.WeaponConfig;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -51,12 +53,23 @@ namespace QFramework.ViewController.UI
         private Tween _panelTween;
         private RectTransform _rectTransform;
 
+        [Header("热键物品")]
+        [SerializeField] private Slot[] _hotkeySlots = new Slot[3];
+        [SerializeField] private Transform _supportListNode;
+        private SupportSelectList _supportSelect;
+        private ItemTypeEnum[] _selectedHotkeyItems = new ItemTypeEnum[3];
+        private int _currentHotkeySlot;
+        private bool _isSupportListShowing;
+        private float _supportHiddenY;
+        private Tween _supportListTween;
+
         private void Awake()
         {
             _playerSystem = this.GetSystem<IPlayerSystem>();
             _weaponConfigModel = this.GetModel<IWeaponConfigModel>();
             _weaponSelect = _weaponListNode.GetComponent<WeaponSelectList>();
             _hiddenY = _weaponListNode.localPosition.y;
+            _supportHiddenY = _supportListNode.localPosition.y;
             _rectTransform = transform as RectTransform;
 
             _leftSideBtn.onClick.AddListener(() => OnSlotBtnClick(WeaponSlot.LeftSide));
@@ -68,6 +81,20 @@ namespace QFramework.ViewController.UI
             _rightSideHighlight = SetupSlotHighlight(_rightSideBtn, WeaponSlot.RightSide);
             _leftHangerHighlight = SetupSlotHighlight(_leftHangerBtn, WeaponSlot.LeftHanger);
             _rightHangerHighlight = SetupSlotHighlight(_rightHangerBtn, WeaponSlot.RightHanger);
+
+            // 热键槽初始化
+            for (int i = 0; i < _hotkeySlots.Length; i++)
+            {
+                var index = i;
+                var btn = _hotkeySlots[i].GetComponent<Button>();
+                if (btn != null)
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(() => OnHotkeySlotClick(index));
+                }
+            }
+
+            _supportSelect = _supportListNode.GetComponent<SupportSelectList>();
         }
 
         public override void OnShow()
@@ -105,7 +132,16 @@ namespace QFramework.ViewController.UI
             if (_playerSystem.PlayerWeapon.HangerLeft.Value == null)
                 _playerSystem.InitHangerWeapon();
 
-            _weaponSelect.OnWeaponConfirmed += OnWeaponSelected;
+            if (_weaponSelect != null)
+                _weaponSelect.OnWeaponConfirmed += OnWeaponSelected;
+            if (_supportSelect != null)
+                _supportSelect.OnItemConfirmed += OnSupportItemSelected;
+
+            // 初始化热键槽显示
+            for (int i = 0; i < _selectedHotkeyItems.Length; i++)
+                _selectedHotkeyItems[i] = ItemTypeEnum.None;
+
+            UpdateHotkeySlotUI();
 
             UpdatePlayerRT();
         }
@@ -121,6 +157,14 @@ namespace QFramework.ViewController.UI
 
         private void OnSlotBtnClick(WeaponSlot slot)
         {
+            // 先关支援物品列表
+            if (_isSupportListShowing)
+            {
+                _supportListTween?.Kill();
+                _supportListTween = _supportListNode.DOLocalMoveY(_supportHiddenY, 0.2f).SetEase(Ease.OutSine)
+                    .OnComplete(() => _isSupportListShowing = false);
+            }
+
             var isSameSlot = _currentSlot == slot;
             _currentSlot = slot;
             UpdateSlotHighlights();
@@ -228,5 +272,100 @@ namespace QFramework.ViewController.UI
 
             // 选择后保持 list 开启，不关闭
         }
+
+        #region ----- 热键物品 -------------------------
+
+        private void OnHotkeySlotClick(int slotIndex)
+        {
+            // 支援列表已打开，且点击相同槽位 → 关闭
+            if (_isSupportListShowing && _currentHotkeySlot == slotIndex)
+            {
+                CloseSupportList();
+                return;
+            }
+
+            _currentHotkeySlot = slotIndex;
+
+            // 支援列表已打开，点击不同槽位 → 只切换选中
+            if (_isSupportListShowing)
+            {
+                _supportSelect.ShowItems(_selectedHotkeyItems[slotIndex]);
+                return;
+            }
+
+            // 如果武器列表开着，先关掉
+            if (_isListShowing)
+            {
+                _listTween?.Kill();
+                _listTween = _weaponListNode.DOLocalMoveY(_hiddenY, 0.2f).SetEase(Ease.OutSine)
+                    .OnComplete(() =>
+                    {
+                        _isListShowing = false;
+                        ShowSupportList();
+                    });
+                return;
+            }
+
+            ShowSupportList();
+        }
+
+        private void CloseSupportList()
+        {
+            _supportListTween?.Kill();
+            _supportListTween = _supportListNode.DOLocalMoveY(_supportHiddenY, 0.3f).SetEase(Ease.OutSine)
+                .OnComplete(() => _isSupportListShowing = false);
+        }
+
+        private void ShowSupportList()
+        {
+            _supportListTween?.Kill();
+
+            var pos = _supportListNode.localPosition;
+            pos.y = _supportHiddenY;
+            _supportListNode.localPosition = pos;
+
+            _supportSelect.ShowItems(_selectedHotkeyItems[_currentHotkeySlot]);
+            _supportListTween = _supportListNode.DOLocalMoveY(0, 0.3f).SetEase(Ease.OutSine);
+            _isSupportListShowing = true;
+        }
+
+        private void OnSupportItemSelected(ItemTypeEnum itemType)
+        {
+            _selectedHotkeyItems[_currentHotkeySlot] = itemType;
+            UpdateHotkeySlotUI();
+            // 保持列表打开，不关闭
+        }
+
+        private void UpdateHotkeySlotUI()
+        {
+            var model = this.GetModel<IItemConfigModel>();
+            for (int i = 0; i < _hotkeySlots.Length; i++)
+            {
+                var config = _selectedHotkeyItems[i] != ItemTypeEnum.None
+                    ? model.GetItemConfig(_selectedHotkeyItems[i])
+                    : model.GetItemConfig(ItemTypeEnum.None);
+
+                var tempItem = new ItemDataModel(config);
+                _hotkeySlots[i].UpdateSlot(tempItem);
+
+                // 只显示icon，隐藏数量文字
+                var text = _hotkeySlots[i].GetComponentInChildren<Text>();
+                if (text != null)
+                    text.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// 获取选中的热键物品列表（供开始任务时写入背包系统）
+        /// </summary>
+        public List<ItemTypeEnum> GetSelectedHotkeyItems()
+        {
+            var list = new List<ItemTypeEnum>();
+            foreach (var item in _selectedHotkeyItems)
+                list.Add(item);
+            return list;
+        }
+
+        #endregion
     }
 }

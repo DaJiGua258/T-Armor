@@ -1,4 +1,6 @@
+using QFramework.Manager;
 using QFramework.System;
+using QFramework.ViewController.UI;
 using UnityEngine;
 
 namespace QFramework.ViewController.Mission
@@ -6,30 +8,44 @@ namespace QFramework.ViewController.Mission
     public class Pre_DestroyBackupHub : AbstractMissionInstance
     {
         [SerializeField] private GeneratorInteractable _generator;
+        [SerializeField] private DestructibleEnv[] _cores;
         private int _phase; // 0: 侵入终端, 1: 弹出核心, 2: 摧毁核心
+        private int _destroyedCoreCount;
 
         public override void Init(MissionDataModel mission)
         {
             base.Init(mission);
             _phase = 0;
+            _destroyedCoreCount = 0;
 
-            _generator.OnInteracted += player =>
+            foreach (var core in _cores)
             {
-                if (_phase == 0)
+                core.SetCanTakeDamage(false);
+                core.OnDestroyed += OnCoreDestroyed;
+            }
+
+            _generator.SetCommands(
+                new CommandEntry("关闭核心防护", () =>
                 {
-                    // 侵入发电装置终端
-                    _phase = 1;
-                    AddProgress();
-                }
-                else if (_phase == 1)
-                {
-                    // 弹出散热核心
+                    // 一次破解，同时推进步骤 0 和 1
                     _phase = 2;
                     AddProgress();
-                }
-            };
+                    AddProgress();
+                    foreach (var core in _cores)
+                        core.SetCanTakeDamage(true);
+                    _generator.Lock();
+                }),
+                new CommandEntry("", null),
+                new CommandEntry("", null)
+            );
+        }
 
-            // Step 3: 摧毁散热核心 — 需要玩家射击摧毁，待实现
+        private void OnCoreDestroyed()
+        {
+            if (_phase != 2) return;
+            _destroyedCoreCount++;
+            if (_destroyedCoreCount >= _cores.Length)
+                AddProgress();
         }
     }
 }

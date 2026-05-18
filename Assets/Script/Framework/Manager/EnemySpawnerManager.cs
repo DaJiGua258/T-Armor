@@ -5,6 +5,8 @@ using QFramework.Enum;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Enemy;
 using QFramework.ViewController.Enemy.Formation;
+using QFramework;
+using QFramework.Event;
 using UnityEngine;
 
 namespace QFramework.Manager
@@ -59,6 +61,8 @@ namespace QFramework.Manager
 
         private Coroutine _spawnCoroutine;
         private Coroutine _patrolSpawnCoroutine;
+        private Coroutine _timedWaveCoroutine;
+        private Transform _timedWaveDropPoint;
         private readonly List<Vector3> _lastSpawnPoints = new List<Vector3>();
         private readonly List<Vector3> _lastDropPoints = new List<Vector3>();
 
@@ -77,21 +81,19 @@ namespace QFramework.Manager
         #region ----- 对外 API -------------------------
 
         /// <summary>
-        /// 生成一架运输船并注入路径与挂载敌人。
+        /// 生成一批运输船并注入路径与挂载敌人，返回本次所有 dropper 列表。
         /// </summary>
-        public Dropper SpawnWave()
+        public List<Dropper> SpawnWave()
         {
-            if (!CanSpawnDropper()) return null;
-            Dropper firstDropper = null;
+            var droppers = new List<Dropper>();
+            if (!CanSpawnDropper()) return droppers;
             int spawnCount = Mathf.Max(1, _dropperCnt);
-            // 按“每次生成数量”逐架创建运输船；每一架都独立计算起飞点与投送点偏移。
             for (int i = 0; i < spawnCount; i++)
             {
                 var dropper = SpawnDropper();
-                if (firstDropper == null) firstDropper = dropper;
+                if (dropper != null) droppers.Add(dropper);
             }
-
-            return firstDropper;
+            return droppers;
         }
 
         /// <summary>
@@ -103,6 +105,32 @@ namespace QFramework.Manager
             if (!CanSpawnDropper()) return;
             InterruptSpawn();
             _spawnCoroutine = StartCoroutine(SpawnRoutine());
+        }
+
+        /// <summary>
+        /// 启动定时波次循环：内部自动刷一波→等全部离场→等 5s→判断时间，直到 duration 耗尽。
+        /// dropPoint 不为 null 时，所有 dropper 以该点作为投送位置（固定落点）。
+        /// </summary>
+        public void StartTimedWaves(float duration, Transform dropPoint = null)
+        {
+            if (!CanSpawnDropper()) return;
+            _timedWaveDropPoint = dropPoint;
+            InterruptSpawn();
+            _timedWaveCoroutine = StartCoroutine(TimedWaveLoop(duration));
+        }
+
+        /// <summary>
+        /// 立即停止定时波次循环。
+        /// </summary>
+        public void StopTimedWaves()
+        {
+            _timedWaveDropPoint = null;
+            if (_timedWaveCoroutine != null)
+            {
+                StopCoroutine(_timedWaveCoroutine);
+                _timedWaveCoroutine = null;
+            }
+            InterruptSpawn();
         }
 
         #region ----- Inspector 菜单 -------------------------
@@ -155,7 +183,7 @@ namespace QFramework.Manager
             if (_spawnCoroutine == null) return;
             StopCoroutine(_spawnCoroutine);
             _spawnCoroutine = null;
-            // DebugUtility.LogWarning("[EnemySpawnerManager] Previous spawn process interrupted by a new request.");
+            TypeEventSystem.Global.Send(new WaveSpawnAlertEvent { Active = false });
         }
 
         private void StartPatrolSpawn()
@@ -169,6 +197,7 @@ namespace QFramework.Manager
         {
             _lastSpawnPoints.Clear();
             _lastDropPoints.Clear();
+            TypeEventSystem.Global.Send(new WaveSpawnAlertEvent { Active = true });
 
             int waveCount = Mathf.Max(1, _waveCntPerSpawn);
             int shipCountPerWave = Mathf.Max(1, _dropperCnt);
@@ -193,7 +222,34 @@ namespace QFramework.Manager
                 if (_waveInterval > 0f) yield return new WaitForSeconds(_waveInterval);
             }
 
+            TypeEventSystem.Global.Send(new WaveSpawnAlertEvent { Active = false });
             _spawnCoroutine = null;
+        }
+
+        private IEnumerator TimedWaveLoop(float duration)
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                // ① 按面板参数刷一次完整波次
+                StartSpawn();
+
+                // ② 等候本次 SpawnRoutine 完成
+                yield return new WaitUntil(() => _spawnCoroutine == null || elapsed >= duration);
+                if (elapsed >= duration) break;
+
+                // ③ 等 5s
+                float waitUntil = Time.time + 5f;
+                while (Time.time < waitUntil)
+                {
+                    elapsed += Time.deltaTime;
+                    if (elapsed >= duration) break;
+                    yield return null;
+                }
+            }
+
+            _timedWaveCoroutine = null;
         }
 
         #endregion
@@ -208,7 +264,13 @@ namespace QFramework.Manager
         private Dropper SpawnDropper()
         {
             var startPos = GetRandomPointAround(_startPoint.position, _spawnRadius);
-            var dropPos = GetWalkableDropPos();
+            Vector3 dropPos;
+            if (_timedWaveDropPoint != null)
+                dropPos = GetWalkableDropPos(_timedWaveDropPoint.position);
+            else if (_player != null)
+                dropPos = GetWalkableDropPos(_player.position);
+            else
+                dropPos = GetWalkableDropPos();
             return SpawnDropper(startPos, dropPos, null, null, null);
         }
 
@@ -339,23 +401,22 @@ namespace QFramework.Manager
 
         private Vector3 GetWalkableDropPos()
         {
-            // 如果目标半径为0，则直接返回目标点
+            return GetWalkableDropPos(_dropPoint.position);
+        }
+
+        private Vector3 GetWalkableDropPos(Vector3 center)
+        {
             if (_dropRadius <= 0f)
-            {
-                return GetWalkableOrDefault(_dropPoint.position, _dropPoint.position);
-            }
+                return GetWalkableOrDefault(center, center);
 
-            var fallback = _dropPoint.position;  // 回退点
-            int attempts = Mathf.Max(1, _walkableSampleCnt);  // 采样尝试次数
+            var fallback = center;
+            int attempts = Mathf.Max(1, _walkableSampleCnt);
 
-            // 在目标半径内多次随机采样，只要命中可行走点就立即返回；否则走回退逻辑。
             for (int i = 0; i < attempts; i++)
             {
-                var candidate = GetRandomPointAround(_dropPoint.position, _dropRadius);
+                var candidate = GetRandomPointAround(center, _dropRadius);
                 if (TryGetWalkablePoint(candidate, out var walkablePoint))
-                {
                     return walkablePoint;
-                }
             }
 
             return GetWalkableOrDefault(fallback, fallback);

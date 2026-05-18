@@ -28,7 +28,7 @@ namespace QFramework.ViewController.Enemy
             _curAttackRange = Random.Range((float)Entity.AttackMinRange, (float)Entity.AttackMaxRange);
 
             if (Entity.Agent != null)
-                Entity.Agent.stopDistance = _curAttackRange;
+                Entity.Agent.stopDistance = _curAttackRange * 0.8f;
 
             // 随机选择侧向偏好，确保多个敌人自然分散
             _flankSide = Random.value > 0.5f ? 1f : -1f;
@@ -53,18 +53,13 @@ namespace QFramework.ViewController.Enemy
 
             if (Entity.IsInSpecifiedRange(_curAttackRange))
             {
-                if (Entity.HasLineOfSightToTarget())
-                {
-                    FSM.ChangeState<EnemyAttackState>();
-                    return;
-                }
-                // 范围内但被障碍阻挡 → 在最小攻击距离外徘徊找角度
-                Entity.Agent.stopDistance = Entity.AttackMinRange;
+                FSM.ChangeState<EnemyAttackState>();
+                return;
             }
             else
             {
                 // 恢复 stopDistance 以便在攻击距离停下
-                Entity.Agent.stopDistance = _curAttackRange;
+                Entity.Agent.stopDistance = _curAttackRange * 0.8f;
             }
 
             // 每 2 秒随机切换一次移动模式
@@ -79,8 +74,6 @@ namespace QFramework.ViewController.Enemy
                 Entity.MoveToward(GetFlankTarget());
             else
                 Entity.MoveToward(Entity.Target.position);
-
-            Entity.RotateToTarget(Entity.Target.position);  // Body 朝向玩家
         }
 
         public override void OnExit()

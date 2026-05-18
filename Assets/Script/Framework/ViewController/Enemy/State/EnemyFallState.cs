@@ -24,9 +24,10 @@ namespace QFramework.ViewController.Enemy
             {
                 if (Entity.HasPatrolPath()) FSM.ChangeState<EnemyPatrolState>();
                 else FSM.ChangeState<EnemyIdleState>();
+                return;
             }
 
-            
+
             Entity.ApplyGravityToMesh(ref verticalVelocity);
         }
 

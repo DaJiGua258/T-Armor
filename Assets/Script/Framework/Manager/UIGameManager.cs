@@ -80,11 +80,11 @@ namespace QFramework.Manager
         {
             SetConfig(UIGamePanelType.GameHUDPanel,     UIGamePanelLayer.HUD,     false);
             SetConfig(UIGamePanelType.InteractionPanel, UIGamePanelLayer.Overlay, false);
-            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  true);
+            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  false);
             SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.SettingsPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.GameOverPanel,    UIGamePanelLayer.Modal,   true);
-            SetConfig(UIGamePanelType.TerminalPanel,    UIGamePanelLayer.Modal,   true);
+            SetConfig(UIGamePanelType.TerminalPanel,    UIGamePanelLayer.Modal,   false);
         }
 
         private void SetConfig(UIGamePanelType type, UIGamePanelLayer layer, bool hideLower)
@@ -121,6 +121,17 @@ namespace QFramework.Manager
         }
 
         // ===== 公开 API =====
+
+        /// <summary>是否有 Modal 层面板正在显示（用于外部屏蔽交互输入）</summary>
+        public bool IsModalActive()
+        {
+            foreach (var kvp in _panelDict)
+            {
+                if (_panelLayers[kvp.Key] == UIGamePanelLayer.Modal && kvp.Value.gameObject.activeSelf)
+                    return true;
+            }
+            return false;
+        }
 
         private void ToggleInventory()
         {

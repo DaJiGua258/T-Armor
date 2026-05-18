@@ -1,48 +1,29 @@
-using QFramework.Enum;
+using QFramework.Manager;
 using QFramework.ViewController.Player;
+using QFramework.ViewController.UI;
 using UnityEngine;
 
 namespace QFramework.ViewController.Mission
 {
-    public enum GeneratorState { Idle, Shutdown, Connected, Restarted }
-
     public class GeneratorInteractable : Interactable
     {
-        public GeneratorState CurrentState { get; private set; } = GeneratorState.Idle;
+        private CommandEntry[] _commands;
 
-        protected override void OnInit()
+        public void SetCommands(CommandEntry cmd1, CommandEntry cmd2, CommandEntry cmd3)
         {
-            CurrentState = GeneratorState.Idle;
+            _commands = new CommandEntry[] { cmd1, cmd2, cmd3 };
         }
-
-        public override string InteractionText => CurrentState switch
-        {
-            GeneratorState.Idle => "关闭电源",
-            GeneratorState.Connected => "重新启动",
-            _ => "互动"
-        };
 
         public override void OnInteract(GameObject player)
         {
-            switch (CurrentState)
-            {
-                case GeneratorState.Idle:
-                    CurrentState = GeneratorState.Shutdown;
-                    Debug.Log("[Generator] 电源已关闭");
-                    break;
-                case GeneratorState.Connected:
-                    CurrentState = GeneratorState.Restarted;
-                    Debug.Log("[Generator] 已重新启动");
-                    break;
-            }
+            if (IsLocked) return;
             base.OnInteract(player);
-        }
 
-        public override void OnPlaceObject()
-        {
-            CurrentState = GeneratorState.Connected;
-            Debug.Log("[Generator] 连接件已插入");
-            base.OnPlaceObject();
+            if (_commands != null)
+            {
+                var panel = UIGameManager.Instance.GetComponentInChildren<TerminalPanel>(true);
+                panel.ShowWithCommands(_commands[0], _commands[1], _commands[2]);
+            }
         }
     }
 }

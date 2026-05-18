@@ -6,6 +6,7 @@ using QFramework.System;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Player;
+using Pathfinding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -276,6 +277,10 @@ namespace QFramework.Manager
             }
 
             _map.GenerateMapByLoadAsset(_levelSystem.LoadedLevelData);
+
+            // 地图生成后刷新寻路网格
+            if (AstarPath.active != null)
+                AstarPath.active.Scan();
 
             // 读取 Entry 位置，传送玩家并初始化组件
             var missionSystem = this.GetSystem<IMissionSystem>();

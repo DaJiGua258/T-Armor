@@ -15,10 +15,10 @@ namespace QFramework.Model
         // 敌人配置列表
         private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new Dictionary<EnemyTypeEnum, EnemeyConfig>()
         {
-            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 50, 0.5f, 10, 5, 15f, 2f, 1f, 3f)},
-            {EnemyTypeEnum.Warrior_AR, new EnemeyConfig(10, 100, 0.5f, 20, 20, 15f, 8f, 3f, 3f)},
+            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 50, 0.5f, 10, 5, 15f, 2.5f, 1f, 4f)},
+            {EnemyTypeEnum.Warrior_AR, new EnemeyConfig(10, 100, 0.5f, 20, 20, 15f, 10f, 5f, 2f)},
 
-            {EnemyTypeEnum.Raider, new EnemeyConfig(15, 50, 0.5f, 30, 30, 20f, 5f, 2f, 3f)},
+            {EnemyTypeEnum.Raider, new EnemeyConfig(15, 50, 0.5f, 30, 30, 20f, 5f, 2f, 4f)},
 
             {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 10, 1f, 30, 30, 20f, 5f, 5f, 3f)},
         };

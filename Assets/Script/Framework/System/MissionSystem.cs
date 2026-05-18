@@ -48,10 +48,14 @@ namespace QFramework.System
             // 1) Entry 进入任务（auto-completed）
             Missions.Add(InitMission(MissionTypeEnum.Entry, MissionState.Completed, missionIndex++));
 
-            // 2) 玩法任务（第一个为主要任务 NotStarted，后续为前置任务 InProgress）
+            // 2) 玩法任务（第一个为主要任务，后续为前置任务）
             for(int i = 0; i < levelConfig.MissionTypes.Count; i++)
             {
+#if UNITY_EDITOR
+                var initState = MissionState.InProgress;
+#else
                 var initState = (i == 0) ? MissionState.NotStarted : MissionState.InProgress;
+#endif
                 Missions.Add(InitMission(levelConfig.MissionTypes[i], initState, missionIndex++));
             }
 

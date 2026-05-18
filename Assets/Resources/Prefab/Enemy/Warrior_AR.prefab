@@ -388,7 +388,7 @@ Transform:
   m_GameObject: {fileID: 4267629209915775233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.05, z: -2.211}
+  m_LocalPosition: {x: 0, y: -0.05, z: -2.2159998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -413,7 +413,6 @@ MonoBehaviour:
   HeightLevel: 0
   CanSetScale: 0
   SizeMultiplier: 1
-  ShadowOffset2D: {x: 0, y: -0.05}
   IsLock: 1
 --- !u!33 &5819633024151262868
 MeshFilter:

@@ -14993,7 +14993,7 @@ Transform:
   m_GameObject: {fileID: 3165833293689629066}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.26666668, z: 0.41333333}
+  m_LocalPosition: {x: 0, y: -0.2666667, z: 0.25333333}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15018,7 +15018,6 @@ MonoBehaviour:
   HeightLevel: 0
   CanSetScale: 0
   SizeMultiplier: 1
-  ShadowOffset2D: {x: 0, y: -0.2}
   IsLock: 1
 --- !u!33 &7051264712872653058
 MeshFilter:
@@ -24959,7 +24958,7 @@ Transform:
   m_GameObject: {fileID: 7082463898465885450}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.13333336, z: -0.38666666}
+  m_LocalPosition: {x: 0, y: 0.13333334, z: -0.25333333}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -24984,7 +24983,7 @@ MonoBehaviour:
   StackingMaterial: {fileID: 2100000, guid: da60783925260934baf64c889ba8673f, type: 2}
   UseLocalZSort: 0
   OrderParent: {fileID: 0}
-  ZSortOffset: -3
+  ZSortOffset: -2
   HeightLevel: 0
   CanSetScale: 0
   SizeMultiplier: 1

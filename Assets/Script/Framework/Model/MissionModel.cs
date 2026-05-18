@@ -22,7 +22,7 @@ namespace QFramework.Model
                     new List<MissionTypeEnum>
                     {
                         // 主任务
-                        MissionTypeEnum.InvasionSystem,
+                        MissionTypeEnum.Pri_InvasionSystem,
 
                         // 前置任务
                         MissionTypeEnum.Pre_GetKey,
@@ -120,11 +120,11 @@ namespace QFramework.Model
                     "破坏备用处理中枢",
                     new MissionStep[]
                     {
-                        new MissionStep("侵入发电装置终端", 1),
-                        new MissionStep("弹出散热核心", 1),
-                        new MissionStep("摧毁散热核心", 1)
+                        new MissionStep("侵入装置终端", 1),
+                        new MissionStep("关闭能源核心防护", 1),
+                        new MissionStep("摧毁能源核心", 1)
                     },
-                    "侵入发电终端，打开散热通道，摧毁散热核心以破坏备用处理中枢",
+                    "",
                     null
                 )
             },
@@ -132,11 +132,16 @@ namespace QFramework.Model
             // ---- 主要任务 -------------------------
 
             // 任务2（入侵节点电脑）
-            {MissionTypeEnum.InvasionSystem, new MissionConfig(
-                MissionTypeEnum.InvasionSystem,
+            {MissionTypeEnum.Pri_InvasionSystem, new MissionConfig(
+                MissionTypeEnum.Pri_InvasionSystem,
                 null,
                 "入侵节点电脑",
-                new MissionStep[] { new MissionStep("入侵并瘫痪节点电脑", 1) },
+                new MissionStep[]
+                {
+                    new MissionStep("破解防御网络", 1),
+                    new MissionStep("等待入侵程序写入...", 1),
+                    new MissionStep("注入干扰程序，瘫痪节点", 1)
+                },
                 "入侵中枢电脑，扰乱敌方指挥网络",
                 null)},
 

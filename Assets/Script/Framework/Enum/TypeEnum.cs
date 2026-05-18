@@ -90,7 +90,7 @@ namespace QFramework.Enum
         Pre_EnemyKill,
         Pre_GetKey,
         Pre_DestroyBackupHub,   // 破坏备用处理中枢
-        InvasionSystem,
+        Pri_InvasionSystem,
         Mission_3,
         Mission_4,
         Mission_5,

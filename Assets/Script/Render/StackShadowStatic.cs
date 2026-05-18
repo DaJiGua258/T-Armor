@@ -7,9 +7,6 @@ public class StackShadowStatic : StackingCore
     public bool  CanSetScale;
     public float SizeMultiplier = 1f;
 
-    [Header("影子设置")]
-    public Vector2 ShadowOffset2D = new Vector2(0, -0.1f);
-
     // 影子在同层 base 后面的偏移量
     protected const float ShadowZOffset = 0.01f;
     private bool _runtimeInitialized;
@@ -41,12 +38,8 @@ public class StackShadowStatic : StackingCore
 
     private void SyncPosition()
     {
-        var hierarchyPos = GetHierarchyReferencePosition();
-
         var pos = transform.position;
-        pos.x = hierarchyPos.x + ShadowOffset2D.x;
-        pos.y = hierarchyPos.y + ShadowOffset2D.y;
-        pos.z = GetZSort(HeightLevelZOffset, ShadowZOffset, hierarchyPos.y);
+        pos.z = GetZSort(HeightLevelZOffset, ShadowZOffset, pos.y);
         transform.position = pos;
     }
 

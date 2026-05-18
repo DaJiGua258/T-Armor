@@ -8,6 +8,8 @@ namespace QFramework.ViewController.Enemy
 {
     public class Dropper : AbstractAirEnemy
     {
+        public event Action OnDropperFinished;
+
         [Header("Dropper参数")]
         [SerializeField] private List<CargoSlot> _cargoSlots;
         public bool IsDropped = false;
@@ -235,9 +237,14 @@ namespace QFramework.ViewController.Enemy
         {
             Destroy(gameObject);
         }
+
+        private void OnDestroy()
+        {
+            OnDropperFinished?.Invoke();
+        }
         #endregion
 
-        
+
     }
 
     [Serializable]

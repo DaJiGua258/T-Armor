@@ -1,6 +1,7 @@
 using QFramework.Command;
 using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.System;
 using QFramework.Utility;
 using QFramework.ViewController.UI;
@@ -36,6 +37,9 @@ namespace QFramework.ViewController.Player
         void Update()
         {
             if (_currentMode != AimingModeEnum.Interaction) return;
+
+            // Modal 面板打开时不响应交互（防止与 TerminalPanel 的 F 键关闭冲突）
+            if (UIGameManager.Instance.IsModalActive()) return;
 
             // 跟随逻辑：持有物体时放在玩家 Body 前方
             if (_heldGrabbable != null && _playerBody != null)

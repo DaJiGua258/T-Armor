@@ -22,12 +22,8 @@ public class StackShadow : StackShadowStatic
 
     private void SyncPosition()
     {
-        var hierarchyPos = GetHierarchyReferencePosition();
-
         var pos = transform.position;
-        pos.x = hierarchyPos.x + ShadowOffset2D.x;
-        pos.y = hierarchyPos.y + ShadowOffset2D.y;
-        pos.z = GetZSort(HeightLevelZOffset, ShadowZOffset, hierarchyPos.y);
+        pos.z = GetZSort(HeightLevelZOffset, ShadowZOffset, pos.y);
         transform.position = pos;
     }
 }

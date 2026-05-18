@@ -16,11 +16,15 @@ namespace QFramework.ViewController.Mission
         {
             base.Init(mission);
 
+            // 必须先插入密钥，才能使用终端
+            _terminal.Lock();
+
             _keySocket.OnObjectPlaced += () =>
             {
                 AddProgress();
                 _keyGrabbable.Lock();
                 _keySocket.Lock();
+                _terminal.Unlock();
             };
 
             _terminal.OnInteracted += player =>

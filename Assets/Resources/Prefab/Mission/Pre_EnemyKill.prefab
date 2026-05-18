@@ -91,7 +91,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 580fabe11ba9c9e4a8e7f3c5f2ba53fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Index: 1
 --- !u!1001 &5027636957451130704
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -190,7 +189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9192029096850702710, guid: 1a7daf0edcd295e43973639bb3010088, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.01
+      value: -0.015000001
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 0}

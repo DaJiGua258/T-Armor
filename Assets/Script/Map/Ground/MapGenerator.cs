@@ -506,7 +506,7 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
             }
 
             Vector3 placedPos = CellRectCenter(origin.x, origin.y, footprint.x, footprint.y);
-            missionObject.transform.position = placedPos;
+            missionObject.transform.SetPositionAndRotation(placedPos, prefab.transform.rotation);
             MissionPlacementService.MarkOccupied(_grid, origin.x, origin.y, footprint.x, footprint.y);
             placedMissionPositions.Add(placedPos);
 

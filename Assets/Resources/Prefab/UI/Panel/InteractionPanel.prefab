@@ -315,6 +315,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3599999658017405918}
   - component: {fileID: -7526039375385201619}
+  - component: {fileID: 991426366927078603}
   m_Layer: 5
   m_Name: InteractionPanel
   m_TagString: Untagged
@@ -362,3 +363,15 @@ MonoBehaviour:
   _tipOffset: {x: 10, y: -20}
   _dotPrefab: {fileID: 982796513497048530}
   _maxDots: 5
+--- !u!225 &991426366927078603
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8779681771701608237}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

@@ -5,6 +5,8 @@ using QFramework.Model;
 using Unity.Collections;
 using UnityEngine;
 
+// 前向声明，避免循环依赖
+
 namespace QFramework.System
 {
     public interface IInvenotrySystem : ISystem
@@ -25,6 +27,7 @@ namespace QFramework.System
         public List<ItemDataModel> ItemDataCache { get; private set; } = new List<ItemDataModel>(14);
         public LinkedList<ItemDataModel> SupportItemCache { get; private set; } = new LinkedList<ItemDataModel>();
         private IItemConfigModel _itemDataModel => this.GetModel<IItemConfigModel>();
+        private IModConfigModel _modConfigModel => this.GetModel<IModConfigModel>();
 
         protected override void OnInit()
         {
@@ -38,10 +41,9 @@ namespace QFramework.System
                 SupportItemCache.AddLast(new ItemDataModel(_itemDataModel.GetItemConfig(ItemTypeEnum.None)));
             }
 
-            AddItemToInventory(ItemTypeEnum.Supply_Ammo, 3);
-            AddItemToInventory(ItemTypeEnum.Supply_Health, 3);
-            AddItemToInventory(ItemTypeEnum.Marker_Artillery, 3);
-            AddItemToInventory(ItemTypeEnum.Marker_Missile, 3);
+            // 开局 Mod 芯片
+            AddItemToInventory(ItemTypeEnum.Mod_Damage, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
         }
 
         /// <summary>
@@ -55,6 +57,13 @@ namespace QFramework.System
                 {
                     ItemDataCache[i].CopyFrom(new ItemDataModel(_itemDataModel.GetItemConfig(itemType)));
                     ItemDataCache[i].Count.Value = count;
+
+                    // 如果是 Mod 物品，附上词条数据
+                    var modConfig = _modConfigModel.GetModConfig(itemType);
+                    if (modConfig != null)
+                    {
+                        ItemDataCache[i].ModData = new ModData(modConfig.ItemType, new List<ModEntry>(modConfig.Entries));
+                    }
                     return;
                 }
             }
@@ -117,6 +126,21 @@ namespace QFramework.System
         public BindableProperty<int> Count = new BindableProperty<int>();
         public string description;
         public bool canUse;
+        public ModData ModData;  // Mod 词条数据，非 Mod 物品为 null
+
+        /// <summary>
+        /// 创建空物品（用于武器/Player Mod 槽位初始化）
+        /// </summary>
+        public ItemDataModel()
+        {
+            this.TypeEnum = TypeEnum.Item;
+            this.InstanceId.Value = -1;
+            this.ItemType = ItemTypeEnum.None;
+            this.name = "空";
+            this.iconPath = string.Empty;
+            this.description = string.Empty;
+            this.Count.Value = 0;
+        }
 
         public ItemDataModel(ItemConfig itemConfig)
         {
@@ -156,6 +180,7 @@ namespace QFramework.System
             description = otherItemData.description;
             canUse = otherItemData.canUse;
             Count.Value = otherItemData.Count.Value;
+            ModData = otherItemData.ModData;
         }
 
         /// <summary>
@@ -172,6 +197,7 @@ namespace QFramework.System
             (iconPath, otherItemData.iconPath) = (otherItemData.iconPath, iconPath);
             (description, otherItemData.description) = (otherItemData.description, description);
             (canUse, otherItemData.canUse) = (otherItemData.canUse, canUse);
+            (ModData, otherItemData.ModData) = (otherItemData.ModData, ModData);
 
             // 最后交换 BindableProperty，此时所有数据已就绪，事件触发时 UI 读取的是完整正确的状态
             (InstanceId.Value, otherItemData.InstanceId.Value) = (otherItemData.InstanceId.Value, InstanceId.Value);

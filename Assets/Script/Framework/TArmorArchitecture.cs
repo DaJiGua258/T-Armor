@@ -11,6 +11,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         // 模型注册
         RegisterModel<IPlayerModel>(new PlayerModel());
         RegisterModel<IWeaponConfigModel>(new WeaponConfigModel());
+        RegisterModel<IModConfigModel>(new ModConfigModel());
         RegisterModel<IEnemeyConfigModel>(new EnemeyConfigModel());
         RegisterModel<IItemConfigModel>(new ItemConfigModel());
         RegisterModel<ILevelTypeModel>(new LevelTypeModel());

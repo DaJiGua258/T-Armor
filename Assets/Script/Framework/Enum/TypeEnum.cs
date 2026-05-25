@@ -43,6 +43,10 @@ namespace QFramework.Enum
         Marker_AirSupport,  // 空中支援
         Marker_Artillery,  // 炮击
         Marker_Missile,  // 增援
+
+        // Mod 芯片
+        Mod_Damage,
+        Mod_Rpm,
     }
 
     public enum EnemyTypeEnum
@@ -103,6 +107,34 @@ namespace QFramework.Enum
         LevMis_CleaArea,
         LevMis_NodeInvasion,
         LevelMission_2,
+    }
+
+    // ---- Mod 系统枚举 ----
+
+    public enum ModCategory
+    {
+        Weapon,
+        Body,
+    }
+
+    public enum ModOp
+    {
+        Add,
+        Mul,
+    }
+
+    public enum StatName
+    {
+        BulletDamage,
+        MaxMagazine,
+        BulletSpeed,
+        Rpm,
+        ReloadTime,
+        MaxHealth,
+        Speed,
+        MaxFuel,
+        FuelRecovery,
+        DashCost,
     }
 
 

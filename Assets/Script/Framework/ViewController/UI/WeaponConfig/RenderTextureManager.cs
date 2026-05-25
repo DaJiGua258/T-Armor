@@ -98,7 +98,10 @@ namespace QFramework.ViewController.UI.WeaponConfig
                     foreach (var mb in weaponObj.GetComponentsInChildren<MonoBehaviour>())
                         mb.enabled = false;
 
-                    _weaponModels.Add(weaponObj.transform);
+                    var mesh = weaponObj.transform.Find("Mesh");
+                    if (mesh != null) _weaponModels.Add(mesh);
+                    var shadow = weaponObj.transform.Find("Shadow");
+                    if (shadow != null) _weaponModels.Add(shadow);
                 }
 
                 var rt = new RenderTexture(_rtWidth, _rtHeight, 16);

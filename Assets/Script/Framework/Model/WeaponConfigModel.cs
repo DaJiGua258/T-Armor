@@ -7,37 +7,37 @@ namespace QFramework.Model
     {
         public WeaponConfig GetWeaponConfigModel(WeaponTypeEnum weaponType);
         public WeaponConfig GetHangerWeaponConfigModel(WeaponTypeEnum weaponType);
+        public string GetDisplayName(WeaponTypeEnum weaponType);
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> WeaponConfigs { get; }
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> HangerWeaponConfigs { get; }
     }
 
     public class WeaponConfigModel : AbstractModel, IWeaponConfigModel
     {
-        /// <summary>
-        /// 生成在配置中的所有武器数据
-        /// </summary>
-        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
-        {
-            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
-            {WeaponTypeEnum.AR, new WeaponConfig(WeaponTypeEnum.AR, 5, 30, 2, 20, 25, 600)},
-            {WeaponTypeEnum.LMG, new WeaponConfig(WeaponTypeEnum.LMG, 10, 60, 2, 25, 10, 840)},
-            {WeaponTypeEnum.SG, new WeaponConfig(WeaponTypeEnum.SG, 4, 30, 2, 20, 15, 180)},
-            {WeaponTypeEnum.MRL, new WeaponConfig(WeaponTypeEnum.MRL, 4, 30, 2, 20, 15, 120)},
-        };
-
-        /// <summary>
-        /// 吊架武器单独配置，数据与主武器隔离
-        /// </summary>
-        private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new Dictionary<WeaponTypeEnum, WeaponConfig>()
-        {
-            {WeaponTypeEnum.None, new WeaponConfig(WeaponTypeEnum.None, 0, 0, 0, 0, 0, 0)},
-            {WeaponTypeEnum.VML, new WeaponConfig(WeaponTypeEnum.VML, 8, 6, 3, 15, 25, 30)},
-            {WeaponTypeEnum.MTT, new WeaponConfig(WeaponTypeEnum.MTT, 4, 40, 4, 30, 5, 300)},
-        };
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new();
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new();
 
         protected override void OnInit()
         {
+            var weapons = new (WeaponTypeEnum type, string name, int ammoMul, int mag, float reload, int speed, int dmg, int rpm)[]
+            {
+                (WeaponTypeEnum.None, "", 0, 0, 0, 0, 0, 0),
+                (WeaponTypeEnum.AR, "突击步枪", 5, 30, 2, 20, 25, 600),
+                (WeaponTypeEnum.LMG, "机枪", 10, 60, 2, 25, 10, 840),
+                (WeaponTypeEnum.SG, "霰弹枪", 4, 30, 2, 20, 15, 180),
+                (WeaponTypeEnum.MRL, "火箭发射器", 4, 30, 2, 20, 15, 120),
+            };
+            foreach (var w in weapons)
+                _weaponConfig[w.type] = new WeaponConfig(w.type, w.name, w.ammoMul, w.mag, w.reload, w.speed, w.dmg, w.rpm);
 
+            var hanger = new (WeaponTypeEnum type, string name, int ammoMul, int mag, float reload, int speed, int dmg, int rpm)[]
+            {
+                (WeaponTypeEnum.None, "", 0, 0, 0, 0, 0, 0),
+                (WeaponTypeEnum.VML, "垂直导弹", 8, 6, 3, 15, 25, 30),
+                (WeaponTypeEnum.MTT, "自动炮台", 4, 40, 4, 30, 5, 300),
+            };
+            foreach (var w in hanger)
+                _hangerWeaponConfig[w.type] = new WeaponConfig(w.type, w.name, w.ammoMul, w.mag, w.reload, w.speed, w.dmg, w.rpm);
         }
 
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> WeaponConfigs => _weaponConfig;
@@ -52,26 +52,24 @@ namespace QFramework.Model
         {
             return _hangerWeaponConfig[weaponType];
         }
+
+        public string GetDisplayName(WeaponTypeEnum weaponType)
+        {
+            if (_weaponConfig.TryGetValue(weaponType, out var config) ||
+                _hangerWeaponConfig.TryGetValue(weaponType, out config))
+                return config.DisplayName;
+            return weaponType.ToString();
+        }
     }
 
-    /// <summary>
-    ///
-    /// </summary>
     public class WeaponConfig
     {
-        // 标识
         public WeaponTypeEnum WeaponType;
+        public string DisplayName;
 
-        // 武器属性
-
-        // 备用弹药
         public int MaxAmmo;
         public int CurAmmo;
-
-        // 弹匣
         public int MaxMagazine;
-
-        //
         public float ReloadTime;
         public int BulletSpeed;
         public int BulletDamage;
@@ -79,6 +77,7 @@ namespace QFramework.Model
 
         public WeaponConfig(
             WeaponTypeEnum weaponType,
+            string displayName,
             int maxAmmoMultipler,
             int maxMagazine,
             float reloadTime,
@@ -87,6 +86,7 @@ namespace QFramework.Model
             int rpm)
         {
             this.WeaponType = weaponType;
+            this.DisplayName = displayName;
             this.MaxAmmo = maxMagazine * maxAmmoMultipler;
             this.CurAmmo = maxMagazine * maxAmmoMultipler;
             this.MaxMagazine = maxMagazine;
@@ -94,9 +94,7 @@ namespace QFramework.Model
             this.BulletSpeed = bulletSpeed;
             this.BulletDamage = bulletDamage;
             this.Rpm = rpm;
-
         }
-
     }
 
     public enum WeaponStateEnum

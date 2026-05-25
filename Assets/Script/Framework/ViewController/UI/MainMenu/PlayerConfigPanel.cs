@@ -346,7 +346,8 @@ namespace QFramework.ViewController.UI
                     : model.GetItemConfig(ItemTypeEnum.None);
 
                 var tempItem = new ItemDataModel(config);
-                _hotkeySlots[i].UpdateSlot(tempItem);
+                _hotkeySlots[i].Bind(tempItem);
+                _hotkeySlots[i].UpdateSlot();
 
                 // 只显示icon，隐藏数量文字
                 var text = _hotkeySlots[i].GetComponentInChildren<Text>();

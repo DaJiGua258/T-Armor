@@ -39,7 +39,22 @@ namespace QFramework.Model
             {ItemTypeEnum.Marker_Missile, new ItemConfig(
                     ItemTypeEnum.Marker_Missile, "制导导弹", true, 3,
                         "Texture/UI/Icon/icon_missile", "在指定位置发射一枚制导导弹", true)},
+
+            // Mod 芯片
+            {ItemTypeEnum.Mod_Damage, new ItemConfig(
+                    ItemTypeEnum.Mod_Damage, "伤害芯片", false, 1,
+                        ModIconPath(ItemTypeEnum.Mod_Damage), "提升武器伤害", false)},
+
+            {ItemTypeEnum.Mod_Rpm, new ItemConfig(
+                    ItemTypeEnum.Mod_Rpm, "射速芯片", false, 1,
+                        ModIconPath(ItemTypeEnum.Mod_Rpm), "提升武器射速", false)},
         };
+
+        private static string ModIconPath(ItemTypeEnum modType)
+        {
+            // Mod_Rpm → "Texture/UI/Icon/icon_mod_Rpm"
+            return $"Texture/UI/Icon/icon_{modType.ToString().Replace("Mod_", "mod_")}";
+        }
 
         protected override void OnInit()
         {

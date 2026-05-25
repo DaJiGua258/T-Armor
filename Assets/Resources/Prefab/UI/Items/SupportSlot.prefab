@@ -359,7 +359,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Index: 0
-  SlotType: 1
   _image: {fileID: 5710685796908767090}
   _text: {fileID: 5362068057816391264}
 --- !u!222 &5826846176811334814

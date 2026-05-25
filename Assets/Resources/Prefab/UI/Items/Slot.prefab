@@ -171,7 +171,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7442254599939439650
 RectTransform:
   m_ObjectHideFlags: 0
@@ -359,9 +359,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Index: 0
-  SlotType: 1
   _image: {fileID: 5710685796908767090}
   _text: {fileID: 5362068057816391264}
+  _countNode: {fileID: 5322701221375523581}
 --- !u!222 &5826846176811334814
 CanvasRenderer:
   m_ObjectHideFlags: 0

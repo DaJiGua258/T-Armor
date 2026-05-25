@@ -44,9 +44,14 @@ namespace QFramework.Event
 
     public struct UpdateInventoryEvent { }
 
-    public struct UpdateViewerEvent 
+    public struct UpdateViewerEvent
     {
         public ItemDataModel itemData;
     }
+
+    /// <summary>
+    /// Mod 槽位数据变更（拖拽交换/取出）后触发，用于重算武器属性
+    /// </summary>
+    public struct ModsUpdatedEvent { }
 
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using QFramework.Enum;
 using QFramework.Model;
 
@@ -8,23 +9,26 @@ namespace QFramework.System
         public void InitPlayerWeapon();
         public void InitHangerWeapon();
         public PlayerWeapon PlayerWeapon { get; }
+        public List<ItemDataModel> PlayerMods { get; }
     }
 
     public class PlayerSystem : AbstractSystem, IPlayerSystem
-    {   
+    {
         // 基础Model和System引用
         private IWeaponConfigModel _weaponModel => this.GetModel<IWeaponConfigModel>();
-        private IWeaponInstanceSystem _weaponInstanceSystem => this.GetSystem<IWeaponInstanceSystem>();
-        
 
         // 左右槽位武器数据（改装槽修改武器数据）
         public PlayerWeapon PlayerWeapon { get; private set; }
 
-
+        // 玩家机体 Mod 槽位（5 个，用于血量/速度等属性强化）
+        public List<ItemDataModel> PlayerMods { get; private set; } = new();
 
         protected override void OnInit()
         {
             PlayerWeapon = new PlayerWeapon();
+            // 初始化 5 个空 Player Mod 槽位
+            for (int i = 0; i < 5; i++)
+                PlayerMods.Add(new ItemDataModel());
         }
 
         public void InitPlayerWeapon()

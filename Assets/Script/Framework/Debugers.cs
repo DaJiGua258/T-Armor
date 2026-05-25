@@ -12,6 +12,7 @@ public class Debugers : MonoBehaviour, IController
 {
     public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
     public IPlayerModel PlayerModel => this.GetModel<IPlayerModel>();
+    public IPlayerSystem PlayerSystem => this.GetSystem<IPlayerSystem>();
     public IEnemyInstanceSystem EnemyInstanceSystem => this.GetSystem<IEnemyInstanceSystem>();
     public IStatsSystem StatsSystem => this.GetSystem<IStatsSystem>();
     [Header("敌人数据")]
@@ -58,7 +59,28 @@ public class Debugers : MonoBehaviour, IController
         $"State: {_playerController.GetCurrentState()}\n";
 
         info += "\n";
-        
+
+        // 武器数据
+        var pw = PlayerSystem.PlayerWeapon;
+        if (pw.Left.Value != null)
+        {
+            info += "── Left Weapon ──\n";
+            info += $"Type: {pw.Left.Value.WeaponType}\n";
+            info += $"DMG: {pw.Left.Value.BulletDamage}  RPM: {pw.Left.Value.Rpm}\n";
+            info += $"Mag: {pw.Left.Value.CurMagazine.Value}/{pw.Left.Value.MaxMagazine}\n";
+            info += $"Ammo: {pw.Left.Value.CurMaxAmmo.Value}/{pw.Left.Value.MaxAmmo}\n";
+        }
+        if (pw.Right.Value != null)
+        {
+            info += "── Right Weapon ──\n";
+            info += $"Type: {pw.Right.Value.WeaponType}\n";
+            info += $"DMG: {pw.Right.Value.BulletDamage}  RPM: {pw.Right.Value.Rpm}\n";
+            info += $"Mag: {pw.Right.Value.CurMagazine.Value}/{pw.Right.Value.MaxMagazine}\n";
+            info += $"Ammo: {pw.Right.Value.CurMaxAmmo.Value}/{pw.Right.Value.MaxAmmo}\n";
+        }
+
+        info += "\n";
+
         if(_enemyId != 0)
         {
             var enemyData = EnemyInstanceSystem.GetData(_enemyId);  

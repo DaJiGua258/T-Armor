@@ -5,32 +5,24 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using QFramework.Event;
 using QFramework.Enum;
-using QFramework.Manager;
-using QFramework.Command;
 
 namespace QFramework.ViewController.UI
 {
-    public enum SlotType
-    {
-        None,
-        Bag,
-        Hotbar,
-    }
-
     public class Slot : BaseUIComponent, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public int Index;
-        public SlotType SlotType;
 
         [SerializeField] private Image _image;
         [SerializeField] private Text _text;
+        [SerializeField] private GameObject _countNode;
         private static GameObject _dragIcon;
 
-        // ----- 跨 Slot 拖拽交换状态（静态，避免耦合到 Manager） -----
+        // ----- 绑定的数据 -----
+        private ItemDataModel _itemData;
+
+        // ----- 跨 Slot 拖拽交换状态 -----
+        private static ItemDataModel _dragItemData;
         private static int _dragFromIndex;
-        private static SlotType _dragFromSlotType;
-        private static int _dragToIndex;
-        private static SlotType _dragToSlotType;
 
         void Start()
         {
@@ -42,28 +34,44 @@ namespace QFramework.ViewController.UI
             }
         }
 
-        public void UpdateSlot(ItemDataModel itemData)
+        /// <summary>
+        /// 绑定数据源，Slot 后续读写均通过此引用
+        /// </summary>
+        public void Bind(ItemDataModel itemData)
         {
-            if (itemData.ItemType == ItemTypeEnum.None)
+            _itemData = itemData;
+        }
+
+        /// <summary>
+        /// 从绑定的数据源刷新 UI
+        /// </summary>
+        public void UpdateSlot()
+        {
+            if (_itemData == null || _itemData.ItemType == ItemTypeEnum.None)
             {
                 _image.gameObject.SetActive(false);
-                _text.gameObject.SetActive(false);
+                if (_countNode != null)
+                    _countNode.SetActive(false);
                 return;
             }
 
             _image.gameObject.SetActive(true);
-            _text.gameObject.SetActive(true);
-            _image.sprite = ResourceLoad.Load<Sprite>(itemData.iconPath);
-            _text.text = itemData.Count.Value.ToString();
+            _image.sprite = ResourceLoad.Load<Sprite>(_itemData.iconPath);
+
+            if (_countNode != null)
+                _countNode.SetActive(_itemData.Count.Value > 1);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            TypeEventSystem.Global.
-                Send<UpdateViewerEvent>(new UpdateViewerEvent
-                {
-                    itemData = InvenotrySystem.GetInventoryItemByIndex(Index)
-                });
+            if (_itemData != null)
+            {
+                TypeEventSystem.Global.
+                    Send<UpdateViewerEvent>(new UpdateViewerEvent
+                    {
+                        itemData = _itemData
+                    });
+            }
         }
 
         public void OnPointerExit(PointerEventData eventData) { }
@@ -71,12 +79,10 @@ namespace QFramework.ViewController.UI
         public void OnBeginDrag(PointerEventData eventData)
         {
             if (_dragIcon == null) return;
-
-            var itemData = InvenotrySystem.GetInventoryItemByIndex(Index);
-            if (itemData.TypeEnum == TypeEnum.None) return;
+            if (_itemData == null || _itemData.ItemType == ItemTypeEnum.None) return;
 
             _dragFromIndex = Index;
-            _dragFromSlotType = SlotType;
+            _dragItemData = _itemData;
 
             _dragIcon.SetActive(true);
             _dragIcon.GetComponent<RectTransform>().sizeDelta
@@ -100,15 +106,17 @@ namespace QFramework.ViewController.UI
 
             if (eventData.pointerEnter != null)
             {
-                var slot = eventData.pointerEnter.GetComponentInParent<Slot>();
-                if (slot != null)
+                var targetSlot = eventData.pointerEnter.GetComponentInParent<Slot>();
+                if (targetSlot != null && _dragItemData != null && targetSlot._itemData != null)
                 {
-                    _dragToIndex = slot.Index;
-                    _dragToSlotType = slot.SlotType;
+                    _dragItemData.SwapWith(targetSlot._itemData);
 
-                    this.SendCommand(new UICommand.ExchangeSlot(
-                        _dragFromIndex, _dragFromSlotType,
-                        _dragToIndex, _dragToSlotType));
+                    // 刷新拖拽双方显示
+                    UpdateSlot();
+                    targetSlot.UpdateSlot();
+
+                    // 通知武器系统重算属性
+                    TypeEventSystem.Global.Send<ModsUpdatedEvent>();
                 }
             }
         }

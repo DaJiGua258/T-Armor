@@ -24,6 +24,9 @@ namespace QFramework.ViewController.Enemy
 
         [Header("实例标识")]
         public int enemyId;
+
+        [Header("测试用")]
+        public bool UseInspectorRange;
         public EnemyTypeEnum enemyType;
         public bool IsInit = false;
         public bool debugLock = false;
@@ -34,10 +37,14 @@ namespace QFramework.ViewController.Enemy
         public float DetectionRange;
         public float AttackMaxRange;
         public float AttackMinRange;
+        [Header("攻击距离")]
+        public float StopRange = 1.5f;
+        public float AttackCooldown = 1.5f;
+        [Tooltip("-1 使用 AttackCooldown，≥0 则作为首次攻击冷却")]
+        public float FirstAttackCooldown = -1f;
 
         [Header("包抄参数")]
-        public float FlankWidth = 3f;          // 最大侧向偏移距离
-        public float MaxFlankDistance = 10f;   // 在此距离以上保持最大偏移
+        [Range(0f, 1f)] public float FlankProbability = 0.75f;  // 包抄概率
 
         [Header("组件")]
         [SerializeField] private float _moveSpeed = 3f;
@@ -96,7 +103,6 @@ namespace QFramework.ViewController.Enemy
         [Header("移动参数")]
         [SerializeField] protected float _rotateSpeed = 5f;
         public float RotateSpeed => _rotateSpeed;
-        [SerializeField] private float _turnSpeed = 5f;
         private Vector3 _smoothVelocity;
 
         [Header("巡逻参数")]
@@ -262,8 +268,11 @@ namespace QFramework.ViewController.Enemy
 
             _enemyConfig = config;
             DetectionRange = config.DetectionRange;
-            AttackMaxRange = config.AttackMaxRange;
-            AttackMinRange = config.AttackMinRange;
+            if (!UseInspectorRange)
+            {
+                AttackMaxRange = config.AttackMaxRange;
+                AttackMinRange = config.AttackMinRange;
+            }
             _moveSpeed = config.MoveSpeed;
         }
 
@@ -354,7 +363,7 @@ namespace QFramework.ViewController.Enemy
         }
 
         /// <summary>
-        /// 判断是否在攻击范围内
+        /// 判断是否在最大攻击范围内
         /// </summary>
         public bool IsInAttackMaxRange()
         {
@@ -366,6 +375,15 @@ namespace QFramework.ViewController.Enemy
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// 判断是否在最小攻击范围内（需要停车的距离）
+        /// </summary>
+        public bool IsInAttackMinRange()
+        {
+            if (Target == null) return false;
+            return Vector2.Distance(transform.position, Target.position) <= AttackMinRange;
         }
 
         /// <summary>
@@ -392,22 +410,8 @@ namespace QFramework.ViewController.Enemy
         
         public virtual void MoveToward(Vector3 targetPos)
         {
-            // Vector2 targetDir = ((Vector2)targetPos - Rb.position).normalized;
-    
-            // // 当前移动方向，静止时直接用目标方向
-            // Vector2 currentDir = Rb.velocity.sqrMagnitude > 0.01f
-            //     ? Rb.velocity.normalized
-            //     : targetDir;
-            
-            // // 每帧最多转这么多角度
-            // Vector2 newDir = Vector2.MoveTowards(currentDir, targetDir, _turnSpeed * Time.fixedDeltaTime);
-            
-            // Rb.velocity = newDir * _moveSpeed;
-            
-            // Rotate(targetPos);
-
             Agent.destination = targetPos;
-            Rotate(targetPos);
+            Rotate(Target != null ? Target.position : targetPos);
         }
 
         /// <summary>
@@ -558,7 +562,7 @@ namespace QFramework.ViewController.Enemy
         /// 从枪口向目标发射射线检测是否有无障碍物。
         /// 使用 RaycastAll 跳过自身碰撞体，确保不会被自己的 collider 挡住。
         /// </summary>
-        public bool HasLineOfSightToTarget()
+        public virtual bool HasLineOfSightToTarget()
         {
             if (Target == null) return false;
 
@@ -838,8 +842,12 @@ namespace QFramework.ViewController.Enemy
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, DetectionRange);
+            Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, AttackMaxRange);
+            Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, AttackMinRange);
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, StopRange);
         }
     }
 }

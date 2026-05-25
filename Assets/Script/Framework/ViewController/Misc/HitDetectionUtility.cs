@@ -136,11 +136,7 @@ namespace QFramework.ViewController
 
                 if (enemy.EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
                 {
-                    TypeEventSystem.Global.Send(new StatsEvent.OnEnemyKilled
-                    {
-                        EnemyId = enemyId,
-                        Type = enemy.enemyType
-                    });
+                    // 死亡事件移至 EnemyDeathState 发送
                 }
             }
         }

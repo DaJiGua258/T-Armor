@@ -21,9 +21,15 @@ namespace QFramework.ViewController.Enemy
         public override void OnUpdate()
         {
             // 保留原有战斗优先级：可攻击 > 可追击 > 巡逻
-            if (Entity.IsInAttackMaxRange())
+            if (Entity.IsInAttackMinRange() && Entity.HasLineOfSightToTarget())
             {
                 FSM.ChangeState<EnemyAttackState>();
+                return;
+            }
+
+            if (Entity.IsInAttackMaxRange())
+            {
+                FSM.ChangeState<EnemyMoveState>();
                 return;
             }
 

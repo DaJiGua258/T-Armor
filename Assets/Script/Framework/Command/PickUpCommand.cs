@@ -6,6 +6,25 @@ namespace QFramework.Command
 {
     public class PickUpCommand
     {
+        /// <summary>
+        /// 将掉落物物品直接添加到背包（不走实例系统，每次 1 个）
+        /// </summary>
+        public class AddDropItem : AbstractCommand
+        {
+            private IInvenotrySystem _invenotrySystem => this.GetSystem<IInvenotrySystem>();
+            private ItemTypeEnum _itemType;
+
+            public AddDropItem(ItemTypeEnum itemType)
+            {
+                _itemType = itemType;
+            }
+
+            protected override void OnExecute()
+            {
+                _invenotrySystem.AddItemToInventory(_itemType, 1);
+            }
+        }
+
         public class AddPickUpItemInstance : AbstractCommand<int>
         {
             private IPickUpItemInstanceSystem _pickUpItemInstanceSystem => this.GetSystem<IPickUpItemInstanceSystem>();

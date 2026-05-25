@@ -19,6 +19,8 @@ namespace QFramework.System
         public void SetItemCount(int slotIndex, int count);
         public ItemDataModel GetInventoryItemByIndex(int slotIndex);
         public void InitHotbarItems(List<ItemTypeEnum> itemTypes);
+        public bool HasFreeSlot();
+        public void AddItemToInventory(ItemTypeEnum itemType, int count);
     }
 
     public class InvenotrySystem : AbstractSystem, IInvenotrySystem
@@ -88,6 +90,14 @@ namespace QFramework.System
         public ItemDataModel GetInventoryItemByIndex(int slotIndex)
         {
             return ItemDataCache[slotIndex];
+        }
+
+        public bool HasFreeSlot()
+        {
+            foreach (var slot in ItemDataCache)
+                if (slot.ItemType == ItemTypeEnum.None)
+                    return true;
+            return false;
         }
 
         public ItemDataModel GetHotbarItemByIndex(int index)

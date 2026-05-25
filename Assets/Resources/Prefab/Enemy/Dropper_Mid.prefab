@@ -4964,6 +4964,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyId: 0
+  UseInspectorRange: 0
   enemyType: 11
   IsInit: 0
   debugLock: 0
@@ -4971,8 +4972,10 @@ MonoBehaviour:
   DetectionRange: 20
   AttackMaxRange: 5
   AttackMinRange: 5
-  FlankWidth: 3
-  MaxFlankDistance: 10
+  StopRange: 1.5
+  AttackCooldown: 1.5
+  FirstAttackCooldown: -1
+  FlankProbability: 0.75
   _moveSpeed: 3
   Rb: {fileID: 0}
   TargetLayerMask:
@@ -4997,7 +5000,6 @@ MonoBehaviour:
   _burstCount: 3
   _burstInterval: 0.1
   _rotateSpeed: 0.5
-  _turnSpeed: 5
   _amplitude: 0.2
   _frequency: 0.5
   _horizontalAmplitude: 0.3

@@ -5451,15 +5451,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyId: 0
+  UseInspectorRange: 1
   enemyType: 1
   IsInit: 0
   debugLock: 0
   Agent: {fileID: 4097027512556796547}
   DetectionRange: 15
-  AttackMaxRange: 2
-  AttackMinRange: 1
-  FlankWidth: 3
-  MaxFlankDistance: 5
+  AttackMaxRange: 1.5
+  AttackMinRange: 1.5
+  StopRange: 1
+  AttackCooldown: 1.5
+  FirstAttackCooldown: 0.1
+  FlankProbability: 0.75
   _moveSpeed: 3
   Rb: {fileID: 0}
   TargetLayerMask:
@@ -5483,8 +5486,7 @@ MonoBehaviour:
   _shootAccuracy: 1
   _burstCount: 3
   _burstInterval: 0.1
-  _rotateSpeed: 5
-  _turnSpeed: 5
+  _rotateSpeed: 20
   _light: {fileID: 4226961380013284781}
 --- !u!114 &4097027512556796547
 MonoBehaviour:
@@ -5514,7 +5516,7 @@ MonoBehaviour:
       leadInRadiusWhenApproachingDestination: 1
       allowRotatingOnSpotBacking: 1
     debugFlags: 64
-    stopDistance: 0.2
+    stopDistance: 0
     rotationSmoothing: 0
     positionSmoothing: 0
     groundMask:

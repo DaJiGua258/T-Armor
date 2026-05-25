@@ -1,5 +1,5 @@
+using QFramework.Event;
 using QFramework.ViewController.FSM;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
@@ -8,12 +8,17 @@ namespace QFramework.ViewController.Enemy
     {
         public EnemyDeathState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
-            
 
         public override void OnEnter()
         {
             Entity.StopMovement();
             Entity.ShowDeathVFX();
+
+            TypeEventSystem.Global.Send(new StatsEvent.OnEnemyKilled
+            {
+                EnemyId = Entity.enemyId,
+                Type = Entity.enemyType
+            });
         }
     }
 }

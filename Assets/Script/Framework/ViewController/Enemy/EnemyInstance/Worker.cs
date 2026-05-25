@@ -8,6 +8,9 @@ namespace QFramework.ViewController.Enemy
         [Header("特殊引用")]
         [SerializeField] private ElecShock _light;  // 电击特效引用
 
+        // 近战单位无视遮挡
+        public override bool HasLineOfSightToTarget() => true;
+
         /// <summary>
         /// 执行攻击，触发电击
         /// </summary>

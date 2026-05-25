@@ -5,18 +5,22 @@ namespace QFramework.ViewController.Enemy
 {
     /// <summary>
     /// 敌人追逐移动状态。
-    /// 朝目标侧向偏移点移动，实现包抄效果。
+    /// 3 区间行为：
+    ///   > AttackMaxRange       → 纯追击
+    ///   AttackMinRange~MaxRange → 移动射击（追击 + 开火）
+    ///   < AttackMinRange       → 切到 AttackState 停车射击
     /// </summary>
     public class EnemyMoveState : AbstractState<AbstractEnemy>
     {
-        private const float ModeSwitchInterval = 2f;  // 切换间隔
+        private const float ModeSwitchInterval = 2f;
+        private const float ShootCooldown = 1f;
+        private const float FlankConeHalfAngle = 120f;   // 玩家前方扇形半角，限制包抄位置范围
 
-        private float _arrivedThreshold = 0.2f;
-        private float _patrolRadius = 5f;
-        private float _curAttackRange = 1;
-        private float _flankSide;  // +1 = 偏好左侧, -1 = 偏好右侧
         private float _modeTimer;
         private bool _useFlank;
+        private float _shootTimer;
+        private float _stopDis;
+        private float _flankAngle;                        // 当前包抄周期的随机角度
 
         public EnemyMoveState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
@@ -25,23 +29,20 @@ namespace QFramework.ViewController.Enemy
         {
             Entity.StartMovement();
 
-            _curAttackRange = Random.Range((float)Entity.AttackMinRange, (float)Entity.AttackMaxRange);
 
-            if (Entity.Agent != null)
-                Entity.Agent.stopDistance = _curAttackRange * 0.8f;
-
-            // 随机选择侧向偏好，确保多个敌人自然分散
-            _flankSide = Random.value > 0.5f ? 1f : -1f;
+            _stopDis = Random.Range(Entity.StopRange, Entity.AttackMinRange);
 
             _modeTimer = 0f;
-            _useFlank = Random.value > 0.5f;
+            _useFlank = Random.value < Entity.FlankProbability;
+            _flankAngle = Random.Range(-FlankConeHalfAngle, FlankConeHalfAngle);
+            _shootTimer = 0f;
         }
 
         public override void OnUpdate()
         {
             Entity.RefreshTargetInCombat();
 
-            // 超出检测范围且目标已失效 → 返回待机
+            // 超出检测范围且目标失效 → 待机
             if (!Entity.IsInDetectRange())
             {
                 if (Entity.Target == null || !Entity.Target.gameObject.activeInHierarchy)
@@ -51,23 +52,33 @@ namespace QFramework.ViewController.Enemy
                 }
             }
 
-            if (Entity.IsInSpecifiedRange(_curAttackRange))
+            float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
+
+            // Zone 3: 进入最小攻击范围且有视线 → 停车射击
+            if (distance <= _stopDis && Entity.HasLineOfSightToTarget())
             {
                 FSM.ChangeState<EnemyAttackState>();
                 return;
             }
-            else
+
+            // Zone 2: 在最大~最小攻击范围之间 → 移动射击
+            if (distance <= Entity.AttackMaxRange && Entity.HasLineOfSightToTarget())
             {
-                // 恢复 stopDistance 以便在攻击距离停下
-                Entity.Agent.stopDistance = _curAttackRange * 0.8f;
+                _shootTimer += Time.deltaTime;
+                if (_shootTimer >= ShootCooldown)
+                {
+                    _shootTimer = 0f;
+                    Entity.Attack();
+                }
             }
 
-            // 每 2 秒随机切换一次移动模式
+            // Zone 1 & 2: 都需要移动
             _modeTimer += Time.deltaTime;
             if (_modeTimer >= ModeSwitchInterval)
             {
                 _modeTimer = 0f;
-                _useFlank = Random.value > 0.5f;
+                _useFlank = Random.value < Entity.FlankProbability;
+                _flankAngle = Random.Range(-FlankConeHalfAngle, FlankConeHalfAngle);
             }
 
             if (_useFlank)
@@ -84,17 +95,13 @@ namespace QFramework.ViewController.Enemy
         private Vector3 GetFlankTarget()
         {
             Vector3 targetPos = Entity.Target.position;
-            float distance = Vector2.Distance(Entity.transform.position, targetPos);
+            float radius = Entity.AttackMinRange + 1f;
 
-            // 距离越近偏移越小，进入攻击范围时归零
-            float ratio = Mathf.Clamp01(distance / Entity.MaxFlankDistance);
+            // 以 enemy→target 方向为基准，在 ±FlankConeHalfAngle 内随机方向
+            Vector3 toTarget = (targetPos - Entity.transform.position).normalized;
+            Vector3 dir = Quaternion.Euler(0, 0, _flankAngle) * toTarget;
 
-            Vector3 toTarget = ((Vector3)targetPos - Entity.transform.position).normalized;
-            Vector3 perpDir = new Vector3(-toTarget.y, toTarget.x, 0) * _flankSide;
-            Vector3 offset = perpDir * Entity.FlankWidth * ratio;
-
-            // 最终位置：目标位置 + 侧向偏移，保证整体是在靠近目标
-            return targetPos + offset;
+            return targetPos + dir * radius;
         }
     }
 }

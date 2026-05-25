@@ -4,28 +4,28 @@ using UnityEngine;
 namespace QFramework.ViewController.Enemy
 {
     /// <summary>
-    /// 敌人攻击状态。
-    /// 条件：玩家必须在攻击范围内才允许进入（OnCondition）。
-    /// 每隔一段冷却时间对玩家造成伤害；每次攻击结束后检测脱离，冷却期间不回空闲状态。
+    /// 敌人停车射击状态。
+    /// 进入时在 StopRange~AttackMinRange 之间随机选停车距离，
+    /// 到达后原地攻击；视线丢失持续超过容忍时间或目标超出范围则切回待机。
     /// </summary>
     public class EnemyAttackState : AbstractState<AbstractEnemy>
     {
-        private float _attackCooldown = 1.5f;
+        private const float LosLostBuffer = 0.5f;
         private float _attackTimer;
+        private float _losLostTimer;
 
         public EnemyAttackState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
-        /// <summary>仅当玩家在攻击范围内时才允许进入攻击状态。</summary>
-        public override bool OnCondition()
-        {
-            return Entity.IsInAttackMaxRange();
-        }
-
         public override void OnEnter()
         {
             Entity.SetAgentRvoLocked(true);
-            _attackTimer = _attackCooldown;
+
+            // 首次攻击冷却：面板值≥0用面板，-1则等同 AttackCooldown
+            _attackTimer = Entity.FirstAttackCooldown >= 0f
+                ? Mathf.Max(0f, Entity.AttackCooldown - Entity.FirstAttackCooldown)
+                : 0f;
+            _losLostTimer = 0f;
         }
 
         public override void OnUpdate()
@@ -33,18 +33,33 @@ namespace QFramework.ViewController.Enemy
             Entity.RefreshTargetInCombat();
             Entity.RotateToTarget(Entity.Target.position);
 
-            _attackTimer += Time.deltaTime;
-            if (_attackTimer < _attackCooldown) return;
+            // 视线丢失 → 累积计时，超过容忍值才切走
+            if (!Entity.HasLineOfSightToTarget())
+            {
+                _losLostTimer += Time.deltaTime;
+                if (_losLostTimer >= LosLostBuffer)
+                {
+                    FSM.ChangeState<EnemyIdleState>();
+                    return;
+                }
+            }
+            else
+            {
+                _losLostTimer = 0f;
+            }
 
-            // ----- 攻击 -------------------------
-            Entity.Attack();
-            _attackTimer = 0f;
-
-            // ----- 攻击后检测脱离 -------------------------
+            // 每帧检测是否超出最大攻击范围
             if (!Entity.IsInAttackMaxRange())
             {
                 FSM.ChangeState<EnemyIdleState>();
+                return;
             }
+
+            _attackTimer += Time.deltaTime;
+            if (_attackTimer < Entity.AttackCooldown) return;
+
+            Entity.Attack();
+            _attackTimer = 0f;
         }
 
         public override void OnExit()

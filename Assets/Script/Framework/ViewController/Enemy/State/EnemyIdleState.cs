@@ -46,13 +46,13 @@ namespace QFramework.ViewController.Enemy
             }
 
             // ----- 冷却结束后检测 -------------------------
-            if(Entity.IsInAttackMaxRange() && Entity.HasLineOfSightToTarget())
+            if (Entity.IsInAttackMinRange() && Entity.HasLineOfSightToTarget())
             {
                 FSM.ChangeState<EnemyAttackState>();
                 return;
             }
 
-            if(Entity.IsInDetectRange())
+            if (Entity.IsInDetectRange())
             {
                 FSM.ChangeState<EnemyMoveState>();
                 return;

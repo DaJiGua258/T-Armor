@@ -18,7 +18,8 @@ namespace QFramework.System
 
     public class MissionSystem : AbstractSystem, IMissionSystem
     {
-        private const int PrimaryMissionIndex = 1;
+        // 注释：简化后不再需要 PrimaryMissionIndex
+        // private const int PrimaryMissionIndex = 1;
         private IMissionConfigModel _missionConfigModel => this.GetModel<IMissionConfigModel>();
         public List<MissionDataModel> Missions { get; private set; } = new();
         public Vector3? EntrySpawnPosition { get; set; }
@@ -30,14 +31,14 @@ namespace QFramework.System
         }
 
         /// <summary>
-        /// 初始化关卡任务
+        /// 初始化关卡任务（简化：Entry → 单一玩法任务 → Extraction）
         /// </summary>
         public void InitMission(LevelMissionTypeEnum levelMissionType)
         {
             if(levelMissionType == LevelMissionTypeEnum.None)
             {
-                levelMissionType = LevelMissionTypeEnum.LevMis_NodeInvasion;
-                UnityEngine.Debug.LogWarning("LevelMissionType is None, use LevelMission_1");
+                levelMissionType = LevelMissionTypeEnum.LevMis_Beacon;
+                UnityEngine.Debug.LogWarning("LevelMissionType is None, use LevMis_Beacon");
             }
 
             var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
@@ -48,16 +49,8 @@ namespace QFramework.System
             // 1) Entry 进入任务（auto-completed）
             Missions.Add(InitMission(MissionTypeEnum.Entry, MissionState.Completed, missionIndex++));
 
-            // 2) 玩法任务（第一个为主要任务，后续为前置任务）
-            for(int i = 0; i < levelConfig.MissionTypes.Count; i++)
-            {
-#if UNITY_EDITOR
-                var initState = MissionState.InProgress;
-#else
-                var initState = (i == 0) ? MissionState.NotStarted : MissionState.InProgress;
-#endif
-                Missions.Add(InitMission(levelConfig.MissionTypes[i], initState, missionIndex++));
-            }
+            // 2) 单一玩法任务：激活信标
+            Missions.Add(InitMission(levelConfig.MissionType, MissionState.InProgress, missionIndex++));
 
             // 3) Extraction 撤离任务（默认未激活）
             Missions.Add(InitMission(MissionTypeEnum.Extraction, MissionState.NotStarted, missionIndex));
@@ -86,34 +79,8 @@ namespace QFramework.System
             return mission;
         }
 
-        /// <summary>
-        /// 判断前置任务是否全部完成
-        /// </summary>
-        public bool IsPreMissionFinished()
-        {
-            int extractionIndex = Missions.Count - 1;
-
-            // 检查所有前置任务（Primary 之后、Extraction 之前）是否完成
-            for(int i = PrimaryMissionIndex + 1; i < extractionIndex; i++)
-            {
-                if(Missions[i].MissionState.Value != MissionState.Completed)
-                {
-                    return false;
-                }
-            }
-
-            if(Missions.Count > PrimaryMissionIndex)
-            {
-                var primary = Missions[PrimaryMissionIndex];
-                if(primary.MissionType != MissionTypeEnum.None &&
-                   primary.MissionState.Value == MissionState.NotStarted)
-                {
-                    primary.MissionState.Value = MissionState.InProgress;
-                }
-            }
-
-            return true;
-        }
+        // 注释：简化后不再需要前置任务判断
+        // public bool IsPreMissionFinished() { ... }
 
         public void AddProgress(MissionDataModel mission, int value)
         {
@@ -145,10 +112,7 @@ namespace QFramework.System
                 });
             }
 
-            // 判断前置任务是否全部完成
-            IsPreMissionFinished();
-
-            // 判断是否需要激活撤离任务
+            // 单一任务完成后直接尝试激活撤离
             TryActivateExtraction(mission);
         }
 
@@ -157,12 +121,12 @@ namespace QFramework.System
             if(completedMission.MissionState.Value != MissionState.Completed)
                 return;
 
-            if(completedMission.MissionIndex != PrimaryMissionIndex)
+            // 索引 1 是唯一的玩法任务
+            if(completedMission.MissionIndex != 1)
                 return;
 
             int extractionIndex = Missions.Count - 1;
-            if(extractionIndex > PrimaryMissionIndex &&
-               Missions[extractionIndex].MissionState.Value == MissionState.NotStarted)
+            if(Missions[extractionIndex].MissionState.Value == MissionState.NotStarted)
             {
                 Missions[extractionIndex].MissionState.Value = MissionState.InProgress;
             }

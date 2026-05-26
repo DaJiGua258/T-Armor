@@ -136,8 +136,8 @@ namespace QFramework.ViewController.Enemy
             _fsm.Update();
 
             // 目标被销毁或失活时置空
-            if (Target != null && !Target.gameObject.activeInHierarchy)
-                Target = null;
+            //if (Target != null && !Target.gameObject.activeInHierarchy)
+            //    Target = null;
 
             if(IsDead())
             {
@@ -147,14 +147,14 @@ namespace QFramework.ViewController.Enemy
 
             
 
-            // 定期扫描范围内最近目标
-            _findTargetTimer -= Time.deltaTime;
-            if (_findTargetTimer <= 0f)
-            {
-                _findTargetTimer = _findTargetInterval;
-                var nearest = FindNearestTarget(DetectionRange);
-                Target = nearest;
-            }
+            // 定期扫描范围内最近目标（暂时注释：获取目标后永不丢失，由外部 SetTarget 或初始扫描驱动）
+            //_findTargetTimer -= Time.deltaTime;
+            //if (_findTargetTimer <= 0f)
+            //{
+            //    _findTargetTimer = _findTargetInterval;
+            //    var nearest = FindNearestTarget(DetectionRange);
+            //    Target = nearest;
+            //}
 
             // if(!IsGrounded())
             // {

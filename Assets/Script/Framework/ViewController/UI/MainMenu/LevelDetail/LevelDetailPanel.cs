@@ -1,5 +1,6 @@
 using DG.Tweening;
 using QFramework.Event;
+using QFramework.Manager;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,9 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Text _mapInfoText;         // 地图信息（地形/湿度/植被/威胁）
         [SerializeField] private Text _levelNameText;        // 任务名称
         [SerializeField] private Text _levelDescriptionText; // 任务介绍
+
+        [Header("进入关卡")]
+        [SerializeField] private Button _enterLevelBtn;
 
         [Header("滑入滑出")]
         [SerializeField] private float _slideDuration = 0.35f;
@@ -28,6 +32,8 @@ namespace QFramework.ViewController.UI
         {
             this.RegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
 
+            _enterLevelBtn.onClick.AddListener(OnEnterLevelClick);
+
             // 从隐藏位置滑入
             _slideTween?.Kill();
             var pos = _rectTransform.anchoredPosition;
@@ -39,6 +45,7 @@ namespace QFramework.ViewController.UI
         public override void OnHide()
         {
             this.UnRegisterEvent<UpdateMapInfo>(OnUpdateMapInfo);
+            _enterLevelBtn.onClick.RemoveListener(OnEnterLevelClick);
         }
 
         public override void Hide()
@@ -49,6 +56,11 @@ namespace QFramework.ViewController.UI
             _slideTween?.Kill();
             _slideTween = _rectTransform.DOAnchorPosY(_hiddenY, _slideDuration).SetEase(Ease.InSine)
                 .OnComplete(() => { gameObject.SetActive(false); });
+        }
+
+        private void OnEnterLevelClick()
+        {
+            GameManager.Instance.EnterGameScene();
         }
 
         private void OnUpdateMapInfo(UpdateMapInfo e)

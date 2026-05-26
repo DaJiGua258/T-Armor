@@ -47,7 +47,7 @@ Material:
     - _WindFrequency: 1.2
     - _WindStrength: 0.05
     - _WindTurbulence: 0.3
-    - _YOffset: 0.08
+    - _YOffset: 0.16
     - _ZWriteEnabled: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

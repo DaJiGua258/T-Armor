@@ -46,19 +46,19 @@ namespace QFramework.ViewController.Enemy
             }
 
             // ----- 冷却结束后检测 -------------------------
-            if (Entity.IsInAttackMinRange() && Entity.HasLineOfSightToTarget())
+            if (Entity.Target != null)
             {
-                FSM.ChangeState<EnemyAttackState>();
-                return;
-            }
+                if (Entity.IsInAttackMinRange() && Entity.HasLineOfSightToTarget())
+                {
+                    FSM.ChangeState<EnemyAttackState>();
+                    return;
+                }
 
-            if (Entity.IsInDetectRange())
-            {
                 FSM.ChangeState<EnemyMoveState>();
                 return;
             }
 
-            // 没有目标或目标超出范围，重置timer等待下次扫描
+            // 没有目标，重置timer等待下次扫描
             _idleTimer = 0f;
         }
 

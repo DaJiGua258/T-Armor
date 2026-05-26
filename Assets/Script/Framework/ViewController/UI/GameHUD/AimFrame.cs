@@ -10,6 +10,7 @@ using QFramework.ViewController.Enemy;
 using QFramework.ViewController.Player;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
 {
@@ -25,10 +26,15 @@ namespace QFramework.ViewController.UI
         private RectTransform _rectTransform;
         [SerializeField] private float _frameScale = 1.2f;
         [SerializeField] private Vector2 _defaultFrameSize = new Vector2(200, 200);
-
+        [SerializeField] private RectTransform _selectionBox;
+        [SerializeField] private float _interactionBoxSize = 50f;
+        [SerializeField] private RectTransform _combatFrame;
+        [SerializeField] private RectTransform _interactionFrame;
+        private Vector2 _fixedSize;
+        private Image _aimImage;
 
         [Header("检测设置")]
-        [SerializeField] private float _aimRadius = 2f;      // 圆形探测的半径
+        [SerializeField] private Vector2 _aimSize = new Vector2(2, 2);
         [SerializeField] private float _miniRadius = 1f;
         [SerializeField] private float _castDistance = 0.1f; // 投射距离（设为很小的值即等同于原地覆盖检测）
         [SerializeField] private Vector2 _castDirection = Vector2.zero;
@@ -63,7 +69,16 @@ namespace QFramework.ViewController.UI
         void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
+            _aimImage = GetComponent<Image>();
             _interactionQuaternion = Quaternion.Euler(0, 0, _interactionRotation);
+        }
+
+        void Start()
+        {
+            float w = UITool.GetCanvasLength(_aimSize.x, Camera.main, UIGameManager.Instance.Canvas);
+            float h = UITool.GetCanvasLength(_aimSize.y, Camera.main, UIGameManager.Instance.Canvas);
+            _fixedSize = new Vector2(w, h);
+            _rectTransform.sizeDelta = _fixedSize;
         }
 
         void Update()
@@ -74,7 +89,7 @@ namespace QFramework.ViewController.UI
                 TypeEventSystem.Global.Send(new PlayerEvent.SwitchAimingMode { Mode = _currentMode });
 
                 Quaternion targetRot = _currentMode == AimingModeEnum.Combat ? _combatRotation : _interactionQuaternion;
-                _rectTransform.DORotate(targetRot.eulerAngles, _rotationDuration).SetEase(Ease.Linear);
+                _selectionBox.DORotate(targetRot.eulerAngles, _rotationDuration).SetEase(Ease.Linear);
             }
 
             if (_currentMode == AimingModeEnum.Combat)
@@ -99,7 +114,7 @@ namespace QFramework.ViewController.UI
 
             int count = Physics2D.BoxCastNonAlloc(
                 mouseWorldPos,
-                new Vector2(_aimRadius, _aimRadius),
+                _aimSize,
                 0,
                 Vector2.zero,
                 _raycastResults,
@@ -118,7 +133,8 @@ namespace QFramework.ViewController.UI
 
             for (int i = 0; i < count; i++)
             {
-                if(!_raycastResults[i].collider.CompareTag("Enemy")) continue;
+                string tag = _raycastResults[i].collider.tag;
+                if (tag != "Enemy" && tag != "AimTarget") continue;
 
                 float curDis = Vector2.Distance(mouseWorldPos, _raycastResults[i].collider.transform.position);
                 if (curDis < minDis)
@@ -290,31 +306,41 @@ namespace QFramework.ViewController.UI
         /// </summary>
         private void UpdateFrameTransform()
         {
-            if (_targetCollider == null)
+            if (_currentMode == AimingModeEnum.Interaction)
             {
-                // 没目标时，跟随鼠标，恢复默认大小
-                _rectTransform.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
-                float length = UITool.GetCanvasLength(_aimRadius, Camera.main, UIGameManager.Instance.Canvas);
-        
-                if(_currentMode == AimingModeEnum.Interaction)
-                {
-                    length *= 0.25f;
-                }
+                // 交互模式：父物体隐藏，用 _interactionFrame
+                _aimImage.enabled = false;
+                _combatFrame.gameObject.SetActive(false);
+                _interactionFrame.gameObject.SetActive(true);
+                _selectionBox.gameObject.SetActive(true);
+                _selectionBox.sizeDelta = new Vector2(_interactionBoxSize, _interactionBoxSize);
 
-                _rectTransform.sizeDelta = new Vector2(length, length);
+                if (_targetCollider == null)
+                    _selectionBox.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
+                else
+                    _selectionBox.DOMove(Camera.main.WorldToScreenPoint(_targetCollider.transform.position), 0.1f).SetEase(Ease.Linear);
                 return;
             }
 
-            // 1. 设置大小：根据目标的 Bounds（世界坐标包围盒）转换
-            // 这里假设 bounds 是物体的像素/单位大小，乘以缩放
-            Vector2 targetWorldSize = _targetCollider.bounds.size;
-            float size = targetWorldSize.x > _miniRadius ?  // 如果目标大于最小半径，则使用目标大小
-                targetWorldSize.x * _frameScale 
-                : _miniRadius * _frameScale;
-            _rectTransform.sizeDelta = new Vector2(size, size); // 100f 通常是 PPU
+            // ── 战斗模式 ──
+            _aimImage.enabled = true;
+            _combatFrame.gameObject.SetActive(true);
+            _interactionFrame.gameObject.SetActive(false);
+            _rectTransform.DOMove(Input.mousePosition, 0.1f).SetEase(Ease.Linear);
 
-            // 2. 设置位置：将目标的世界坐标转为屏幕坐标
-            _rectTransform.DOMove(Camera.main.WorldToScreenPoint(_targetCollider.transform.position), 0.1f).SetEase(Ease.Linear);
+            if (_targetCollider == null)
+            {
+                _selectionBox.gameObject.SetActive(false);
+                return;
+            }
+
+            _selectionBox.gameObject.SetActive(true);
+            Vector2 targetWorldSize = _targetCollider.bounds.size;
+            float size = targetWorldSize.x > _miniRadius ?
+                targetWorldSize.x * _frameScale
+                : _miniRadius * _frameScale;
+            _selectionBox.sizeDelta = new Vector2(size, size);
+            _selectionBox.DOMove(Camera.main.WorldToScreenPoint(_targetCollider.transform.position), 0.1f).SetEase(Ease.Linear);
         }
 
         /// <summary>
@@ -336,9 +362,12 @@ namespace QFramework.ViewController.UI
             }
             else  // 目标不存在时，执行返回瞄准框的事件
             {
-                TypeEventSystem.Global.Send(new GetAimFramePos() 
-                { 
-                    Pos = _rectTransform.anchoredPosition
+                Vector2 pos = _currentMode == AimingModeEnum.Interaction
+                    ? _selectionBox.anchoredPosition + _rectTransform.anchoredPosition
+                    : _rectTransform.anchoredPosition;
+                TypeEventSystem.Global.Send(new GetAimFramePos()
+                {
+                    Pos = pos
                 });
             }
 
@@ -377,17 +406,29 @@ namespace QFramework.ViewController.UI
             if(_targetCollider != null && _lastTargetCollider == _targetCollider) return;
 
             var enemy = _targetCollider.GetComponentInParent<AbstractEnemy>();
-            if (enemy == null) return;
+            if (enemy != null)
+            {
+                int enemyId = enemy.enemyId;
+                _enemyInfo.SetEnemyId(enemyId);
 
-            int enemyId = enemy.enemyId;
-            _enemyInfo.SetEnemyId(enemyId);
+                TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
+                TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
+                TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = enemy.Rb });
+                TypeEventSystem.Global.Send(new WeaponEvent.GetTargetCollider() { TargetCollider = _targetCollider });
+            }
+            else if (_targetCollider.CompareTag("AimTarget"))
+            {
+                // AimTarget 从父级获取 Rigidbody2D 提供给武器提前量计算
+                var rig = _targetCollider.GetComponentInParent<Rigidbody2D>();
+                if (rig != null)
+                {
+                    TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = rig });
+                }
+                TypeEventSystem.Global.Send(new WeaponEvent.GetTargetCollider() { TargetCollider = _targetCollider });
 
-            
-            TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
-            TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
-            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = enemy.Rb});
-            TypeEventSystem.Global.Send(new WeaponEvent.GetTargetCollider() { TargetCollider = _targetCollider });
- 
+                _enemyInfo.SetEnemyId(-1);
+            }
+
             _lastTargetCollider = _targetCollider;
         }
 
@@ -399,7 +440,7 @@ namespace QFramework.ViewController.UI
             Vector2 origin = InputUtility.GetMousePos();
             Gizmos.color = (_targetCollider != null) ? Color.green : Color.red;
 
-            Gizmos.DrawWireCube(origin, new Vector2(_aimRadius, _aimRadius));
+            Gizmos.DrawWireCube(origin, _aimSize);
         }
     }
 }

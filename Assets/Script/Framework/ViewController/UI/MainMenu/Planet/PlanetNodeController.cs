@@ -17,8 +17,11 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
     public PlanetNodeMapData MapData { get; private set; }
 
     private const float HIGHLIGHT_ALPHA = 1f;
-    private static readonly Color DefaultNodeColor = Color.gray;
+    private static readonly Color DefaultNodeColor = new Color(0.7f, 0.7f, 0.7f);
     private static readonly Color HighlightNodeColor = Color.white;
+    private static readonly Color HistoricalNodeColor = new Color(1f, 0.78f, 0.27f, 1f);
+
+    private bool _isHistorical;
 
     [Header("缩放设置")]
     public float baseScale = 0.01f;     // World Space UI 基础大小
@@ -80,6 +83,16 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
             _isHighlighted = false;
     }
 
+    public void SetHistorical()
+    {
+        _isHistorical = true;
+        _isHighlighted = true;
+
+        var button = GetComponent<Button>();
+        if (button != null)
+            button.enabled = false;
+    }
+
     public void SetHighlighted(bool highlighted)
     {
         _isClicked = false;
@@ -113,8 +126,14 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         float scale = Mathf.Lerp(minScaleLimit, maxScaleLimit, dot) * baseScale;
         transform.localScale = new Vector3(scale, scale, scale);
 
-        // 3. 透明度与颜色：点击/悬停时白色不透明，否则根据法线与相机夹角动态变化
-        if (_isHighlighted || _isClicked)
+        // 3. 透明度与颜色
+        if (_isHistorical)
+        {
+            _canvasGroup.alpha = HIGHLIGHT_ALPHA;
+            foreach (var img in _nodeImages)
+                img.color = HistoricalNodeColor;
+        }
+        else if (_isHighlighted || _isClicked)
         {
             _canvasGroup.alpha = HIGHLIGHT_ALPHA;
             foreach (var img in _nodeImages)

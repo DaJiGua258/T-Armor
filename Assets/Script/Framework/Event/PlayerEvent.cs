@@ -26,5 +26,11 @@ namespace QFramework.Event
 
         /// <summary> 引导激光引导中（绿色） /// </summary>
         public struct GuidanceLaserSetChanneling { }
+
+        /// <summary> 玩家初始化完成 /// </summary>
+        public struct InitCompleted
+        {
+            public Transform PlayerTransform;
+        }
     }
 }

@@ -107666,6 +107666,7 @@ MonoBehaviour:
   _maxHealth: 200
   _canTakeDamage: 1
   _deathMode: 1
+  _hitVfxEmitCount: 5
 --- !u!1 &6138259632886223705
 GameObject:
   m_ObjectHideFlags: 0

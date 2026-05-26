@@ -1,3 +1,4 @@
+using QFramework.Command;
 using QFramework.Event;
 using QFramework.Manager;
 using QFramework.Model;
@@ -23,7 +24,7 @@ namespace QFramework.ViewController.UI
 
             _continueBtn.onClick.AddListener(() =>
             {
-                GameManager.Instance.SetGameResultState(GameResultState.GameFinished);
+                this.SendCommand<LevelCommand.Add>(new LevelCommand.Add());
                 GameManager.Instance.EnterMainScene();
             });
 

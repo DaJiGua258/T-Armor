@@ -82,7 +82,7 @@ namespace QFramework.ViewController.UI
                 mapData.environmentData.plantLevelType = env.plantLevelType;
                 mapData.environmentData.SurfaceNormal = surfaceNormal;
 
-                SpawnNode(mapData, surfaceNormal, _finishedNodes);
+                SpawnNode(mapData, surfaceNormal, _finishedNodes, true);
 
                 lastNormal = surfaceNormal;
             }
@@ -155,7 +155,7 @@ namespace QFramework.ViewController.UI
             centerData.environmentData.moistureType = selectedEnv.moistureType;
             centerData.environmentData.plantLevelType = selectedEnv.plantLevelType;
             centerData.environmentData.SurfaceNormal = centerNormal;
-            SpawnNode(centerData, centerNormal, _finishedNodes);
+            SpawnNode(centerData, centerNormal, _finishedNodes, true);
 
             int targetNewCount = Mathf.Max(0, newNodeCount);
             int maxAttempts = Mathf.Max(targetNewCount * Mathf.Max(1, MaxAttemptsMultiplier), targetNewCount);
@@ -272,7 +272,7 @@ namespace QFramework.ViewController.UI
             return Vector3.up;
         }
 
-        private void SpawnNode(PlanetNodeMapData mapData, Vector3 surfaceNormal, List<GameObject> targetList)
+        private void SpawnNode(PlanetNodeMapData mapData, Vector3 surfaceNormal, List<GameObject> targetList, bool isHistorical = false)
         {
             Vector3 spawnPos = Planet.position + surfaceNormal.normalized * (PlanetRadius + SurfaceOffset);
             GameObject node = Instantiate(NodePrefab, spawnPos, Quaternion.identity, transform);
@@ -284,6 +284,8 @@ namespace QFramework.ViewController.UI
             }
 
             controller.Init(Planet, mapData);
+            if (isHistorical)
+                controller.SetHistorical();
             targetList.Add(node);
         }
 

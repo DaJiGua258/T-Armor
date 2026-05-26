@@ -16,46 +16,51 @@ namespace QFramework.Model
     {
         public Dictionary<LevelMissionTypeEnum, LevelMissionConfig> LevelMissionConfigCache = new()
         {
-            {
-                LevelMissionTypeEnum.LevMis_NodeInvasion,
-                new LevelMissionConfig(
-                    new List<MissionTypeEnum>
-                    {
-                        // 主任务
-                        MissionTypeEnum.Pri_InvasionSystem,
+            // 注释旧关卡任务配置
+            // {
+            //     LevelMissionTypeEnum.LevMis_NodeInvasion,
+            //     new LevelMissionConfig(
+            //         new List<MissionTypeEnum>
+            //         {
+            //             MissionTypeEnum.Pri_InvasionSystem,
+            //             MissionTypeEnum.Pre_GetKey,
+            //             MissionTypeEnum.Pre_DestroyBackupHub
+            //         }
+            //     )
+            //     {
+            //         LevelName = "瘫痪区域节点",
+            //         LevelDescription = "此区域已探明敌方指挥中枢节点，入侵并瘫痪该节点的中枢电脑，扰乱其指挥网络",
+            //         LevelMissionType = LevelMissionTypeEnum.LevMis_NodeInvasion
+            //     }
+            // },
+            // {
+            //     LevelMissionTypeEnum.LevMis_CleaArea,
+            //     new LevelMissionConfig(
+            //         new List<MissionTypeEnum>
+            //         {
+            //             MissionTypeEnum.Pre_EnemyKill,
+            //             MissionTypeEnum.Pre_EnemyKill,
+            //             MissionTypeEnum.Pre_EnemyKill
+            //         }
+            //     )
+            //     {
+            //         LevelName = "清空区域",
+            //         LevelDescription = "清除指定区域内的所有敌人",
+            //         LevelMissionType = LevelMissionTypeEnum.LevMis_CleaArea
+            //     }
+            // },
 
-                        // 前置任务
-                        MissionTypeEnum.Pre_GetKey,
-                        MissionTypeEnum.Pre_DestroyBackupHub
-                    }
-                )
+            // 新的简化关卡任务
+            {
+                LevelMissionTypeEnum.LevMis_Beacon,
+                new LevelMissionConfig
                 {
-                    LevelName = "瘫痪区域节点",
-                    LevelDescription = "此区域已探明敌方指挥中枢节点，入侵并瘫痪该节点的中枢电脑，扰乱其指挥网络",
-                    LevelMissionType = LevelMissionTypeEnum.LevMis_NodeInvasion
+                    LevelMissionType = LevelMissionTypeEnum.LevMis_Beacon,
+                    LevelName = "激活信标",
+                    LevelDescription = "找到地图上的信标并激活它，激活后坚守阵地等待信号发送完成",
+                    MissionType = MissionTypeEnum.ActivateBeacon,
                 }
             },
-
-            {
-                LevelMissionTypeEnum.LevMis_CleaArea,  // 保存关卡信息
-                new LevelMissionConfig(
-                    new List<MissionTypeEnum>
-                    {
-                        // 主任务（None 表示当前关卡无主任务）
-                        MissionTypeEnum.Pre_EnemyKill,
-
-                        // 前置任务
-                        MissionTypeEnum.Pre_EnemyKill,
-                        MissionTypeEnum.Pre_EnemyKill
-                    }
-                )
-                {
-                    LevelName = "清空区域",
-                    LevelDescription = "清除指定区域内的所有敌人",
-                    LevelMissionType = LevelMissionTypeEnum.LevMis_CleaArea
-                }
-            },
-
         };
 
         public Dictionary<MissionTypeEnum, MissionConfig> MissionConfigCache = new Dictionary<MissionTypeEnum, MissionConfig>()
@@ -84,66 +89,78 @@ namespace QFramework.Model
                 )
             },
 
-            // 任务1
-            {
-                MissionTypeEnum.Pre_EnemyKill, new MissionConfig(
-                    MissionTypeEnum.Pre_EnemyKill,
-                    null,
-                    "消灭敌人",
-                    new MissionStep[] { new MissionStep("在当前区域消灭敌人", 20) },
-                    "Mission_1_description",
-                    null
-                )
-            },
+            // 注释旧任务配置
+            // // 任务1
+            // {
+            //     MissionTypeEnum.Pre_EnemyKill, new MissionConfig(
+            //         MissionTypeEnum.Pre_EnemyKill,
+            //         null,
+            //         "消灭敌人",
+            //         new MissionStep[] { new MissionStep("在当前区域消灭敌人", 20) },
+            //         "Mission_1_description",
+            //         null
+            //     )
+            // },
+            // // 获取权限密钥
+            // {
+            //     MissionTypeEnum.Pre_GetKey, new MissionConfig(
+            //         MissionTypeEnum.Pre_GetKey,
+            //         null,
+            //         "获取权限密钥",
+            //         new MissionStep[]
+            //         {
+            //             new MissionStep("将密钥插入节点电脑的读取槽", 1),
+            //             new MissionStep("登入终端写入访问权限", 1)
+            //         },
+            //         "找到并插入权限密钥以解锁终端",
+            //         null
+            //     )
+            // },
+            // // 破坏备用处理中枢
+            // {
+            //     MissionTypeEnum.Pre_DestroyBackupHub, new MissionConfig(
+            //         MissionTypeEnum.Pre_DestroyBackupHub,
+            //         null,
+            //         "破坏备用处理中枢",
+            //         new MissionStep[]
+            //         {
+            //             new MissionStep("侵入装置终端", 1),
+            //             new MissionStep("关闭能源核心防护", 1),
+            //             new MissionStep("摧毁能源核心", 1)
+            //         },
+            //         "",
+            //         null
+            //     )
+            // },
+            // // ---- 主要任务 -------------------------
+            // // 任务2（入侵节点电脑）
+            // {MissionTypeEnum.Pri_InvasionSystem, new MissionConfig(
+            //     MissionTypeEnum.Pri_InvasionSystem,
+            //     null,
+            //     "入侵节点电脑",
+            //     new MissionStep[]
+            //     {
+            //         new MissionStep("破解防御网络", 1),
+            //         new MissionStep("等待入侵程序写入...", 1),
+            //         new MissionStep("注入干扰程序，瘫痪节点", 1)
+            //     },
+            //     "入侵中枢电脑，扰乱敌方指挥网络",
+            //     null)},
 
-            // 获取权限密钥
+            // 新的信标任务
             {
-                MissionTypeEnum.Pre_GetKey, new MissionConfig(
-                    MissionTypeEnum.Pre_GetKey,
+                MissionTypeEnum.ActivateBeacon, new MissionConfig(
+                    MissionTypeEnum.ActivateBeacon,
                     null,
-                    "获取权限密钥",
-                    new MissionStep[] 
-                    { 
-                        new MissionStep("将密钥插入节点电脑的读取槽", 1),
-                        new MissionStep("登入终端写入访问权限", 1) 
-                    },
-                    "找到并插入权限密钥以解锁终端",
-                    null
-                )
-            },
-
-            // 破坏备用处理中枢
-            {
-                MissionTypeEnum.Pre_DestroyBackupHub, new MissionConfig(
-                    MissionTypeEnum.Pre_DestroyBackupHub,
-                    null,
-                    "破坏备用处理中枢",
+                    "激活信标",
                     new MissionStep[]
                     {
-                        new MissionStep("侵入装置终端", 1),
-                        new MissionStep("关闭能源核心防护", 1),
-                        new MissionStep("摧毁能源核心", 1)
+                        new MissionStep("找到信标", 1),
+                        new MissionStep("激活信标", 10),
                     },
-                    "",
-                    null
-                )
+                    "找到信标并启动它，激活期间清理接近的敌人",
+                    null)
             },
-
-            // ---- 主要任务 -------------------------
-
-            // 任务2（入侵节点电脑）
-            {MissionTypeEnum.Pri_InvasionSystem, new MissionConfig(
-                MissionTypeEnum.Pri_InvasionSystem,
-                null,
-                "入侵节点电脑",
-                new MissionStep[]
-                {
-                    new MissionStep("破解防御网络", 1),
-                    new MissionStep("等待入侵程序写入...", 1),
-                    new MissionStep("注入干扰程序，瘫痪节点", 1)
-                },
-                "入侵中枢电脑，扰乱敌方指挥网络",
-                null)},
 
             // 撤离任务
             {MissionTypeEnum.Extraction, new MissionConfig(
@@ -227,16 +244,10 @@ namespace QFramework.Model
         public string LevelDescription;  // 关卡描述
         public LevelMissionTypeEnum LevelMissionType = LevelMissionTypeEnum.None;  // 关卡任务类型
 
-        // ----- 关卡任务列表 -------------------------
-        public List<MissionTypeEnum> MissionTypes = new();
+        // ----- 关卡任务（简化：单一任务） -------------------------
+        public MissionTypeEnum MissionType = MissionTypeEnum.None;
 
         public LevelMissionConfig() { }
-
-        public LevelMissionConfig(
-            List<MissionTypeEnum> missionTypes)
-        {
-            MissionTypes = missionTypes;
-        }
     }
 
     public enum MissionState

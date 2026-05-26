@@ -18,32 +18,55 @@ namespace QFramework.UtilityKit
         }
 
         /// <summary>
-        /// 
+        /// 计算武器预瞄提前量（迭代收敛版）
         /// </summary>
-        /// <returns>返回相对于“正对着目标”需要偏转的度数 (Degrees)</returns>
+        /// <returns>返回相对于”正对着目标”需要偏转的度数 (Degrees)</returns>
         public static float CalculateLeadAngle2D(Vector2 muzzlePos, float bulletSpeed, Vector2 targetPos, Vector2 targetVelocity)
         {
-            // 1. 计算距离
-            float distance = Vector2.Distance(muzzlePos, targetPos);
+            if (bulletSpeed <= 0f) return 0f;
 
-            // 2. 估算飞行时间 (t = d / v)
-            float travelTime = distance / bulletSpeed;
+            Vector2 relPos = targetPos - muzzlePos;
 
-            // 3. 预测目标未来位置
-            Vector2 predictedPos = targetPos + (targetVelocity * travelTime);
+            // 二次方程系数 at² + bt + c = 0
+            float a = bulletSpeed * bulletSpeed - Vector2.Dot(targetVelocity, targetVelocity);
+            float b = -2f * Vector2.Dot(relPos, targetVelocity);
+            float c = -Vector2.Dot(relPos, relPos);
 
-            // 4. 计算当前角度（直接指向目标的角度）
-            Vector2 dirToCurrent = targetPos - muzzlePos;
-            float currentAngle = Mathf.Atan2(dirToCurrent.y, dirToCurrent.x) * Mathf.Rad2Deg;
+            float t = -1f;
 
-            // 5. 计算预测角度（指向预测位置的角度）
+            if (Mathf.Abs(a) < 1e-6f)
+            {
+                // a ≈ 0，退化为线性方程
+                if (Mathf.Abs(b) > 1e-6f)
+                    t = -c / b;
+            }
+            else
+            {
+                float discriminant = b * b - 4f * a * c;
+                if (discriminant < 0f) return 0f; // 子弹追不上目标
+
+                float sqrtD = Mathf.Sqrt(discriminant);
+                float t1 = (-b + sqrtD) / (2f * a);
+                float t2 = (-b - sqrtD) / (2f * a);
+
+                // 取最小正数解（最近的拦截时间）
+                if (t1 > 0f && t2 > 0f)
+                    t = Mathf.Min(t1, t2);
+                else
+                    t = Mathf.Max(t1, t2);
+            }
+
+            if (t <= 0f) return 0f; // 无有效解
+
+            // 计算预测位置与角度差
+            Vector2 predictedPos = targetPos + targetVelocity * t;
+            Vector2 dirToCurrent   = relPos;
             Vector2 dirToPredicted = predictedPos - muzzlePos;
+
+            float currentAngle   = Mathf.Atan2(dirToCurrent.y,   dirToCurrent.x)   * Mathf.Rad2Deg;
             float predictedAngle = Mathf.Atan2(dirToPredicted.y, dirToPredicted.x) * Mathf.Rad2Deg;
 
-            // 6. 计算差值并规范化角度
-            float angleDifference = Mathf.DeltaAngle(currentAngle, predictedAngle);
-
-            return angleDifference;
+            return Mathf.DeltaAngle(currentAngle, predictedAngle);
         }
     }
 }

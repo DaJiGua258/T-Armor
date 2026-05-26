@@ -44,7 +44,7 @@ Material:
     - _SliceIndex: 0
     - _SliceOffset: 0.95
     - _SliceSize: 32
-    - _YOffset: 0.06
+    - _YOffset: 0.04
     - _ZWriteEnabled: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

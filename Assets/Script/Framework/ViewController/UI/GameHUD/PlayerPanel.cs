@@ -53,6 +53,8 @@ namespace QFramework.ViewController.UI
 
         private void UpdateBar(SliderlBar bar, float current, int max)
         {
+            if(bar.txt == null || bar.Img == null) return;
+
             bar.Tweener
                 .ChangeEndValue(current / max, BarTweenDuration, true)
                 .SetEase(Ease.Linear)

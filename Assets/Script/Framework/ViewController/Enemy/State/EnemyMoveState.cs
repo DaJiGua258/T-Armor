@@ -42,15 +42,15 @@ namespace QFramework.ViewController.Enemy
         {
             Entity.RefreshTargetInCombat();
 
-            // 超出检测范围且目标失效 → 待机
-            if (!Entity.IsInDetectRange())
-            {
-                if (Entity.Target == null || !Entity.Target.gameObject.activeInHierarchy)
-                {
-                    FSM.ChangeState<EnemyIdleState>();
-                    return;
-                }
-            }
+            // 超出检测范围且目标失效 → 待机（暂时注释：获取目标后永不丢失，持续追击）
+            //if (!Entity.IsInDetectRange())
+            //{
+            //    if (Entity.Target == null || !Entity.Target.gameObject.activeInHierarchy)
+            //    {
+            //        FSM.ChangeState<EnemyIdleState>();
+            //        return;
+            //    }
+            //}
 
             float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
 

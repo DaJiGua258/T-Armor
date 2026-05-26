@@ -1,6 +1,7 @@
 using System.Collections;
 using QFramework;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.Model;
 using QFramework.System;
 using QFramework.ViewController.Enemy;
@@ -114,4 +115,41 @@ public class Debugers : MonoBehaviour, IController
     {
         _enemyState = state;
     }
+
+#if UNITY_EDITOR
+    private void OnGUI()
+    {
+        GUILayout.BeginArea(new Rect(Screen.width - 200, Screen.height - 100, 180, 80));
+
+        if(GUILayout.Button("直接通关", GUILayout.Height(40)))
+        {
+            DirectCompleteLevel();
+        }
+
+        GUILayout.EndArea();
+    }
+
+    private void DirectCompleteLevel()
+    {
+        // 强制完成信标任务
+        var missionSystem = this.GetSystem<IMissionSystem>();
+        if(missionSystem.Missions.Count >= 2)
+        {
+            var beaconMission = missionSystem.Missions[1];
+            if(beaconMission.MissionState.Value != MissionState.Completed)
+            {
+                for(int i = 0; i < beaconMission.StepList.Count; i++)
+                {
+                    beaconMission.StepList[i].Value = beaconMission.MissionConfig.MissionSteps[i].Progress;
+                }
+                beaconMission.StepIndex.Value = beaconMission.StepList.Count;
+                beaconMission.MissionState.Value = MissionState.Completed;
+            }
+        }
+
+        // 弹出结算界面
+        GameManager.Instance.SetGameResultState(GameResultState.GameFinished);
+        UIGameManager.Instance.ShowPanel(UIGamePanelType.GameOverPanel);
+    }
+#endif
 }

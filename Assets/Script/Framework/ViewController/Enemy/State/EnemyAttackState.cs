@@ -33,26 +33,26 @@ namespace QFramework.ViewController.Enemy
             Entity.RefreshTargetInCombat();
             Entity.RotateToTarget(Entity.Target.position);
 
-            // 视线丢失 → 累积计时，超过容忍值才切走
+            // 超出最大攻击范围 → 追击
+            if (!Entity.IsInAttackMaxRange())
+            {
+                FSM.ChangeState<EnemyMoveState>();
+                return;
+            }
+
+            // 视线丢失 → 累积计时，超过容忍值则追击
             if (!Entity.HasLineOfSightToTarget())
             {
                 _losLostTimer += Time.deltaTime;
                 if (_losLostTimer >= LosLostBuffer)
                 {
-                    FSM.ChangeState<EnemyIdleState>();
+                    FSM.ChangeState<EnemyMoveState>();
                     return;
                 }
             }
             else
             {
                 _losLostTimer = 0f;
-            }
-
-            // 每帧检测是否超出最大攻击范围
-            if (!Entity.IsInAttackMaxRange())
-            {
-                FSM.ChangeState<EnemyIdleState>();
-                return;
             }
 
             _attackTimer += Time.deltaTime;

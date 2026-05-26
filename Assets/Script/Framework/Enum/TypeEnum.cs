@@ -91,23 +91,33 @@ namespace QFramework.Enum
     {
         None,
         Entry,
-        Pre_EnemyKill,
-        Pre_GetKey,
-        Pre_DestroyBackupHub,   // 破坏备用处理中枢
-        Pri_InvasionSystem,
-        Mission_3,
-        Mission_4,
-        Mission_5,
+        // 注释旧任务类型
+        // Pre_EnemyKill,
+        // Pre_GetKey,
+        // Pre_DestroyBackupHub,   // 破坏备用处理中枢
+        // Pri_InvasionSystem,
+        // Mission_3,
+        // Mission_4,
+        // Mission_5,
+        ActivateBeacon,  // 激活信标（唯一玩法任务）
         Extraction,
     }
 
+        // 注释旧的关卡任务类型
+        // public enum LevelMissionTypeEnum
+        // {
+        //     None,
+        //     LevMis_CleaArea,
+        //     LevMis_NodeInvasion,
+        //     LevelMission_2,
+        // }
+
+        // 新的简化版本
         public enum LevelMissionTypeEnum
-    {
-        None,
-        LevMis_CleaArea,
-        LevMis_NodeInvasion,
-        LevelMission_2,
-    }
+        {
+            None,
+            LevMis_Beacon,  // 激活信标（唯一关卡任务类型）
+        }
 
     // ---- Mod 系统枚举 ----
 

@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using QFramework.Command;
 using QFramework.Enum;
 using QFramework.Model;
 using QFramework.System;
@@ -13,33 +11,91 @@ namespace QFramework.ViewController.UI
 {
     public class MissionPanel : BaseUIComponent
     {
-        private const int PrimaryMissionIndex = 1;
-
-        [SerializeField] private GameObject _pf_priItem;
-        [SerializeField] private MissionItem _primaryMissionItem;
-
-        [SerializeField] private GameObject _pf_preItem;
-        [SerializeField] private List<MissionItem> _preMissionItems = new();
-        
+        [SerializeField] private Text _missionText;
 
         void Start()
         {
-            // 初始化主要任务和前置任务
-            InitPrimaryItem();
-            InitPreItem();
-
-            // 刷新布局
+            InitMissionItem();
             StartCoroutine(RefreshLayOut());
         }
 
-        void OnEnable()
+        private void InitMissionItem()
         {
-            StartCoroutine(RefreshLayOut());
+            if(MissionSystem.Missions.Count <= 1) return;
+            var mission = MissionSystem.Missions[1];
+            if(mission.MissionType == MissionTypeEnum.None) return;
+
+            RegisterMissionEvent(mission);
         }
 
-        void Update()
+        private void RegisterMissionEvent(MissionDataModel mission)
         {
+            mission.StepIndex.Register(_ => UpdateUI(mission))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+            mission.MissionState.Register(_ => UpdateUI(mission))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
 
+            foreach(var step in mission.StepList)
+            {
+                step.Register(_ => UpdateUI(mission))
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
+            }
+
+            UpdateUI(mission);
+        }
+
+        private void UpdateUI(MissionDataModel mission)
+        {
+            string Gray(string s) => $"<color=#808080>{s}</color>";
+
+            string[] lines = { "找到信标", "激活信标", "撤离" };
+            int step = mission.StepIndex.Value;
+            var steps = mission.MissionConfig.MissionSteps;
+
+            string text = "";
+            for(int i = 0; i < lines.Length; i++)
+            {
+                string line;
+                bool active = i == step;
+                bool done = i < step;
+
+                if(i == 0)
+                {
+                    line = done ? $"> {lines[i]} （已完成）" : $"> {lines[i]}";
+                }
+                else if(i == 1)
+                {
+                    if(step == 1)
+                    {
+                        int cur = mission.StepList[1].Value;
+                        if(cur > 0)
+                        {
+                            int max = steps[1].Progress;
+                            int remaining = Mathf.Max(0, max - cur);
+                            line = $"> {lines[i]}（{remaining / 60}:{remaining % 60:D2}）";
+                        }
+                        else
+                        {
+                            line = $"> {lines[i]}";
+                        }
+                    }
+                    else if(done)
+                        line = $"> {lines[i]} （已完成）";
+                    else
+                        line = $"> {lines[i]}";
+                }
+                else if(i == 2)
+                {
+                    line = $"> {lines[i]}";
+                }
+                else continue;
+
+                text += (active ? line : Gray(line)) + "\n";
+            }
+
+            _missionText.text = text.TrimEnd('\n');
+            if(gameObject.activeInHierarchy)
+                StartCoroutine(RefreshLayOut());
         }
 
         IEnumerator RefreshLayOut()
@@ -50,155 +106,23 @@ namespace QFramework.ViewController.UI
             yield return null;
             LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
         }
-
-        private void RegisterMissionEvent(MissionItem item, MissionDataModel mission)
-        {
-            // 任务【阶段索引】变化事件
-            mission.StepIndex.Register(value => UpdateInfo(item, mission))
-                .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
-
-            // 任务【阶段进度】变化事件
-            foreach(var step in mission.StepList)
-            {
-                step.Register(value => UpdateInfo(item, mission))
-                    .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
-            }
-
-            // 任务状态变化事件
-            mission.MissionState.Register(value => UpdateByState(item, value, mission))
-                .UnRegisterWhenGameObjectDestroyed(item.Item.gameObject);
-
-            // ----- 初始化更新一次任务信息 -------------------------
-            UpdateInfo(item, mission);
-            UpdateByState(item, mission.MissionState.Value, mission);
-        }
-
-        private void InitPrimaryItem()
-        {
-            if(MissionSystem.Missions.Count <= PrimaryMissionIndex)
-            {
-                return;
-            }
-
-            var priMission = MissionSystem.Missions[PrimaryMissionIndex];
-            if(priMission.MissionType == MissionTypeEnum.None)
-            {
-                return;
-            }
-
-            var missionObj = Instantiate(_pf_priItem, transform);
-
-
-            _primaryMissionItem = new MissionItem(missionObj.transform);
-            var mission = priMission;
-
-            // ----- 注册与初始化任务事件 -------------------------
-            RegisterMissionEvent(_primaryMissionItem, mission);
-        }
-
-        public void InitPreItem()
-        {
-            int missionCount = MissionSystem.Missions.Count;
-
-            // 遍历初始化前置任务（跳过 Entry[0]、Primary[1]、Extraction[last]）
-            for(int missionIndex = 2; missionIndex < missionCount - 1; missionIndex++)
-            {
-                var mission = MissionSystem.Missions[missionIndex];
-                if(mission.MissionType == MissionTypeEnum.None)
-                {
-                    continue;
-                }
-
-                var missionObj = Instantiate(_pf_preItem, transform);
-                var preItem = new MissionItem(missionObj.transform);
-                _preMissionItems.Add(preItem);
-
-                // ----- 注册与初始化任务事件 -------------------------
-                RegisterMissionEvent(preItem, mission);
-            }
-        }
-
-        private void UpdateInfo(MissionItem item, MissionDataModel mission)
-        {
-            if(mission.StepIndex.Value > mission.MissionConfig.MissionSteps.Length - 1)
-            {
-                return;
-            }
-
-            item.TipText.text = "";
-
-            item.NameText.text = "// " + mission.MissionConfig.MissionName;
-            var steps = mission.MissionConfig.MissionSteps;
-
-            // var tip = steps[mission.StepIndex.Value].TipText;
-            // var step = steps[mission.StepIndex.Value].Progress;  // 总步骤
-            // var progress = mission.StepList[mission.StepIndex.Value].Value;  // 当前步骤进度
-            
-            for(int i = 0; i <= mission.StepIndex.Value; i++)
-            {
-                // 读取目标任务步骤信息
-                var tip = steps[i].TipText;
-                var progress = steps[i].Progress;
-
-                // 获取当前进度
-                var curProgress = mission.StepList[i].Value;
-
-                item.TipText.text += $"  > {tip} ({curProgress}/{progress})";
-
-                if(i + 1 <= mission.StepIndex.Value)
-                {
-                    item.TipText.text += "\n";
-                }
-            }
-
-            if (gameObject.activeInHierarchy)
-                StartCoroutine(RefreshLayOut());
-        }
-
-
-
-        private void UpdateByState(MissionItem item, MissionState state, MissionDataModel mission)
-        {
-            if(state == MissionState.Completed)
-            {
-                item.TipText.text = "  > 已完成";
-            }
-            else if(state == MissionState.InProgress)
-            {
-                item.TipText.transform.parent.gameObject.SetActive(true);
-                UpdateInfo(item, mission); // 更新任务信息，否则数据不变化，UI不刷新；
-            }
-            else if(state == MissionState.NotStarted)
-            {
-                item.TipText.transform.parent.gameObject.SetActive(false);
-            }
-            else if(state == MissionState.Pause)
-            {
-                item.TipText.transform.parent.gameObject.SetActive(true);
-                item.TipText.text = "  > 返回任务地点";
-            }
-
-            if (gameObject.activeInHierarchy)
-                StartCoroutine(RefreshLayOut());
-        }
     }
 
-    [Serializable]
-    public class MissionItem
-    {
-        public RectTransform Item;
-        public Image TileImg;
-        public Text NameText;
-        public Text TipText;
-        
-        
+    // 注释：简化后不再使用 MissionItem，直接用 Text 组件
+    // [Serializable]
+    // public class MissionItem
+    // {
+    //     public RectTransform Item;
+    //     public Image TileImg;
+    //     public Text NameText;
+    //     public Text TipText;
 
-        public MissionItem(Transform parent)
-        {
-            Item = parent.GetComponent<RectTransform>();
-            TileImg = parent.Find("Title").GetComponent<Image>();
-            NameText = parent.Find("Title/Txt").GetComponent<Text>();
-            TipText = parent.Find("Tip/Txt").GetComponent<Text>();
-        }
-    }
+    //     public MissionItem(Transform parent)
+    //     {
+    //         Item = parent.GetComponent<RectTransform>();
+    //         TileImg = parent.Find("Title").GetComponent<Image>();
+    //         NameText = parent.Find("Title/Txt").GetComponent<Text>();
+    //         TipText = parent.Find("Tip/Txt").GetComponent<Text>();
+    //     }
+    // }
 }

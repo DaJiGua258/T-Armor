@@ -19,11 +19,6 @@ namespace QFramework.ViewController.Enemy.Formation
         public float RingRadius = 3f;  // 最内环半径
         public float RingSpacing = 2f;  // 每层环半径递增步长
 
-        [Header("巡逻配置")]
-        public float PatrolSpeed = 1f;  // 巡逻速度
-        public Transform PatrolStartPoint;  // 巡逻起点
-        public Transform PatrolEndPoint;  // 巡逻终点
-
         [Header("生成设置")]
         public bool SpawnOnStart = true;  // 启动时自动生成队形
 
@@ -189,18 +184,6 @@ namespace QFramework.ViewController.Enemy.Formation
             _leader = allEnemies[0];
             _followers.Clear();
 
-            // 初始化所有敌人：设置巡逻速度、跳过 Idle 直接进入 Patrol
-            foreach (var enemy in allEnemies)
-            {
-                enemy.SetPatrolMoveSpeed(PatrolSpeed);
-                if (enemy.GetCurrentState() == "Idle")
-                    enemy.ChangeState<EnemyPatrolState>();
-            }
-
-            // 仅 leader 设巡逻路径（followers 无路径，靠外部驱动）
-            if (PatrolStartPoint != null && PatrolEndPoint != null)
-                _leader.SetPatrolRoute(PatrolStartPoint.position, PatrolEndPoint.position);
-
             // 按 Types 顺序从内到外生成环，每种类别一个环
             int absIndex = 1;  // allEnemies 索引，0 是 leader
             int ringIdx = 0;  // 环索引
@@ -267,21 +250,6 @@ namespace QFramework.ViewController.Enemy.Formation
 
             _leader = null;
             _followers.Clear();
-        }
-
-        /// <summary>通过 Vector3 设置巡逻路径（内部创建临时子物体）</summary>
-        public void SetPatrolRoute(Vector3 start, Vector3 end)
-        {
-            PatrolStartPoint = CreateTempPoint("PatrolStart", start);
-            PatrolEndPoint = CreateTempPoint("PatrolEnd", end);
-        }
-
-        private Transform CreateTempPoint(string name, Vector3 position)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(transform);
-            go.transform.position = position;
-            return go.transform;
         }
 
         #endregion
@@ -392,14 +360,6 @@ namespace QFramework.ViewController.Enemy.Formation
                 }
             }
 
-            // 绘制巡逻路径
-            if (PatrolStartPoint != null && PatrolEndPoint != null)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(PatrolStartPoint.position, 0.3f);
-                Gizmos.DrawSphere(PatrolEndPoint.position, 0.3f);
-                Gizmos.DrawLine(PatrolStartPoint.position, PatrolEndPoint.position);
-            }
         }
 
         #endregion

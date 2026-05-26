@@ -35,7 +35,7 @@ namespace QFramework.System
         protected override void OnInit()
         {
             LoadedLevelData = new LevelDataModel();
-            _missionSystem.InitMission(LoadedLevelData.LevelMissionConfig.LevelMissionType);
+            _missionSystem.InitMission(LevelMissionTypeEnum.LevMis_Beacon);
         }
 
         public void AddLoadLevel()
@@ -56,13 +56,12 @@ namespace QFramework.System
             LoadedLevelData.EnvironmentData.plantLevelType = nodeData.environmentData.plantLevelType;
             LoadedLevelData.EnvironmentData.SurfaceNormal = nodeData.environmentData.SurfaceNormal;
 
-            // 从已配置的关卡任务类型中随机选取，并填充关卡名称/描述
-            var availableTypes = _missionConfigModel.GetAvailableLevelMissionTypes();
-            LevelMissionTypeEnum levelMissionType = availableTypes[SeedRandom.Range(0, availableTypes.Count)];
-            var levelConfig = _missionConfigModel.GetLevelConfig(levelMissionType);
+            // 直接使用信标任务类型，不再随机选择
+            var levelConfig = _missionConfigModel.GetLevelConfig(LevelMissionTypeEnum.LevMis_Beacon);
             LoadedLevelData.LevelMissionConfig.LevelName = levelConfig.LevelName;
             LoadedLevelData.LevelMissionConfig.LevelDescription = levelConfig.LevelDescription;
             LoadedLevelData.LevelMissionConfig.LevelMissionType = levelConfig.LevelMissionType;
+            LoadedLevelData.LevelMissionConfig.MissionType = levelConfig.MissionType;
 
             this.SendEvent<UpdateMapInfo>(new UpdateMapInfo());
         }

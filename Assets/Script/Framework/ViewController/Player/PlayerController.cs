@@ -87,6 +87,11 @@ namespace QFramework.ViewController.Player
             TypeEventSystem.Global.Register<PlayerEvent.SwitchAimingMode>(
                 e => _weaponEnabled = e.Mode == AimingModeEnum.Combat
             ).UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            TypeEventSystem.Global.Send(new PlayerEvent.InitCompleted
+            {
+                PlayerTransform = transform
+            });
         }
 
         private void Update()

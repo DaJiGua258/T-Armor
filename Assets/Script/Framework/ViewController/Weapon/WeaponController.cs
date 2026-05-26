@@ -7,6 +7,9 @@ using QFramework.Utility;
 using Unity.VisualScripting;
 using QFramework.Event;
 using QFramework.UtilityKit;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace QFramework.ViewController.Player
 {
@@ -153,5 +156,56 @@ namespace QFramework.ViewController.Player
             return weapon;
         }
 
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if (!Application.isPlaying) return;
+
+            DrawWeaponGizmo(WeaponLeft, _weaponSlotLeft);
+            DrawWeaponGizmo(WeaponRight, _weaponSlotRight);
+        }
+
+        private void DrawWeaponGizmo(AbstractWeapon weapon, Transform weaponSlot)
+        {
+            if (weapon == null || _targetRig == null || weapon.WeaponDataModel == null) return;
+
+            Vector3 muzzlePos = weapon.Muzzle != null ? weapon.Muzzle.position : weapon.transform.position;
+            Vector3 targetPos = _targetRig.position;
+
+            // 1. 当前武器实际指向 (蓝色) — 包含提前量 + 平滑插值后的结果
+            Gizmos.color = Color.blue;
+            Vector3 currentDir = weapon.transform.right;
+            Gizmos.DrawRay(muzzlePos, currentDir * 8f);
+            Handles.color = Color.blue;
+            Handles.DrawSolidDisc(muzzlePos + currentDir * 8f, Vector3.forward, 0.15f);
+
+            // 2. 未计算提前量的瞄准方向 (红色) — 直接指向目标当前位置
+            Gizmos.color = Color.red;
+            Vector3 rawDir = ((Vector3)(Vector2)targetPos - muzzlePos).normalized;
+            Gizmos.DrawRay(muzzlePos, rawDir * 8f);
+            Handles.color = Color.red;
+            Handles.DrawSolidDisc(muzzlePos + rawDir * 8f, Vector3.forward, 0.15f);
+
+            // 3. 计算提前量后的瞄准方向 (绿色) — 指向目标的预测位置
+            float leadAngle = MathTool.CalculateLeadAngle2D(
+                muzzlePos,
+                weapon.WeaponDataModel.BulletSpeed,
+                targetPos,
+                _targetRig.velocity);
+
+            float rawAngle = Mathf.Atan2(rawDir.y, rawDir.x) * Mathf.Rad2Deg;
+            float leadAngleDeg = rawAngle + leadAngle;
+            Vector3 leadDir = Quaternion.Euler(0f, 0f, leadAngleDeg) * Vector3.right;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(muzzlePos, leadDir * 8f);
+            Handles.color = Color.green;
+            Handles.DrawSolidDisc(muzzlePos + leadDir * 8f, Vector3.forward, 0.15f);
+
+            // 辅助：在目标位置画标签
+            Handles.color = Color.yellow;
+            Handles.Label(targetPos, "Target");
+        }
+#endif
     }
 }

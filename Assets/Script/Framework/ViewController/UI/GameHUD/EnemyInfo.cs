@@ -26,13 +26,6 @@ namespace QFramework.ViewController.UI
 
         void Update()
         {
-            UpdateSize();
-        }
-
-        private void UpdateSize()
-        {
-            float x = _aimRect.sizeDelta.x;
-            enemyInfo.Img.rectTransform.sizeDelta = new Vector2(x, enemyInfo.Img.rectTransform.sizeDelta.y);
         }
 
         private void UpdateEnemyInfo()

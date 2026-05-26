@@ -4,7 +4,6 @@ using Pathfinding;
 using QFramework.Enum;
 using QFramework.UtilityKit;
 using QFramework.ViewController.Enemy;
-using QFramework.ViewController.Enemy.Formation;
 using QFramework;
 using QFramework.Event;
 using UnityEngine;
@@ -18,12 +17,6 @@ namespace QFramework.Manager
     public class EnemySpawnerManager : SceneMonoSingleton<EnemySpawnerManager>
     {
         private const int MaxCargoCnt = 6;
-        private enum PatrolDistanceBucket
-        {
-            Short,
-            Medium,
-            Long
-        }
 
         #region ----- Inspector 配置 -------------------------
 
@@ -45,23 +38,27 @@ namespace QFramework.Manager
         [SerializeField, Min(1)] private int _walkableSampleCnt = 10;
         [SerializeField, Min(0f)] private float _walkableSnapDist = 2f;
 
-        [Header("巡逻队配置")]
+        [Header("目标配置")]
         [SerializeField] private Transform _player;
-        [SerializeField, Min(1)] private int _patrolSpawnCnt = 1;  // 每次生成数量
-        [SerializeField, Min(0f)] private float _patrolSpawnInterval = 0f;
-        [SerializeField, Min(0f)] private float _patrolSpawnMinDist = 0f;
-        [SerializeField] private List<FormationTypesSO> _patrolFormationTemplates;
 
         [Header("挂载敌人模板池（每个模板最多6个）")]
         [SerializeField] private List<CargoEnemyTemplate> _cargoTemplates;
+
+        [Header("Tick生成系统")]
+        [SerializeField] private EnemySpawnConfigSO _spawnConfigSO;
+        [SerializeField] private bool _useTickSystemOnStart = true;
+        [SerializeField, Range(0f, 1f)] private float _progressT = 0f;
+        [SerializeField, Min(0f)] private float _spawnMinDist = 20f;
+        [SerializeField, Min(0f)] private float _spawnMaxDist = 40f;
+        [SerializeField, Min(1)] private int _spawnPosSampleCnt = 10;
 
         [Header("Gizmos调试")]
         [SerializeField] private bool _canDrawGizmos = true;
         [SerializeField, Min(0.05f)] private float _gizmoPointRadius = 0.25f;
 
         private Coroutine _spawnCoroutine;
-        private Coroutine _patrolSpawnCoroutine;
         private Coroutine _timedWaveCoroutine;
+        private Coroutine _tickCoroutine;
         private Transform _timedWaveDropPoint;
         private readonly List<Vector3> _lastSpawnPoints = new List<Vector3>();
         private readonly List<Vector3> _lastDropPoints = new List<Vector3>();
@@ -72,8 +69,16 @@ namespace QFramework.Manager
 
         private void Start()
         {
+            TypeEventSystem.Global.Register<PlayerEvent.InitCompleted>(OnPlayerInitCompleted)
+                .UnRegisterWhenGameObjectDestroyed(this);
+
             if (_isSpawnOnStart) StartSpawn();
-            StartPatrolSpawn();
+            if (_useTickSystemOnStart) StartTickSpawning();
+        }
+
+        private void OnPlayerInitCompleted(PlayerEvent.InitCompleted e)
+        {
+            _player = e.PlayerTransform;
         }
 
         #endregion
@@ -147,18 +152,6 @@ namespace QFramework.Manager
             StartSpawn();
         }
 
-        [ContextMenu("生成一次巡逻队")]
-        private void SpawnPatrolFromMenu()
-        {
-            if (!Application.isPlaying)
-            {
-                // DebugUtility.LogWarning("[EnemySpawnerManager] 请先进入 Play 模式再通过菜单生成巡逻队。");
-                return;
-            }
-
-            SpawnPatrolFormation();
-        }
-
         #endregion
 
         #endregion
@@ -184,13 +177,6 @@ namespace QFramework.Manager
             StopCoroutine(_spawnCoroutine);
             _spawnCoroutine = null;
             TypeEventSystem.Global.Send(new WaveSpawnAlertEvent { Active = false });
-        }
-
-        private void StartPatrolSpawn()
-        {
-            if (_patrolSpawnInterval <= 0f) return;
-            if (_patrolSpawnCoroutine != null) StopCoroutine(_patrolSpawnCoroutine);
-            _patrolSpawnCoroutine = StartCoroutine(PatrolSpawnRoutine());
         }
 
         private IEnumerator SpawnRoutine()
@@ -271,28 +257,12 @@ namespace QFramework.Manager
                 dropPos = GetWalkableDropPos(_player.position);
             else
                 dropPos = GetWalkableDropPos();
-            return SpawnDropper(startPos, dropPos, null, null, null);
-        }
 
-        private Dropper SpawnDropper(
-            Vector3 startPos,
-            Vector3 dropPos,
-            Vector3? patrolStartPoint,
-            Vector3? patrolEndPoint,
-            float? patrolMoveSpeed
-        )
-        {
             var cargoTemplate = GetRandomTemplate();
 
-            var dropper = Instantiate(
-                _dropperPrefab,
-                startPos,
-                Quaternion.identity,
-                _spawnRoot
-            );
-
+            var dropper = Instantiate(_dropperPrefab, startPos, Quaternion.identity, _spawnRoot);
             dropper.SetupRoute(startPos, dropPos, _endPoint.position);
-            InitCargos(dropper, cargoTemplate, patrolStartPoint, patrolEndPoint, patrolMoveSpeed);
+            InitCargos(dropper, cargoTemplate);
             dropper.LockCargos();
 
             _lastSpawnPoints.Add(startPos);
@@ -300,49 +270,20 @@ namespace QFramework.Manager
             return dropper;
         }
 
-        /// <summary>
-        /// 将原 Dropper.InitAirEnemy 的实例化职责迁移到管理器。
-        /// </summary>
-        private void InitCargos(
-            Dropper dropper,
-            CargoEnemyTemplate cargoTemplate,
-            Vector3? patrolStartPoint,
-            Vector3? patrolEndPoint,
-            float? patrolMoveSpeed
-        )
+        private void InitCargos(Dropper dropper, CargoEnemyTemplate cargoTemplate)
         {
             if (dropper == null) return;
             if (cargoTemplate == null || cargoTemplate.EnemyTypes == null || cargoTemplate.EnemyTypes.Count == 0)
-            {
-                // DebugUtility.LogWarning("[EnemySpawnerManager] No valid cargo template found, this dropper will spawn without cargos.");
                 return;
-            }
 
             int slotCount = dropper.GetCargoSlotCount();
             int configCount = cargoTemplate.EnemyTypes.Count;
             int spawnCount = Mathf.Min(Mathf.Min(slotCount, MaxCargoCnt), configCount);
 
-            if (configCount > MaxCargoCnt)
-            {
-                // DebugUtility.LogWarning(
-                //     $"[EnemySpawnerManager] Cargo config count({configCount}) is greater than {MaxCargoCnt}, extra entries are ignored."
-                // );
-            }
-
-            // 逐个货舱位生成并绑定敌人，数量受“货舱位上限/配置数量/系统上限”共同约束。
             for (int i = 0; i < spawnCount; i++)
             {
                 var enemy = CreateCargoEnemy(cargoTemplate.EnemyTypes[i]);
                 if (enemy == null) continue;
-                if (patrolStartPoint.HasValue && patrolEndPoint.HasValue)
-                {
-                    enemy.SetPatrolRoute(patrolStartPoint.Value, patrolEndPoint.Value);
-                }
-
-                if (patrolMoveSpeed.HasValue)
-                {
-                    enemy.SetPatrolMoveSpeed(patrolMoveSpeed.Value);
-                }
                 dropper.BindCargoEnemy(i, enemy);
             }
         }
@@ -422,148 +363,170 @@ namespace QFramework.Manager
             return GetWalkableOrDefault(fallback, fallback);
         }
 
-        private IEnumerator PatrolSpawnRoutine()
+        #endregion
+
+        #region ----- Tick 生成系统 -------------------------
+
+        public void StartTickSpawning()
         {
-            float interval = Mathf.Max(0f, _patrolSpawnInterval);
-            if (interval > 0f) yield return new WaitForSeconds(interval);
+            if (_spawnConfigSO == null || _spawnConfigSO.Weights.Count == 0) return;
+            InterruptTickSpawning();
+            _progressT = 0f;
+            _tickCoroutine = StartCoroutine(TickSpawnRoutine());
+        }
+
+        public void StopTickSpawning()
+        {
+            InterruptTickSpawning();
+        }
+
+        private void InterruptTickSpawning()
+        {
+            if (_tickCoroutine == null) return;
+            StopCoroutine(_tickCoroutine);
+            _tickCoroutine = null;
+        }
+
+        private IEnumerator TickSpawnRoutine()
+        {
+            var config = _spawnConfigSO;
+            float tickDuration = config.TickDuration;
 
             while (true)
             {
-                int cnt = Mathf.Max(1, _patrolSpawnCnt);
-                for (int i = 0; i < cnt; i++)
-                    SpawnPatrolFormation();
-                if (interval > 0f) yield return new WaitForSeconds(interval);
-                else yield return null;
+                _progressT = Mathf.Clamp01(_progressT + tickDuration / config.MaxTime);
+                float curveValue = config.ProgressionCurve.Evaluate(_progressT);
+
+                int spawnCount = Mathf.RoundToInt(Mathf.Lerp(
+                    config.InitialEnemyCount, config.MaxEnemyCount, curveValue));
+
+                if (spawnCount <= 0)
+                {
+                    yield return new WaitForSeconds(tickDuration);
+                    continue;
+                }
+
+                // 计算当前插值后的权重
+                var entries = config.Weights;
+                var weightedTypes = new List<EnemyTypeEnum>();
+                var weightedValues = new List<float>();
+                float totalWeight = 0f;
+
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    var w = entries[i];
+                    if (w == null || w.EnemyType == EnemyTypeEnum.None) continue;
+                    float weight = Mathf.Lerp(w.InitialWeight, w.MaxWeight, curveValue);
+                    if (weight <= 0f) continue;
+                    weightedTypes.Add(w.EnemyType);
+                    weightedValues.Add(weight);
+                    totalWeight += weight;
+                }
+
+                if (weightedTypes.Count == 0)
+                {
+                    yield return new WaitForSeconds(tickDuration);
+                    continue;
+                }
+
+                float interval = spawnCount > 1
+                    ? tickDuration / spawnCount
+                    : tickDuration;
+
+                for (int i = 0; i < spawnCount; i++)
+                {
+                    var enemyType = PickWeightedType(weightedTypes, weightedValues, totalWeight);
+                    SpawnEnemyDirect(enemyType);
+
+                    if (i < spawnCount - 1)
+                        yield return new WaitForSeconds(interval);
+                }
             }
         }
 
-        private void SpawnPatrolFormation()
+        private static EnemyTypeEnum PickWeightedType(
+            List<EnemyTypeEnum> types, List<float> weights, float totalWeight)
+        {
+            float roll = Random.Range(0f, totalWeight);
+            float cumulative = 0f;
+            for (int i = 0; i < types.Count; i++)
+            {
+                cumulative += weights[i];
+                if (roll <= cumulative) return types[i];
+            }
+            return types[types.Count - 1];
+        }
+
+        private void SpawnEnemyDirect(EnemyTypeEnum enemyType)
         {
             if (_player == null) return;
 
-            var template = GetRandomFormationTemplate();
-            if (template == null) return;
+            Vector3 spawnPos = GetSpawnPosAroundPlayer();
+            var enemy = CreateCargoEnemy(enemyType);
+            if (enemy == null) return;
 
-            var playerSnapshotPos = _player.position;
-            var patrolEndPoint = playerSnapshotPos;
-            if (AstarPath.active != null && !TryGetWalkablePoint(playerSnapshotPos, out patrolEndPoint))
-                return;
-
-            if (!TryGetPatrolDropPos(patrolEndPoint, out var dropPos)) return;
-
-            float patrolMoveSpeed = Random.Range(0.5f, 1f);
-
-            var go = new GameObject("Formation_" + template.name);
-            go.transform.position = dropPos;
-            go.transform.SetParent(_spawnRoot);
-            var controller = go.AddComponent<FormationController>();
-            controller.PatrolSpeed = patrolMoveSpeed;
-            controller.RingRadius = 3f;
-            controller.RingSpacing = 2f;
-            controller.SpawnOnStart = false;
-            controller.SetPatrolRoute(dropPos, patrolEndPoint);
-            controller.SpawnFromSO(template);
+            enemy.transform.position = spawnPos;
+            enemy.transform.SetParent(_spawnRoot);
+            enemy.GetTarget(_player);
         }
 
-        private FormationTypesSO GetRandomFormationTemplate()
+        private Vector3 GetSpawnPosAroundPlayer()
         {
-            if (_patrolFormationTemplates == null || _patrolFormationTemplates.Count == 0) return null;
-            return _patrolFormationTemplates[Random.Range(0, _patrolFormationTemplates.Count)];
-        }
-
-        private bool TryGetPatrolDropPos(Vector3 patrolEndPoint, out Vector3 dropPos)
-        {
-            dropPos = default;
-            var player = GetPlayerTransform();
-            if (player == null) return false;
-            if (_patrolSpawnMinDist <= 0f)
+            for (int i = 0; i < _spawnPosSampleCnt; i++)
             {
-                dropPos = GetWalkableDropPos();
-                return true;
-            }
-
-            int attempts = Mathf.Max(1, _walkableSampleCnt * 3);
-            float minDistance = _patrolSpawnMinDist;
-            float maxDistance = minDistance + 2f * attempts;
-            var distanceBucket = GetRandomDistBucket();
-
-            for (int i = 0; i < attempts; i++)
-            {
-                // 方案C：先固定本船的长度档位，再在该档位内采样，保证不同船路径长度差异更明显。
-                float distance = GetBucketDist(distanceBucket, minDistance, maxDistance);
+                float distance = Random.Range(_spawnMinDist, _spawnMaxDist);
                 Vector2 dir = Random.insideUnitCircle.normalized;
                 if (dir.sqrMagnitude <= 0.0001f) dir = Vector2.right;
+
                 var candidate = new Vector3(
-                    player.position.x + dir.x * distance,
-                    player.position.y + dir.y * distance,
-                    _dropPoint != null ? _dropPoint.position.z : player.position.z
-                );
+                    _player.position.x + dir.x * distance,
+                    _player.position.y + dir.y * distance,
+                    _player.position.z);
 
-                if (!TryGetWalkablePoint(candidate, out var walkablePoint)) continue;
-                if (Vector2.Distance(walkablePoint, player.position) < minDistance) continue;
-                if (!IsConnectedToPatrolEndPoint(walkablePoint, patrolEndPoint)) continue;
-                dropPos = walkablePoint;
-                return true;
+                if (TryGetAnyWalkablePoint(candidate, out var walkablePoint))
+                    return walkablePoint;
             }
 
-            return false;
-        }
-
-        private PatrolDistanceBucket GetRandomDistBucket()
-        {
-            float roll = Random.value;
-            if (roll < 0.33f) return PatrolDistanceBucket.Short;
-            if (roll < 0.66f) return PatrolDistanceBucket.Medium;
-            return PatrolDistanceBucket.Long;
-        }
-
-        private float GetBucketDist(PatrolDistanceBucket bucket, float minDistance, float maxDistance)
-        {
-            float span = Mathf.Max(0.01f, maxDistance - minDistance);
-            float startT;
-            float endT;
-
-            switch (bucket)
+            // 兜底：直接找玩家附近最近的可行走点
+            if (AstarPath.active != null)
             {
-                case PatrolDistanceBucket.Short:
-                    startT = 0.05f;
-                    endT = 0.25f;
-                    break;
-                case PatrolDistanceBucket.Medium:
-                    startT = 0.45f;
-                    endT = 0.65f;
-                    break;
-                default:
-                    startT = 0.80f;
-                    endT = 1.00f;
-                    break;
+                var nearest = AstarPath.active.GetNearest(_player.position, NearestNodeConstraint.Walkable);
+                if (nearest.node != null && nearest.node.Walkable)
+                    return (Vector3)nearest.position;
             }
 
-            return minDistance + span * Random.Range(startT, endT);
-        }
-
-        private bool IsConnectedToPatrolEndPoint(Vector3 startPoint, Vector3 endPoint)
-        {
-            if (AstarPath.active == null) return true;
-
-            var startNearest = AstarPath.active.GetNearest(startPoint, NearestNodeConstraint.Walkable);
-            var endNearest = AstarPath.active.GetNearest(endPoint, NearestNodeConstraint.Walkable);
-            if (startNearest.node == null || endNearest.node == null) return false;
-            if (!startNearest.node.Walkable || !endNearest.node.Walkable) return false;
-            return startNearest.node.Area == endNearest.node.Area;
-        }
-
-        private Transform GetPlayerTransform()
-        {
-            return _player;
+            return _player.position + Vector3.right * _spawnMinDist;
         }
 
         /// <summary>
-        /// 获取随机点，如果半径为0则返回中心点
+        /// 尝试获取候选点附近最近的可行走点。
+        /// 吸附距离不超过 _spawnMaxDist 的 20%，且必须与玩家在同一个 Astar 连通区域。
         /// </summary>
-        /// <param name="center">中心点</param>
-        /// <param name="radius">半径</param>
-        /// <returns>返回随机点</returns>
+        private bool TryGetAnyWalkablePoint(Vector3 candidate, out Vector3 walkablePoint)
+        {
+            walkablePoint = candidate;
+            if (AstarPath.active == null) return true;
+
+            var nearest = AstarPath.active.GetNearest(candidate, NearestNodeConstraint.Walkable);
+            if (nearest.node == null || !nearest.node.Walkable) return false;
+
+            float maxSnap = Mathf.Max(3f, _spawnMaxDist * 0.2f);
+            float dist = Vector2.Distance(candidate, (Vector3)nearest.position);
+            if (dist > maxSnap) return false;
+
+            // 与玩家在同一连通区域，避免生成在墙对侧
+            var playerNearest = AstarPath.active.GetNearest(_player.position, NearestNodeConstraint.Walkable);
+            if (playerNearest.node == null || !playerNearest.node.Walkable) return false;
+            if (nearest.node.Area != playerNearest.node.Area) return false;
+
+            walkablePoint = (Vector3)nearest.position;
+            walkablePoint.z = candidate.z;
+            return true;
+        }
+
+        #endregion
+
+        #region ----- 随机点与可行走采样 -------------------------
         private Vector3 GetRandomPointAround(Vector3 center, float radius)
         {
             if (radius <= 0f) return center;
@@ -628,11 +591,12 @@ namespace QFramework.Manager
                 Gizmos.DrawWireSphere(_dropPoint.position, _dropRadius);
             }
 
-            // 绘制“玩家半径外投送”限制圈，便于调试巡逻敌人的最小投送距离。
-            if (_player != null && _patrolSpawnMinDist > 0f)
+            // 绘制 Tick 生成系统范围圈
+            if (_player != null && _spawnMinDist > 0f && _spawnMaxDist > _spawnMinDist)
             {
-                Gizmos.color = new Color(0.35f, 1f, 0.35f, 0.9f);
-                Gizmos.DrawWireSphere(_player.position, _patrolSpawnMinDist);
+                Gizmos.color = new Color(0.35f, 1f, 0.35f, 0.6f);
+                Gizmos.DrawWireSphere(_player.position, _spawnMinDist);
+                Gizmos.DrawWireSphere(_player.position, _spawnMaxDist);
             }
 
             // 绘制最近一次生成流程中每艘船的起点与落点。
@@ -647,8 +611,6 @@ namespace QFramework.Manager
             {
                 Gizmos.DrawSphere(_lastDropPoints[i], _gizmoPointRadius);
             }
-
-            // 巡逻队由 FormationController 自身 Gizmos 绘制，此处不再重复绘制。
         }
 
         #endregion

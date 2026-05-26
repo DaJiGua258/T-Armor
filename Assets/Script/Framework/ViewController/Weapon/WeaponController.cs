@@ -81,7 +81,6 @@ namespace QFramework.ViewController.Player
                 // 设置旋转
                 weapon.transform.rotation = Quaternion.Euler(0f, 0f, smoothZ);
             }
-            Debug.Log("");
 
             RotateWeaponDetail(WeaponLeft, hitPos, aimZOffsetDeg);
             RotateWeaponDetail(WeaponRight, hitPos, aimZOffsetDeg);

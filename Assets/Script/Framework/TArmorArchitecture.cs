@@ -14,6 +14,7 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterModel<IModConfigModel>(new ModConfigModel());
         RegisterModel<IEnemeyConfigModel>(new EnemeyConfigModel());
         RegisterModel<IItemConfigModel>(new ItemConfigModel());
+        RegisterModel<ISupportConfigModel>(new SupportConfigModel());
         RegisterModel<ILevelTypeModel>(new LevelTypeModel());
         RegisterModel<IMissionConfigModel>(new MissionConfigModel());
 
@@ -37,5 +38,6 @@ public class TArmorArchitecture : Architecture<TArmorArchitecture>
         RegisterUtility<IObjectPoolUtility>(new ObjectPool());
         RegisterUtility<IInputUtility>(new InputUtility());
         RegisterUtility<IDebugUtility>(new DebugUtility());
+        RegisterUtility<IStorageUtility>(new JsonStorageUtility());
     }
 }

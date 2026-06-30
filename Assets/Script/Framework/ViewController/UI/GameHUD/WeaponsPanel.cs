@@ -57,8 +57,10 @@ namespace QFramework.ViewController.UI
         {
             if (data == null) return;
 
-            data.CurMagazine.Register(_ => OnMagazineChanged(slot, data));
-            data.CurMaxAmmo.Register(_ => OnMaxAmmoChanged(slot, data));
+            data.CurMagazine.Register(_ => OnMagazineChanged(slot, data))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+            data.CurMaxAmmo.Register(_ => OnMaxAmmoChanged(slot, data))
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
             UpdateSlot(slot, data);
         }
 
@@ -78,14 +80,17 @@ namespace QFramework.ViewController.UI
 
         private void UpdateSlot(WeaponSlot slot, WeaponDataModel data)
         {
+            if (slot == null) return;
             if (slot.ammoTxt != null)
                 slot.ammoTxt.text = $"{data.CurMagazine.Value:D3} / {data.CurMaxAmmo.Value:D3}";
 
-            slot.fillImg.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
+            if (slot.fillImg != null)
+                slot.fillImg.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
         }
 
         private void StartReloadAnimation(WeaponSlot slot, WeaponDataModel data)
         {
+            if (slot?.fillImg == null) return;
             slot.FillTweener?.Kill();
             slot.fillImg.fillAmount = 0f;
             slot.FillTweener = slot.fillImg

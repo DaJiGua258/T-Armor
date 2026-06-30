@@ -1,4 +1,5 @@
 using System.Collections;
+using QFramework.Manager;
 using QFramework.System;
 using QFramework.ViewController.Player;
 using UnityEngine;
@@ -20,7 +21,6 @@ namespace QFramework.ViewController.Mission
             base.Init(mission);
             _isActivated = false;
             _step0Done = false;
-            // 从任务配置中读取防守时长（Step 1 的 Progress）
             _defendDuration = mission.MissionConfig.MissionSteps[1].Progress;
             if(_beaconActiveEffect) _beaconActiveEffect.SetActive(false);
         }
@@ -53,6 +53,8 @@ namespace QFramework.ViewController.Mission
             if(_beaconActiveEffect) _beaconActiveEffect.SetActive(true);
             _interactable.Lock();
 
+            EnemySpawnerManager.Instance.SpawnWave();
+
             // 每秒添加进度
             _activateCoroutine = StartCoroutine(ActivateRoutine());
         }
@@ -64,6 +66,8 @@ namespace QFramework.ViewController.Mission
                 yield return new WaitForSeconds(1f);
                 AddProgress(1);  // Step 1 进度 +1
             }
+
+            EnemySpawnerManager.Instance.SpawnWave();
         }
     }
 }

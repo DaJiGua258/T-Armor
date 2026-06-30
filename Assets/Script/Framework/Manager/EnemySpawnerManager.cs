@@ -34,6 +34,7 @@ namespace QFramework.Manager
         [SerializeField] private Transform _dropPoint;
         [SerializeField] private Transform _endPoint;
         [SerializeField, Min(0f)] private float _spawnRadius = 0f;
+        [SerializeField, Min(0f)] private float _dropRadiusMin = 0f;
         [SerializeField, Min(0f)] private float _dropRadius = 0f;
         [SerializeField, Min(1)] private int _walkableSampleCnt = 10;
         [SerializeField, Min(0f)] private float _walkableSnapDist = 2f;
@@ -65,6 +66,45 @@ namespace QFramework.Manager
 
         #endregion
 
+        #region ----- 对象池 -------------------------
+
+        private readonly Dictionary<EnemyTypeEnum, Queue<AbstractEnemy>> _enemyPool
+            = new Dictionary<EnemyTypeEnum, Queue<AbstractEnemy>>();
+
+        /// <summary>
+        /// 从池中取出一个敌人，返回 null 表示池空。
+        /// </summary>
+        private AbstractEnemy GetFromPool(EnemyTypeEnum enemyType)
+        {
+            if (_enemyPool.TryGetValue(enemyType, out var queue) && queue.Count > 0)
+            {
+                var enemy = queue.Dequeue();
+                if (enemy != null)
+                {
+                    enemy.gameObject.SetActive(true);
+                    return enemy;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 将敌人归还到池中，禁用对象并排队等待复用。
+        /// </summary>
+        private void ReturnEnemyToPool(AbstractEnemy enemy)
+        {
+            if (enemy == null) return;
+            enemy.gameObject.SetActive(false);
+            enemy.transform.SetParent(_spawnRoot);
+
+            var type = enemy.enemyType;
+            if (!_enemyPool.ContainsKey(type))
+                _enemyPool[type] = new Queue<AbstractEnemy>();
+            _enemyPool[type].Enqueue(enemy);
+        }
+
+        #endregion
+
         #region ----- 生命周期 -------------------------
 
         private void Start()
@@ -79,6 +119,7 @@ namespace QFramework.Manager
         private void OnPlayerInitCompleted(PlayerEvent.InitCompleted e)
         {
             _player = e.PlayerTransform;
+            _dropPoint = e.PlayerTransform;
         }
 
         #endregion
@@ -265,6 +306,10 @@ namespace QFramework.Manager
             InitCargos(dropper, cargoTemplate);
             dropper.LockCargos();
 
+            // 投放的敌人以玩家为目标
+            if (_player != null)
+                dropper.OnCargoDropped += enemy => enemy.GetTarget(_player);
+
             _lastSpawnPoints.Add(startPos);
             _lastDropPoints.Add(dropPos);
             return dropper;
@@ -289,12 +334,19 @@ namespace QFramework.Manager
         }
 
         /// <summary>
-        /// 创建敌人实例
+        /// 创建敌人实例（优先从对象池获取，池空则 Instantiate）。
         /// </summary>
-        /// <param name="enemyType">敌人类型</param>
-        /// <returns>返回敌人实例</returns>
         private AbstractEnemy CreateCargoEnemy(EnemyTypeEnum enemyType)
         {
+            // 优先从池中取
+            var pooled = GetFromPool(enemyType);
+            if (pooled != null)
+            {
+                pooled.ResetEnemy();
+                pooled.transform.rotation = Quaternion.identity;
+                return pooled;
+            }
+
             var prefab = ResourceLoad.Load<GameObject>("Prefab/Enemy/" + enemyType);
             if (prefab == null)
             {
@@ -310,6 +362,9 @@ namespace QFramework.Manager
                 Destroy(obj);
                 return null;
             }
+
+            // 挂载回收回调，死亡时自动归还池
+            enemy.OnRecycle = ReturnEnemyToPool;
 
             enemy.InitEnemy();
             enemy.transform.rotation = Quaternion.identity;
@@ -355,7 +410,7 @@ namespace QFramework.Manager
 
             for (int i = 0; i < attempts; i++)
             {
-                var candidate = GetRandomPointAround(center, _dropRadius);
+                var candidate = GetRandomPointAround(center, _dropRadius, _dropRadiusMin);
                 if (TryGetWalkablePoint(candidate, out var walkablePoint))
                     return walkablePoint;
             }
@@ -527,10 +582,11 @@ namespace QFramework.Manager
         #endregion
 
         #region ----- 随机点与可行走采样 -------------------------
-        private Vector3 GetRandomPointAround(Vector3 center, float radius)
+        private Vector3 GetRandomPointAround(Vector3 center, float radius, float minRadius = 0f)
         {
             if (radius <= 0f) return center;
-            var offset = Random.insideUnitCircle * radius;
+            float r = minRadius > 0f ? Random.Range(minRadius, radius) : radius;
+            var offset = Random.insideUnitCircle.normalized * r;
             return new Vector3(center.x + offset.x, center.y + offset.y, center.z);
         }
 

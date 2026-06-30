@@ -9,6 +9,7 @@ using QFramework.ViewController.Player;
 using Pathfinding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using QFramework;
 
 namespace QFramework.Manager
 {
@@ -114,6 +115,11 @@ namespace QFramework.Manager
         public void SetGameResultState(GameResultState gameResultState)
         {
             _gameResultState = gameResultState;
+
+            if (gameResultState == GameResultState.GameFinished)
+            {
+                this.GetSystem<ILevelSystem>().SaveLevelProgress();
+            }
         }
 
         public PlayerController Player => _player;
@@ -246,6 +252,9 @@ namespace QFramework.Manager
         {
             if (!TryResolveSceneRoots()) return false;
 
+            // 重置统计数据（确保每局独立）
+            this.GetSystem<IStatsSystem>().ResetSessionStats();
+
             var mapPrefab = _resourceLoad.Load<GameObject>(MapGeneratorPrefabPath);
             if (mapPrefab == null)
             {
@@ -294,6 +303,15 @@ namespace QFramework.Manager
             else
             {
                 _camera.InitCameraTarget(_player.transform);
+            }
+
+            // 设置世界空间伤害数字 Canvas 的摄像机
+            var worldCanvasTransform = _ui.Find("WorldCanvas");
+            if (worldCanvasTransform != null)
+            {
+                var worldCanvas = worldCanvasTransform.GetComponent<Canvas>();
+                if (worldCanvas != null)
+                    worldCanvas.worldCamera = _camera.GetComponent<Camera>();
             }
 
             return true;

@@ -176,6 +176,7 @@ namespace QFramework.Utility
             if (Application.isPlaying)
             {
                 var go = new GameObject(nameof(TimerRunner));
+                GameObject.DontDestroyOnLoad(go);
                 go.AddComponent<TimerRunner>()._timerEvent += Tick;
             }
         }

@@ -18,6 +18,7 @@ namespace QFramework.System
         float GetAccuracy();
         int GetKillsByType(EnemyTypeEnum type);
         Dictionary<EnemyTypeEnum, int> KillsPerEnemyType { get; }
+        void ResetSessionStats();
     }
 
     public class StatsSystem : AbstractSystem, IStatsSystem
@@ -62,6 +63,21 @@ namespace QFramework.System
         public int GetKillsByType(EnemyTypeEnum type)
         {
             return _killsPerEnemyType.TryGetValue(type, out int count) ? count : 0;
+        }
+
+        public void ResetSessionStats()
+        {
+            _totalKills = 0;
+            _totalDamageDealt = 0;
+            _totalDamageTaken = 0;
+            _totalShotsFired = 0;
+            _totalDeaths = 0;
+            _totalMissionsCompleted = 0;
+            _totalHits = 0;
+            _gameStartTime = Time.time;
+            _frozenGameTime = 0f;
+            _gameEnded = false;
+            _killsPerEnemyType.Clear();
         }
 
         protected override void OnInit()

@@ -93,6 +93,12 @@ public class Debugers : MonoBehaviour, IController
             info += $"Enemy Current Health: {enemyData.CurrentHealth.Value}\n";
             info += $"Enemy Instance Id: {enemyData.InstanceId.Value}\n";
             info += $"Enemy Type: {enemyData.TypeEnum}\n";
+            info += $"KB: {enemyData.KnockbackAccumulator.Value:F2}/{enemyData.EnemyConfig.KnockbackThreshold:F2}\n";
+            info += $"Burn: {enemyData.BurnAccumulator.Value:F2}/{enemyData.EnemyConfig.BurnThreshold:F2}\n";
+            info += $"Slow: {enemyData.SlowAccumulator.Value:F2}/{enemyData.EnemyConfig.SlowThreshold:F2}\n";
+            var enemy = AbstractEnemy.GetById(_enemyId);
+            if (enemy != null)
+                info += $"KB act: {enemy.IsKnockbackActive} | Burn act: {enemy.IsBurnActive} | Slow act: {enemy.IsSlowActive}\n";
         }
 
         info += "\n";
@@ -147,7 +153,7 @@ public class Debugers : MonoBehaviour, IController
             }
         }
 
-        // 弹出结算界面
+        // 强制设为完成状态 → GameManager.SetGameResultState 会自动触发存档
         GameManager.Instance.SetGameResultState(GameResultState.GameFinished);
         UIGameManager.Instance.ShowPanel(UIGamePanelType.GameOverPanel);
     }

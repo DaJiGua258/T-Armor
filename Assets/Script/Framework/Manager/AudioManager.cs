@@ -69,7 +69,7 @@ namespace QFramework.Manager
             var clip = LoadClip("BGMType", type.ToString());
             if (clip == null)
             {
-                Debug.LogError($"[AudioManager] BGM clip not found: {type}");
+                Debug.LogWarning($"[AudioManager] BGM clip not found: {type}");
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace QFramework.Manager
             var clip = LoadClip("SFXType", type.ToString());
             if (clip == null)
             {
-                Debug.LogError($"[AudioManager] SFX clip not found: {type}");
+                Debug.LogWarning($"[AudioManager] SFX clip not found: {type}");
                 return;
             }
 
@@ -190,9 +190,19 @@ namespace QFramework.Manager
             var clip = LoadClip("SFXType", type.ToString());
             if (clip == null)
             {
-                Debug.LogError($"[AudioManager] SFX clip not found: {type}");
+                Debug.LogWarning($"[AudioManager] SFX clip not found: {type}");
                 return;
             }
+
+            var source = GetAvailableSFXSource();
+            ApplySFXVariation(source);
+            source.transform.position = position;
+            source.PlayOneShot(clip);
+        }
+
+        public void PlaySFX(AudioClip clip, Vector3 position)
+        {
+            if (_isMuted || clip == null) return;
 
             var source = GetAvailableSFXSource();
             ApplySFXVariation(source);
@@ -207,7 +217,7 @@ namespace QFramework.Manager
             var clip = LoadClip("SFXType", type.ToString());
             if (clip == null)
             {
-                Debug.LogError($"[AudioManager] SFX clip not found: {type}");
+                Debug.LogWarning($"[AudioManager] SFX clip not found: {type}");
                 return;
             }
 

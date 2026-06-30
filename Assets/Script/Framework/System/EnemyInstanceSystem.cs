@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using QFramework.Enum;
+using QFramework.Event;
 using QFramework.Model;
 using UnityEngine;
 
@@ -45,6 +46,12 @@ namespace QFramework.System
         public void DamageEnemy(int id, int damage)
         {
             _enemyDataCache[id].CurrentHealth.Value -= damage;
+            TypeEventSystem.Global.Send(new StatsEvent.OnDamageDealt
+            {
+                EnemyId = id,
+                Damage = damage,
+                Type = _enemyDataCache[id].EnemyType
+            });
         }
 
         public EnemeyDataModel GetData(int id)
@@ -61,12 +68,17 @@ namespace QFramework.System
         private static int _enemyCounter = 0;
 
         public EnemyTypeEnum EnemyType;
+        public EnemeyConfig EnemyConfig;
 
         public BindableProperty<int> enemySize = new BindableProperty<int>();
         public BindableProperty<int> MaxHealth = new BindableProperty<int>();
         public BindableProperty<int> CurrentHealth = new BindableProperty<int>();
         public BindableProperty<int> Speed = new BindableProperty<int>();
         public int Damage;
+
+        public BindableProperty<float> KnockbackAccumulator = new BindableProperty<float>(0f);
+        public BindableProperty<float> BurnAccumulator = new BindableProperty<float>(0f);
+        public BindableProperty<float> SlowAccumulator = new BindableProperty<float>(0f);
 
         /// <summary>
         /// 依据传入的敌人枚举，选取敌人配置，进行实例化
@@ -78,6 +90,7 @@ namespace QFramework.System
             _enemyCounter++;
 
             this.EnemyType = enemeyConfig.EnemyType;
+            this.EnemyConfig = enemeyConfig;
             this.enemySize.Value = enemeyConfig.enemySize;
             this.MaxHealth.Value = enemeyConfig.MaxHealth;
             this.CurrentHealth.Value = enemeyConfig.MaxHealth;

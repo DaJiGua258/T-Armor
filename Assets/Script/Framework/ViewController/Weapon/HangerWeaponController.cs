@@ -29,8 +29,16 @@ namespace QFramework.ViewController.Player
 
         void Start()
         {
-            _playerSystem.PlayerWeapon.HangerLeft.Register(OnDataLeftChanged);
-            _playerSystem.PlayerWeapon.HangerRight.Register(OnDataRightChanged);
+            _playerSystem.PlayerWeapon.HangerLeft.Register(OnDataLeftChanged)
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+            _playerSystem.PlayerWeapon.HangerRight.Register(OnDataRightChanged)
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            // 如果已有吊架武器数据（从主菜单带入），手动触发槽位武器实例化
+            if (_playerSystem.PlayerWeapon.HangerLeft.Value != null)
+                OnDataLeftChanged(_playerSystem.PlayerWeapon.HangerLeft.Value);
+            if (_playerSystem.PlayerWeapon.HangerRight.Value != null)
+                OnDataRightChanged(_playerSystem.PlayerWeapon.HangerRight.Value);
 
             this.SendCommand(new WeaponCommand.InitHanger());
         }

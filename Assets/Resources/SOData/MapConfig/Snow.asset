@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e10ef73292629474d98c6e706a477bda, type: 3}
   m_Name: Snow
   m_EditorClassIdentifier: 
-  mapSize: 128
+  mapSize: 64
   noiseScale: 16
   octaves: 2
   persistence: 0.082
@@ -87,8 +87,27 @@ MonoBehaviour:
       borderTiles: []
   enableShapePostProcess: 1
   postProcessIterations: 4
-  obstacleThreshold: 1
   obstacleColor: {r: 0.6381472, g: 0.78597337, b: 0.91823894, a: 1}
   Pf_obstacle1x1: {fileID: 8482001784776433974, guid: 8909adee8f868c541aa547bd76c87371, type: 3}
   Pf_obstacle2x2: {fileID: 8482001784776433974, guid: 2d79fbe12cbcc274b8f24e22653a9888, type: 3}
   Pf_obstacle3x3: {fileID: 8482001784776433974, guid: ea2e60fca168a4444b30bea132190496, type: 3}
+  preferLowestNoise: 1
+  extraMarginCells: 0
+  minDistanceBetweenMissions: 3
+  distanceStep: 1
+  poiCount: 3
+  poiExtraMarginCells: 0
+  poiAvoidMissionRadius: 2.5
+  poiMinDistance: 3
+  environmentEnabled: 1
+  environmentRules: []
+  poissonRadius: 2.2
+  maxSamplesPerPoint: 24
+  environmentSpawnChance: 0.75
+  validNoiseMin: 0.15
+  validNoiseMax: 0.75
+  edgePaddingCells: 1
+  avoidObstaclePadding: 0.25
+  avoidMissionRadius: 2.5
+  cellJitterRatio: 0.25
+  environmentSeedOffset: 9973

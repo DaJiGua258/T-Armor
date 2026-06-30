@@ -22,8 +22,10 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            PlayerModel.CurrentHealth.Register(_ => UpdateHealthBar());
-            PlayerModel.CurrentFuel.Register(_ => UpdateFuelBar());
+            PlayerModel.CurrentHealth.Register(_ => UpdateHealthBar())
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+            PlayerModel.CurrentFuel.Register(_ => UpdateFuelBar())
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
 
             // 初始刷新数值
             UpdateFuelBar();

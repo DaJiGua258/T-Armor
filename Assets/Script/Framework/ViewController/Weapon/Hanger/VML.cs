@@ -4,6 +4,7 @@ using QFramework.Event;
 using QFramework.Manager;
 using QFramework.Model;
 using QFramework.Utility;
+using QFramework.ViewController.Misc;
 using UnityEngine;
 
 namespace QFramework.ViewController.Player
@@ -12,7 +13,6 @@ namespace QFramework.ViewController.Player
     {
         [Header("VML 发射设置")]
         [SerializeField] private Transform[] _launchPositions;
-        [SerializeField] private float _launchInterval = 0.1f;
 
         public override SFXType ShootSFXType => SFXType.misslie_launch;
 
@@ -62,6 +62,8 @@ namespace QFramework.ViewController.Player
                 yield break;
             }
 
+            float interval = 60f / WeaponDataModel.Rpm / _launchPositions.Length;
+
             for (int i = 0; i < _launchPositions.Length; i++)
             {
                 if (WeaponDataModel.CurMagazine.Value <= 0) break;
@@ -75,7 +77,7 @@ namespace QFramework.ViewController.Player
                 ConsumeShot();
 
                 if (i < _launchPositions.Length - 1)
-                    yield return new WaitForSeconds(_launchInterval);
+                    yield return new WaitForSeconds(interval);
             }
 
             IsActive = false;
@@ -92,7 +94,9 @@ namespace QFramework.ViewController.Player
             AudioManager.Instance.PlaySFX(ShootSFXType);
 
             var projectile = bullet.GetComponent<Projectile>();
-            projectile.InitProjectile(_aimTargetPos, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage);
+            var toTarget = (_aimTargetPos - pos).normalized;
+            var damageInfo = new DamageInfo(WeaponDataModel.BulletDamage, WeaponDataModel.KnockbackValue, WeaponDataModel.BurnValue, toTarget, WeaponDataModel.SlowValue);
+            projectile.InitProjectile(_aimTargetPos, WeaponDataModel.BulletSpeed, damageInfo);
             projectile.SetLayerMask(_bulletLayerMask);
             projectile.SetVerticalLaunch(true);
 

@@ -33,7 +33,7 @@ namespace QFramework.Model
         {
             MaxHealth.Value = 999;
             CurrentHealth.Value = 999;
-            Speed.Value = 2;
+            Speed.Value = 3;
             MaxFuel.Value = 100;
             CurrentFuel.Value = 100;
 

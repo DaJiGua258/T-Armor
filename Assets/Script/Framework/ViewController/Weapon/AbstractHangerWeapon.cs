@@ -6,6 +6,7 @@ using QFramework.System;
 using QFramework.Command;
 using QFramework.Event;
 using QFramework.Manager;
+using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
 
 namespace QFramework.ViewController.Player
@@ -121,7 +122,8 @@ namespace QFramework.ViewController.Player
             AudioManager.Instance.PlaySFX(ShootSFXType);
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
-            bulletComponent.InitBullet(dir, WeaponDataModel.BulletSpeed, WeaponDataModel.BulletDamage, _ownerRef);
+            var damageInfo = new DamageInfo(WeaponDataModel.BulletDamage, WeaponDataModel.KnockbackValue, WeaponDataModel.BurnValue, dir, WeaponDataModel.SlowValue);
+            bulletComponent.InitBullet(dir, WeaponDataModel.BulletSpeed, damageInfo, _ownerRef);
             bulletComponent.SetLayerMask(_bulletLayerMask);
         }
     }

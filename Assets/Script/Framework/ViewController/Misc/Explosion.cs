@@ -22,6 +22,9 @@ namespace QFramework.ViewController.Misc
         public bool UseDamageFalloff;
         public AnimationCurve DamageFalloff = AnimationCurve.Linear(0f, 1f, 1f, 0f);
 
+        [Header("爆炸音效（可选，为空则根据 ShakeMode 自动选择）")]
+        public AudioClip CustomExplosionSound;
+
         private Collider2D[] _results = new Collider2D[32];
         private Vector2 Center => (Vector2)transform.position + Offset;
 
@@ -60,7 +63,9 @@ namespace QFramework.ViewController.Misc
                     finalDamage = Mathf.RoundToInt(BaseDamage * DamageFalloff.Evaluate(t));
                 }
 
-                HitDetectionUtility.ProcessHit(col, finalDamage);
+                Vector2 dir = ((Vector2)col.transform.position - Center).normalized;
+                var damageInfo = new DamageInfo(finalDamage, 0f, 0f, dir);
+                HitDetectionUtility.ProcessHit(col, damageInfo);
 
                 // 物理击退（仅对 Enemy）
                 if (col.CompareTag("Enemy") || col.CompareTag("Player"))
@@ -74,20 +79,11 @@ namespace QFramework.ViewController.Misc
             // 相机震动
             TypeEventSystem.Global.Send(new ShakeCamera { strength = (int)ShakeMode });
 
-            // 音效
-            AudioManager.Instance.PlaySFX(ToExplosionSFX(), transform.position);
-        }
-
-        private SFXType ToExplosionSFX()
-        {
-            return ShakeMode switch
-            {
-                ShakeCameraMode.Tiny => SFXType.explosion_tiny,
-                ShakeCameraMode.Small => SFXType.explosion_small,
-                ShakeCameraMode.Mid => SFXType.explosion_mid,
-                ShakeCameraMode.Large => SFXType.explosion_large,
-                _ => SFXType.explosion_mid,
-            };
+            // 音效（优先使用自定义音效，否则使用通用爆炸音效）
+            if (CustomExplosionSound != null)
+                AudioManager.Instance.PlaySFX(CustomExplosionSound, transform.position);
+            else
+                AudioManager.Instance.PlaySFX(SFXType.explosion, transform.position);
         }
 
 #if UNITY_EDITOR

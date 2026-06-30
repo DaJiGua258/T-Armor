@@ -87,12 +87,12 @@ namespace QFramework.Command
             }
         }
 
-        public class UseHotbarItem : AbstractCommand
+        public class UseSupportItem : AbstractCommand
         {
-            public static UseHotbarItem Instance = new();
+            public static UseSupportItem Instance = new();
             private int _index;
 
-            public UseHotbarItem Init(int index)
+            public UseSupportItem Init(int index)
             {
                 _index = index;
                 return this;
@@ -100,26 +100,17 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                var invSystem = this.GetSystem<IInvenotrySystem>();
-                var item = invSystem.GetHotbarItemByIndex(_index);
+                var playerSystem = this.GetSystem<IPlayerSystem>();
+                var item = playerSystem.GetSupportItemByIndex(_index);
 
-                if (item == null || item.ItemType == ItemTypeEnum.None || !item.canUse)
+                if (item == null || item.SupportType == SupportTypeEnum.None || !item.canUse)
                     return;
 
-                item.Count.Value--;
-                if (item.Count.Value <= 0)
-                {
-                    // 重置物品状态为 None
-                    item.ItemType = ItemTypeEnum.None;
-                    item.name = "";
-                    item.iconPath = "";
-                    item.description = "";
-                    item.canUse = false;
-                    item.Count.Value = 0;
+                // 冷却中无法使用
+                if (item.CooldownRemaining.Value > 0f)
+                    return;
 
-                    // 触发 InstanceId 事件，强制 UI 刷新（Count 事件在 ItemType 重置前已触发）
-                    item.InstanceId.Value = -1;
-                }
+                item.CooldownRemaining.Value = item.cooldownTime;
             }
         }
     }

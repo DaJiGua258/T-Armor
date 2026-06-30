@@ -14,12 +14,12 @@ namespace QFramework.ViewController.UI.SupportConfig
         [SerializeField] private Image _bgImage;
         [SerializeField] private UIHighlight _highlight;
 
-        private ItemTypeEnum _itemType;
+        private SupportTypeEnum _supportType;
         private bool _isSelected;
         private bool _isHovered;
 
         public Button Button { get; private set; }
-        public ItemTypeEnum ItemType => _itemType;
+        public SupportTypeEnum SupportType => _supportType;
 
         private void Awake()
         {
@@ -31,10 +31,10 @@ namespace QFramework.ViewController.UI.SupportConfig
             }
         }
 
-        public void Init(ItemTypeEnum itemType)
+        public void Init(SupportTypeEnum supportType)
         {
-            _itemType = itemType;
-            var config = TArmorArchitecture.Interface.GetModel<IItemConfigModel>().GetItemConfig(itemType);
+            _supportType = supportType;
+            var config = TArmorArchitecture.Interface.GetModel<ISupportConfigModel>().GetSupportConfig(supportType);
             _nameText.text = config.name;
 
             if (!string.IsNullOrEmpty(config.iconPath))

@@ -24,22 +24,6 @@ namespace QFramework.Model
                     ItemTypeEnum.Supply_Ammo, "弹药箱", true, 3,
                         "Texture/UI/Icon/icon_ammo", "恢复弹药", true)},
 
-            {ItemTypeEnum.Marker_AirStrikes, new ItemConfig(
-                    ItemTypeEnum.Marker_AirStrikes, "空袭指令", true, 3,
-                        "Texture/UI/Icon/icon_marker_artillery", "在指定位置进行空袭打击", true)},
-
-            {ItemTypeEnum.Marker_AirSupport, new ItemConfig(
-                    ItemTypeEnum.Marker_AirSupport, "空中支援", true, 3,
-                        "Texture/UI/Icon/icon_marker_artillery", "呼叫空中支援火力", true)},
-
-            {ItemTypeEnum.Marker_Artillery, new ItemConfig(
-                    ItemTypeEnum.Marker_Artillery, "炮击指令", true, 3,
-                        "Texture/UI/Icon/icon_marker_artillery", "在指定位置进行一连串的炮火支援", true)},
-
-            {ItemTypeEnum.Marker_Missile, new ItemConfig(
-                    ItemTypeEnum.Marker_Missile, "制导导弹", true, 3,
-                        "Texture/UI/Icon/icon_missile", "在指定位置发射一枚制导导弹", true)},
-
             // Mod 芯片
             {ItemTypeEnum.Mod_Damage, new ItemConfig(
                     ItemTypeEnum.Mod_Damage, "伤害芯片", false, 1,
@@ -53,7 +37,7 @@ namespace QFramework.Model
         private static string ModIconPath(ItemTypeEnum modType)
         {
             // Mod_Rpm → "Texture/UI/Icon/icon_mod_Rpm"
-            return $"Texture/UI/Icon/icon_{modType.ToString().Replace("Mod_", "mod_")}";
+            return $"Texture/UI/Icon/Mod/icon_{modType.ToString().Replace("Mod_", "")}";
         }
 
         protected override void OnInit()

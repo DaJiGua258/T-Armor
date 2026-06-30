@@ -22,9 +22,6 @@ namespace QFramework.ViewController.Enemy.Formation
         [Header("生成设置")]
         public bool SpawnOnStart = true;  // 启动时自动生成队形
 
-        [Header("调试")]
-        [SerializeField] private bool _drawGizmos = true;
-
         private AbstractEnemy _leader;  // 队形 leader（列表第一个敌人）
         private readonly List<FollowerInfo> _followers = new List<FollowerInfo>();  // 跟随者列表
 

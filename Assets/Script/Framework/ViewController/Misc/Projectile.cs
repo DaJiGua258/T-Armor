@@ -57,7 +57,7 @@ namespace QFramework.ViewController.Player
         public event Action<Projectile> OnExploded;  // 爆炸完成事件
 
         private bool _hasExploded;  // 是否已爆炸
-        private int _damage;  // 伤害值
+        private DamageInfo _damageInfo;
         private int _speed;  // 飞行速度
         private Vector3 _targetPosition;  // 目标位置
         private GameObject _owner;  // 发射者，检测时跳过自身
@@ -174,7 +174,7 @@ namespace QFramework.ViewController.Player
 
                 if (!processed.Add(hit.collider.gameObject)) continue;
 
-                HitDetectionUtility.ProcessHit(hit.collider, _damage);
+                HitDetectionUtility.ProcessHit(hit.collider, _damageInfo);
             }
         }
 
@@ -199,7 +199,7 @@ namespace QFramework.ViewController.Player
                 if (hasCollision)
                 {
                     // Debug.Log($"[Projectile] Hit: {hit.collider.name} | Tag: {hit.collider.tag} | Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
-                    HitDetectionUtility.ProcessHit(hit.collider, _damage);
+                    HitDetectionUtility.ProcessHit(hit.collider, _damageInfo);
                 }
 
                 Explode(explosionPoint);
@@ -245,11 +245,11 @@ namespace QFramework.ViewController.Player
         /// </summary>
         /// <param name="direction">飞行方向</param>
         /// <param name="speed">飞行速度</param>
-        /// <param name="damage">伤害值</param>
+        /// <param name="damageInfo">伤害数据（含基础伤害、击退、燃烧等）</param>
         /// <param name="owner">发射者（可选），检测时跳过自身碰撞</param>
-        public void InitBullet(Vector3 direction, int speed, int damage, GameObject owner = null)
+        public void InitBullet(Vector3 direction, int speed, DamageInfo damageInfo, GameObject owner = null)
         {
-            _damage = damage;
+            _damageInfo = damageInfo;
             _speed = speed;
             _owner = owner;
             _hasExploded = false;
@@ -264,15 +264,15 @@ namespace QFramework.ViewController.Player
         /// </summary>
         /// <param name="targetPosition">目标位置</param>
         /// <param name="speed">飞行速度</param>
-        /// <param name="damage">伤害值</param>
+        /// <param name="damageInfo">伤害数据（含基础伤害、击退、燃烧等）</param>
         /// <param name="owner">发射者（可选）</param>
-        public void InitProjectile(Vector3 targetPosition, int speed, int damage, GameObject owner = null)
+        public void InitProjectile(Vector3 targetPosition, int speed, DamageInfo damageInfo, GameObject owner = null)
         {
             _targetPosition = targetPosition;
             _initialDistanceToTarget = Vector3.Distance(transform.position, targetPosition);
             _distanceTraveled = 0f;
             _excessTime = 0f;
-            InitBullet((targetPosition - transform.position).normalized, speed, damage, owner);
+            InitBullet((targetPosition - transform.position).normalized, speed, damageInfo, owner);
         }
 
         #endregion
@@ -409,13 +409,17 @@ namespace QFramework.ViewController.Player
             if (_hasExplosion)
             {
                 var explosion = explosionVFX.GetComponent<Explosion>();
-                if (explosion != null) explosion.Init(_damage, _layerMask);
+                if (explosion != null) explosion.Init(_damageInfo.Damage, _layerMask);
             }
 
             timer.AddOnce(
                 () => ob.PushObject(explosionVFX),
                 3f,
-                () => ob.PushObject(gameObject)
+                () =>
+                {
+                    if (this != null)
+                        ob.PushObject(gameObject);
+                }
             );
         }
 

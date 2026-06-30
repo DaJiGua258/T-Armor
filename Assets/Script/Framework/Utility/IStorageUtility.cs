@@ -6,7 +6,9 @@ namespace QFramework.Utility
 {
     public interface IStorageUtility : IUtility
     {
-        public void SaveData(string key, object data);
-        public object LoadData(string key);
+        void SaveData(string key, object data);
+        object LoadData(string key);
+        T LoadData<T>(string key) where T : class;
+        void DeleteData(string key);
     }
 }

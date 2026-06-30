@@ -1,4 +1,7 @@
 using QFramework.Manager;
+using QFramework.Model;
+using QFramework.System;
+using QFramework.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -25,7 +28,15 @@ namespace QFramework.ViewController.UI
 
         void Start()
         {
-            // 统一设置按钮高亮
+            // 检查存档状态，控制 Continue 按钮
+            var storage = this.GetUtility<IStorageUtility>();
+            var saveData = storage.LoadData<GameSaveData>("GameSaveData");
+            bool hasSave = saveData != null && saveData.CompletedLevels.Count > 0;
+            _continueBtn.interactable = hasSave;
+            var continueTxt = _continueBtn.transform.Find("Txt").GetComponent<Text>();
+            continueTxt.color = hasSave ? Color.white : Color.gray;
+
+            // 统一设置按钮高亮（跳过不可用的按钮）
             var buttons = new[] { _newGameBtn, _continueBtn, _loadGameBtn, _settingsBtn, _quitBtn };
             foreach (var btn in buttons)
             {
@@ -49,7 +60,10 @@ namespace QFramework.ViewController.UI
             var trigger = btn.gameObject.AddComponent<EventTrigger>();
 
             var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            enter.callback.AddListener(_ => highlight.SetHighlight(true));
+            enter.callback.AddListener(_ =>
+            {
+                if (btn.interactable) highlight.SetHighlight(true);
+            });
             trigger.triggers.Add(enter);
 
             var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
@@ -61,12 +75,26 @@ namespace QFramework.ViewController.UI
 
         public void OnNewGameClick()
         {
+            // 清除旧存档
+            var storage = this.GetUtility<IStorageUtility>();
+            storage.DeleteData("GameSaveData");
+
+            // 重置关卡缓存
+            var levelSystem = this.GetSystem<ILevelSystem>();
+            levelSystem.LevelDataCache.Clear();
+
             MainUIManager.Instance.EnterLevelSelect();
         }
 
         public void OnContinueClick()
         {
-            
+            if (!_continueBtn.interactable) return;
+
+            var levelSystem = this.GetSystem<ILevelSystem>();
+            if (levelSystem.LevelDataCache.Count > 0)
+            {
+                MainUIManager.Instance.EnterLevelSelect();
+            }
         }
 
         public void OnLoadGameClick()

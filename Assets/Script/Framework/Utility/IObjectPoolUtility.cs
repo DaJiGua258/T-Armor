@@ -55,6 +55,7 @@ namespace QFramework.Utility
 
         public void PushObject(GameObject prefab)
         {
+            if (prefab == null) return;
             int instanceId = prefab.GetInstanceID();
             // 防止重复回收：同一实例二次入池会导致“飞行中被旧回调回收”等问题。
             if (_pooledInstanceIds.Contains(instanceId))

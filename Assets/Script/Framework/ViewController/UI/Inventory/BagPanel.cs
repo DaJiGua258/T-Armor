@@ -42,8 +42,10 @@ namespace QFramework.ViewController.UI
 
             for (int i = 0; i < InvenotrySystem.ItemDataCache.Count; i++)
             {
-                InvenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(_ => RefreshSlots());
-                InvenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(_ => RefreshSlots());
+                InvenotrySystem.ItemDataCache[i].Count.RegisterOnValueChanged(_ => RefreshSlots())
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
+                InvenotrySystem.ItemDataCache[i].InstanceId.RegisterOnValueChanged(_ => RefreshSlots())
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
             }
         }
 

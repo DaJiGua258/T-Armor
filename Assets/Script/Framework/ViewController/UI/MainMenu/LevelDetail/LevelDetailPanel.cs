@@ -1,6 +1,7 @@
 using DG.Tweening;
 using QFramework.Event;
 using QFramework.Manager;
+using QFramework.System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,11 +61,21 @@ namespace QFramework.ViewController.UI
 
         private void OnEnterLevelClick()
         {
+            // 读取玩家选中的支援物品，初始化到 PlayerSystem
+            var playerConfigPanel = FindObjectOfType<PlayerConfigPanel>();
+            if (playerConfigPanel != null)
+            {
+                var selectedItems = playerConfigPanel.GetSelectedSupportItems();
+                var playerSystem = this.GetSystem<IPlayerSystem>();
+                playerSystem.InitSupportItems(selectedItems);
+            }
+
             GameManager.Instance.EnterGameScene();
         }
 
         private void OnUpdateMapInfo(UpdateMapInfo e)
         {
+            if (this == null) return;
             RefreshUI();
             StartCoroutine(RefreshLayoutRoutine());
         }

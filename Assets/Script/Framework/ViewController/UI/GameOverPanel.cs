@@ -16,7 +16,7 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Button _returnBtn;
 
         private IStatsSystem StatsSystem => this.GetSystem<IStatsSystem>();
-        private IMissionSystem MissionSystem => this.GetSystem<IMissionSystem>();
+        private IMissionSystem MissionSystemInstance => this.GetSystem<IMissionSystem>();
 
         public override void OnInit()
         {
@@ -42,7 +42,7 @@ namespace QFramework.ViewController.UI
             var result = GameManager.Instance.GetGameResultState();
             _titleText.text = result == GameResultState.GameFinished ? "// FINISHED" : "// GAMEOVER";
 
-            var missions = MissionSystem.Missions;
+            var missions = MissionSystemInstance.Missions;
             int completedCount = 0;
             foreach (var m in missions)
             {

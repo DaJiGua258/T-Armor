@@ -5,6 +5,7 @@ using QFramework.Utility;
 using QFramework.UtilityKit;
 using QFramework.ViewController.UI;
 using QFramework.ViewController.MainMenuUI;
+using QFramework.Model;
 using UnityEngine;
 
 namespace QFramework.Manager
@@ -106,7 +107,23 @@ namespace QFramework.Manager
             StartCameraRotation = MainCamera.transform.rotation;
 
             if (GameManager.Instance.GetGameResultState() == GameResultState.GameFinished)
+            {
+                // 相机定位到最后一个完成节点的法线方向（默认距离 2）
+                var cache = _levelSystem.LevelDataCache;
+                if (cache.Count > 0 && OrbitOrbitCamera?.planetCenter != null)
+                {
+                    Vector3 lastNormal = cache[^1].EnvironmentData.SurfaceNormal.normalized;
+                    Vector3 camPos = OrbitOrbitCamera.planetCenter.position + lastNormal * 2f;
+                    Quaternion camRot = Quaternion.LookRotation(
+                        OrbitOrbitCamera.planetCenter.position - camPos, Vector3.up);
+                    MainCamera.transform.SetPositionAndRotation(camPos, camRot);
+                    StartCameraPosition = camPos;
+                    StartCameraRotation = camRot;
+                }
+
+                _panelStack.Push(new UIMainPanelGroup(UIMainPanelType.MainMenuPanel));
                 EnterLevelSelect();
+            }
             else
                 EnterMainMenu();
         }
@@ -511,13 +528,36 @@ namespace QFramework.Manager
 
         public void EnterLevelSelect()
         {
+            var storage = this.GetUtility<IStorageUtility>();
+
             if (_levelSystem.LevelDataCache.Count > 0)
             {
-                _nodeS = PlanetNodeList.GenerateFromLevelOrderAndContinue(
-                    PlanetGenerator,
-                    _levelSystem.LevelDataCache,
-                    4,
-                    10f);
+                // 检查是否有已存档的待选节点（游戏启动后首次进入）
+                var saveData = storage.LoadData<GameSaveData>("GameSaveData");
+                if (saveData != null && saveData.PendingNodes.Count > 0)
+                {
+                    // 从存档恢复完整星球（包括待选节点）
+                    _nodeS = PlanetNodeList.RestoreFromSaveData(
+                        PlanetGenerator,
+                        _levelSystem.LevelDataCache,
+                        saveData.PendingNodes);
+
+                    // 清除存档中的待选节点，避免下次重复使用
+                    saveData.PendingNodes.Clear();
+                    storage.SaveData("GameSaveData", saveData);
+                }
+                else
+                {
+                    // 通关后返回，重新生成待选节点
+                    _nodeS = PlanetNodeList.GenerateFromLevelOrderAndContinue(
+                        PlanetGenerator,
+                        _levelSystem.LevelDataCache,
+                        3,
+                        10f);
+
+                    // 保存新生成的待选节点
+                    SavePendingNodeData();
+                }
             }
             else
             {
@@ -525,6 +565,17 @@ namespace QFramework.Manager
             }
 
             PushPanel(UIMainPanelType.LevelSelectPanel);
+        }
+
+        private void SavePendingNodeData()
+        {
+            var pendingNodes = PlanetNodeList.GetPendingNodesData();
+            if (pendingNodes == null || pendingNodes.Count == 0) return;
+
+            var storage = this.GetUtility<IStorageUtility>();
+            var saveData = storage.LoadData<GameSaveData>("GameSaveData") ?? new GameSaveData();
+            saveData.PendingNodes = pendingNodes;
+            storage.SaveData("GameSaveData", saveData);
         }
 
         public void EnterLevelConfirm(Vector3 nodeWorldPosition)

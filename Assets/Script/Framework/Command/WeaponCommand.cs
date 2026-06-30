@@ -21,8 +21,9 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                // 初始化武器数据
-                _playerSystem.InitPlayerWeapon();
+                // 仅当武器数据为空时初始化，保留主菜单已选择的武器
+                if (_playerSystem.PlayerWeapon.Left.Value == null)
+                    _playerSystem.InitPlayerWeapon();
 
                 // 通知注册UI事件
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.Register());
@@ -38,7 +39,10 @@ namespace QFramework.Command
 
             protected override void OnExecute()
             {
-                _playerSystem.InitHangerWeapon();
+                // 仅当武器数据为空时初始化，保留主菜单已选择的武器
+                if (_playerSystem.PlayerWeapon.HangerLeft.Value == null)
+                    _playerSystem.InitHangerWeapon();
+
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.Register());
             }
         }

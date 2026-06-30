@@ -1,12 +1,17 @@
+using System;
 using System.Collections.Generic;
 using QFramework.Enum;
+using UnityEngine;
 
 namespace QFramework.Model
 {
     public interface IWeaponConfigModel : IModel
     {
+        /// <summary>根据武器类型获取手持武器配置</summary>
         public WeaponConfig GetWeaponConfigModel(WeaponTypeEnum weaponType);
+        /// <summary>根据武器类型获取挂架武器配置</summary>
         public WeaponConfig GetHangerWeaponConfigModel(WeaponTypeEnum weaponType);
+        /// <summary>获取武器显示名称</summary>
         public string GetDisplayName(WeaponTypeEnum weaponType);
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> WeaponConfigs { get; }
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> HangerWeaponConfigs { get; }
@@ -14,30 +19,26 @@ namespace QFramework.Model
 
     public class WeaponConfigModel : AbstractModel, IWeaponConfigModel
     {
-        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new();
-        private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new();
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _weaponConfig = new();  // 手持武器缓存（Category=Handheld）
+        private Dictionary<WeaponTypeEnum, WeaponConfig> _hangerWeaponConfig = new();  // 挂架武器缓存（Category=Hanger）
 
+        /// <summary>从 JSON 加载所有武器配置，按类型分别缓存</summary>
         protected override void OnInit()
         {
-            var weapons = new (WeaponTypeEnum type, string name, int ammoMul, int mag, float reload, int speed, int dmg, int rpm)[]
-            {
-                (WeaponTypeEnum.None, "", 0, 0, 0, 0, 0, 0),
-                (WeaponTypeEnum.AR, "突击步枪", 5, 30, 2, 20, 25, 600),
-                (WeaponTypeEnum.LMG, "机枪", 10, 60, 2, 25, 10, 840),
-                (WeaponTypeEnum.SG, "霰弹枪", 4, 30, 2, 20, 15, 180),
-                (WeaponTypeEnum.MRL, "火箭发射器", 4, 30, 2, 20, 15, 120),
-            };
+            // 从 Config/WeaponConfig.json 反序列化所有武器
+            var weapons = ConfigLoader.LoadFromJson<WeaponConfig>("Config/WeaponConfig");
+            Debug.Log($"[WeaponConfig] 从 JSON 加载了 {weapons.Count} 个武器");
+            // 按手持/挂架分类缓存
             foreach (var w in weapons)
-                _weaponConfig[w.type] = new WeaponConfig(w.type, w.name, w.ammoMul, w.mag, w.reload, w.speed, w.dmg, w.rpm);
-
-            var hanger = new (WeaponTypeEnum type, string name, int ammoMul, int mag, float reload, int speed, int dmg, int rpm)[]
             {
-                (WeaponTypeEnum.None, "", 0, 0, 0, 0, 0, 0),
-                (WeaponTypeEnum.VML, "垂直导弹", 8, 6, 3, 15, 25, 30),
-                (WeaponTypeEnum.MTT, "自动炮台", 4, 40, 4, 30, 5, 300),
-            };
-            foreach (var w in hanger)
-                _hangerWeaponConfig[w.type] = new WeaponConfig(w.type, w.name, w.ammoMul, w.mag, w.reload, w.speed, w.dmg, w.rpm);
+                w.PostLoad();  // 计算 MaxAmmo、CurAmmo 等派生字段
+                Debug.Log($"[WeaponConfig]   → WeaponType={w.WeaponType}, Category={w.Category}, DMG={w.BulletDamage}");
+                if (w.Category == "Hanger")
+                    _hangerWeaponConfig[w.WeaponType] = w;
+                else
+                    _weaponConfig[w.WeaponType] = w;
+            }
+            Debug.Log($"[WeaponConfig] 手持={_weaponConfig.Count}, 挂架={_hangerWeaponConfig.Count}");
         }
 
         public IReadOnlyDictionary<WeaponTypeEnum, WeaponConfig> WeaponConfigs => _weaponConfig;
@@ -53,6 +54,7 @@ namespace QFramework.Model
             return _hangerWeaponConfig[weaponType];
         }
 
+        /// <summary>获取武器的显示名称，支持手持和挂架</summary>
         public string GetDisplayName(WeaponTypeEnum weaponType)
         {
             if (_weaponConfig.TryGetValue(weaponType, out var config) ||
@@ -62,18 +64,41 @@ namespace QFramework.Model
         }
     }
 
+    [Serializable]
     public class WeaponConfig
     {
         public WeaponTypeEnum WeaponType;
         public string DisplayName;
 
+        // JSON 原始字段
+        public int AmmoMul;  // 备弹倍率，MaxAmmo = MaxMagazine * AmmoMul
+        public string Category;  // "Handheld" / "Hanger"
+
+        // 派生字段（PostLoad 中计算）
         public int MaxAmmo;
         public int CurAmmo;
+
         public int MaxMagazine;
-        public float ReloadTime;
+        public float ReloadTime;  // 装弹时间（秒）
         public int BulletSpeed;
         public int BulletDamage;
-        public int Rpm;
+        public int Rpm;  // 每分钟射速
+
+        public float KnockbackValue;  // TODO: 已禁用，归零处理
+        public float BurnValue;  // TODO: 已禁用，归零处理
+        public float SlowValue;  // 减速幅度
+
+        // JsonUtility 反序列化需要无参构造器
+        public WeaponConfig() { }
+
+        /// <summary>反序列化后调用，计算派生字段</summary>
+        public void PostLoad()
+        {
+            MaxAmmo = MaxMagazine * AmmoMul;
+            CurAmmo = MaxAmmo;
+            KnockbackValue = 0;  // 击退已禁用
+            BurnValue = 0;  // 灼烧已禁用
+        }
 
         public WeaponConfig(
             WeaponTypeEnum weaponType,
@@ -83,7 +108,8 @@ namespace QFramework.Model
             float reloadTime,
             int bulletSpeed,
             int bulletDamage,
-            int rpm)
+            int rpm,
+            float slowValue = 0f)
         {
             this.WeaponType = weaponType;
             this.DisplayName = displayName;
@@ -94,6 +120,7 @@ namespace QFramework.Model
             this.BulletSpeed = bulletSpeed;
             this.BulletDamage = bulletDamage;
             this.Rpm = rpm;
+            this.SlowValue = slowValue;
         }
     }
 
@@ -104,3 +131,4 @@ namespace QFramework.Model
         Reloading,
     }
 }
+

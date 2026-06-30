@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using QFramework.Enum;
 using UnityEngine;
@@ -6,32 +7,29 @@ namespace QFramework.Model
 {
     public interface IEnemeyConfigModel : IModel
     {
-        // 只读类方法
-        public EnemeyConfig GetEnemyFromCache(EnemyTypeEnum enemyEnum);  // 根据敌人枚举获取敌人
+        public EnemeyConfig GetEnemyFromCache(EnemyTypeEnum enemyEnum);
     }
 
     public class EnemeyConfigModel : AbstractModel, IEnemeyConfigModel
     {
-        // 敌人配置列表
-        private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new Dictionary<EnemyTypeEnum, EnemeyConfig>()
-        {
-            {EnemyTypeEnum.Worker, new EnemeyConfig(5, 50, 0.5f, 10, 5, 15f, 2.5f, 1f, 4f)},
-            {EnemyTypeEnum.Warrior_AR, new EnemeyConfig(10, 100, 0.5f, 20, 20, 15f, 10f, 5f, 2f)},
-
-            {EnemyTypeEnum.Raider, new EnemeyConfig(15, 50, 0.5f, 30, 30, 20f, 5f, 2f, 4f)},
-
-            {EnemyTypeEnum.Dropper_Mid, new EnemeyConfig(15, 10, 1f, 30, 30, 20f, 5f, 5f, 3f)},
-        };
+        private Dictionary<EnemyTypeEnum, EnemeyConfig> _enemeyModelsConfig = new();
 
         protected override void OnInit()
         {
-
+            // 从 Config/EnemyConfig.json 加载敌人配置
+            var enemies = ConfigLoader.LoadFromJson<EnemeyConfig>("Config/EnemyConfig");
+            Debug.Log($"[EnemyConfig] 从 JSON 加载了 {enemies.Count} 个敌人");
+            foreach (var e in enemies)
+            {
+                e.PostLoad();
+                _enemeyModelsConfig[e.EnemyType] = e;
+                Debug.Log($"[EnemyConfig]   → EnemyType={e.EnemyType}, HP={e.MaxHealth}");
+            }
         }
 
-        // 只读类方法
         public EnemeyConfig GetEnemyFromCache(EnemyTypeEnum enemyEnum)
         {
-            if(enemyEnum == EnemyTypeEnum.None)
+            if (enemyEnum == EnemyTypeEnum.None)
             {
                 Debug.LogError("敌人枚举为空");
                 return null;
@@ -40,13 +38,10 @@ namespace QFramework.Model
         }
     }
 
-
-    /// <summary>
-    /// 由于每个敌人都是独立的运行时数据，所以配置model直接使用BindableProperty来存储
-    /// </summary>
+    [Serializable]
     public class EnemeyConfig
     {
-        // 标识
+        // 标识（从 JSON 反序列化，修复此前构造器未赋值的 bug）
         public EnemyTypeEnum EnemyType;
 
         // 敌人属性
@@ -64,12 +59,28 @@ namespace QFramework.Model
         public float AttackMinRange;
         public float MoveSpeed;
 
+        // 异常状态阈值
+        public float KnockbackThreshold;  // TODO: 已禁用
+        public float BurnThreshold;  // TODO: 已禁用
+        public float SlowThreshold;
+
+        // JsonUtility 反序列化需要无参构造器
+        public EnemeyConfig() { }
+
+        /// <summary>反序列化后调用</summary>
+        public void PostLoad()
+        {
+            KnockbackThreshold = 0;  // 击退已禁用
+            BurnThreshold = 0;  // 灼烧已禁用
+        }
+
         /// <summary>
-        /// 初始化敌人配置
+        /// 初始化敌人配置（旧代码兼容，后续可移除）
         /// </summary>
         public EnemeyConfig(
             int enemySize, int maxHealth, float reactionTime, int speed, int damage,
-            float detectionRange, float attackMaxRange, float attackMinRange, float moveSpeed)
+            float detectionRange, float attackMaxRange, float attackMinRange, float moveSpeed,
+            float knockbackThreshold = 0.5f, float burnThreshold = 0.5f, float slowThreshold = 0.5f)
         {
             this.enemySize = enemySize;
             this.MaxHealth = maxHealth;
@@ -80,7 +91,9 @@ namespace QFramework.Model
             this.AttackMaxRange = attackMaxRange;
             this.AttackMinRange = attackMinRange;
             this.MoveSpeed = moveSpeed;
+            this.KnockbackThreshold = knockbackThreshold;
+            this.BurnThreshold = burnThreshold;
+            this.SlowThreshold = slowThreshold;
         }
     }
-
 }

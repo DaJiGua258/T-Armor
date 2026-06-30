@@ -4,7 +4,7 @@ using UnityEngine;
 namespace QFramework.ViewController.Misc
 {
     /// <summary>
-    /// 引导状态：挂载在 Emitter 同一节点，跟随鼠标并通知外部（HotbarExecutor）发射进度。
+    /// 引导状态：挂载在 Emitter 同一节点，跟随鼠标并通知外部（SupportExecutor）发射进度。
     /// 不直接控制激光，由外部协调者决定。
     /// </summary>
     public class GuidanceState : MonoBehaviour
@@ -51,7 +51,7 @@ namespace QFramework.ViewController.Misc
             _emitter.OnAllBulletsLanded -= EndChanneling;
         }
 
-        /// <summary> 由外部（HotbarExecutor）在订阅事件后调用，开始发射 </summary>
+        /// <summary> 由外部（SupportExecutor）在订阅事件后调用，开始发射 </summary>
         public void Fire()
         {
             _emitter.Fire();

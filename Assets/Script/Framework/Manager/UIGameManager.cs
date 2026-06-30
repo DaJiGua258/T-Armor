@@ -28,6 +28,7 @@ namespace QFramework.Manager
 
     public class UIGameManager : MonoSingleton<UIGameManager>, IController
     {
+            // 检查_interactable对象是否不为空
         public IArchitecture GetArchitecture() => TArmorArchitecture.Interface;
 
         private IInputUtility _input => this.GetUtility<IInputUtility>();
@@ -80,7 +81,7 @@ namespace QFramework.Manager
         {
             SetConfig(UIGamePanelType.GameHUDPanel,     UIGamePanelLayer.HUD,     false);
             SetConfig(UIGamePanelType.InteractionPanel, UIGamePanelLayer.Overlay, false);
-            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  false);
+            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  true);
             SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.SettingsPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.GameOverPanel,    UIGamePanelLayer.Modal,   true);
@@ -180,6 +181,12 @@ namespace QFramework.Manager
             }
         }
 
+        private static readonly HashSet<UIGamePanelType> PausePanels = new()
+        {
+            UIGamePanelType.GameOverPanel,
+            UIGamePanelType.InventoryPanel,
+        };
+
         public void ShowPanel(UIGamePanelType panelType)
         {
             if (!_panelDict.TryGetValue(panelType, out var panel)) return;
@@ -201,6 +208,10 @@ namespace QFramework.Manager
             }
 
             panel.Show();
+
+            if (PausePanels.Contains(panelType))
+                Time.timeScale = 0f;
+
             UpdateCursorState();
             UpdatePlayerLockState();
         }
@@ -232,6 +243,23 @@ namespace QFramework.Manager
                         hiddenPanel.Show();
                 }
                 _hiddenTracker.Remove(panelType);
+            }
+
+            // 检查是否还有暂停面板在显示，没有则恢复时间
+            if (PausePanels.Contains(panelType))
+            {
+                bool anyPauseActive = false;
+                foreach (var type in PausePanels)
+                {
+                    if (type == panelType) continue;
+                    if (_panelDict.TryGetValue(type, out var p) && p.gameObject.activeSelf)
+                    {
+                        anyPauseActive = true;
+                        break;
+                    }
+                }
+                if (!anyPauseActive)
+                    Time.timeScale = 1f;
             }
 
             UpdateCursorState();

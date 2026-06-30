@@ -7,6 +7,7 @@ using QFramework.Utility;
 using Unity.VisualScripting;
 using QFramework.Event;
 using QFramework.UtilityKit;
+using Pathfinding;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -27,6 +28,7 @@ namespace QFramework.ViewController.Player
         [SerializeField] private Transform _weaponSlotLeft;
         [SerializeField] private Transform _weaponSlotRight;
         [SerializeField] private Rigidbody2D _targetRig;
+        private FollowerEntity _targetFollower;
 
         private IPlayerSystem _playerSystem => this.GetSystem<IPlayerSystem>();
         
@@ -42,8 +44,16 @@ namespace QFramework.ViewController.Player
 
         void Start()
         {
-            _playerSystem.PlayerWeapon.Left.Register(OnWeaponLeftDataChanged);
-            _playerSystem.PlayerWeapon.Right.Register(OnWeaponRightDataChanged);
+            _playerSystem.PlayerWeapon.Left.Register(OnWeaponLeftDataChanged)
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+            _playerSystem.PlayerWeapon.Right.Register(OnWeaponRightDataChanged)
+                .UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            // 如果已有武器数据（从主菜单带入），手动触发槽位武器实例化
+            if (_playerSystem.PlayerWeapon.Left.Value != null)
+                OnWeaponLeftDataChanged(_playerSystem.PlayerWeapon.Left.Value);
+            if (_playerSystem.PlayerWeapon.Right.Value != null)
+                OnWeaponRightDataChanged(_playerSystem.PlayerWeapon.Right.Value);
 
             TypeEventSystem.Global.Register<WeaponEvent.GetTargetRig>(e => GetTargetRig(e.TargetRig))
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
@@ -67,11 +77,15 @@ namespace QFramework.ViewController.Player
                 // 提前量计算：加到目标角度上，使武器指向目标的预测位置
                 if(_targetRig != null)
                 {
+                    Vector2 targetVel = _targetFollower != null && _targetFollower.enabled
+                        ? _targetFollower.velocity
+                        : _targetRig.velocity;
+
                     targetZ += MathTool.CalculateLeadAngle2D(
                         weapon.transform.position,
                         weapon.WeaponDataModel.BulletSpeed,
                         _targetRig.position,
-                        _targetRig.velocity);
+                        targetVel);
                 }
 
                 // 平滑插值
@@ -91,6 +105,7 @@ namespace QFramework.ViewController.Player
         public void GetTargetRig(Rigidbody2D targetRig)
         {
             _targetRig = targetRig;
+            _targetFollower = targetRig != null ? targetRig.GetComponent<FollowerEntity>() : null;
         }
 
 
@@ -187,11 +202,15 @@ namespace QFramework.ViewController.Player
             Handles.DrawSolidDisc(muzzlePos + rawDir * 8f, Vector3.forward, 0.15f);
 
             // 3. 计算提前量后的瞄准方向 (绿色) — 指向目标的预测位置
+            Vector2 targetVel = _targetFollower != null && _targetFollower.enabled
+                ? _targetFollower.velocity
+                : _targetRig.velocity;
+
             float leadAngle = MathTool.CalculateLeadAngle2D(
                 muzzlePos,
                 weapon.WeaponDataModel.BulletSpeed,
                 targetPos,
-                _targetRig.velocity);
+                targetVel);
 
             float rawAngle = Mathf.Atan2(rawDir.y, rawDir.x) * Mathf.Rad2Deg;
             float leadAngleDeg = rawAngle + leadAngle;

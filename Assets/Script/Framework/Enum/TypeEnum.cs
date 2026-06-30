@@ -38,15 +38,18 @@ namespace QFramework.Enum
         Supply_Health,
         Supply_Ammo,
 
-        // 信标
-        Marker_AirStrikes,  // 空袭
-        Marker_AirSupport,  // 空中支援
-        Marker_Artillery,  // 炮击
-        Marker_Missile,  // 增援
-
         // Mod 芯片
         Mod_Damage,
         Mod_Rpm,
+    }
+
+    public enum SupportTypeEnum
+    {
+        None,
+        AirStrikes,
+        AirSupport,
+        Artillery,
+        Missile,
     }
 
     public enum EnemyTypeEnum
@@ -145,6 +148,10 @@ namespace QFramework.Enum
         MaxFuel,
         FuelRecovery,
         DashCost,
+
+        Knockback,
+        Burn,
+        Slow,
     }
 
 

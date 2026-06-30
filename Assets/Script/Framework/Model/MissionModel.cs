@@ -156,7 +156,7 @@ namespace QFramework.Model
                     new MissionStep[]
                     {
                         new MissionStep("找到信标", 1),
-                        new MissionStep("激活信标", 10),
+                        new MissionStep("激活信标", 30),
                     },
                     "找到信标并启动它，激活期间清理接近的敌人",
                     null)

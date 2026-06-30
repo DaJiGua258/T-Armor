@@ -31,6 +31,9 @@ namespace QFramework.ViewController.Enemy
             {
                 Entity.ShowDeathVFX();
                 _isShownDeathVFX = true;
+
+                // 归还到对象池
+                Entity.OnRecycle?.Invoke(Entity);
                 return;
             }
 

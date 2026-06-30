@@ -29502,7 +29502,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxHealth: 200
-  _canTakeDamage: 1
+  _canTakeDamage: 0
   _deathMode: 1
   _hitVfxEmitCount: 5
 --- !u!1 &3195349635475032191
@@ -49127,7 +49127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _lockedColor: {r: 0.5529412, g: 0.5529412, b: 0.5529412, a: 1}
   _unlockedColor: {r: 0.09019608, g: 0.654902, b: 0.25882354, a: 1}
-  _displayName: "\u63A7\u5236\u53F0"
+  _displayName: "\u6FC0\u6D3B"
   _placementSocket: {fileID: 0}
   _acceptedType: 0
 --- !u!1 &4983580130025066269
@@ -54011,6 +54011,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  CustomExplosionSound: {fileID: 0}
 --- !u!1 &5027441645662295201
 GameObject:
   m_ObjectHideFlags: 0
@@ -98177,6 +98178,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  CustomExplosionSound: {fileID: 0}
 --- !u!1 &7265425857884980785
 GameObject:
   m_ObjectHideFlags: 0

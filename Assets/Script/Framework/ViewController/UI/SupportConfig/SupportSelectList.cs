@@ -8,7 +8,7 @@ namespace QFramework.ViewController.UI.SupportConfig
 {
     public class SupportSelectList : MonoBehaviour, IController
     {
-        public Action<ItemTypeEnum> OnItemConfirmed;
+        public Action<SupportTypeEnum> OnItemConfirmed;
 
         [SerializeField] private GameObject _pf_supportItem;
         [SerializeField] private Transform _contentRoot;
@@ -24,21 +24,20 @@ namespace QFramework.ViewController.UI.SupportConfig
 
         private void BuildList()
         {
-            var model = this.GetModel<IItemConfigModel>();
+            var model = this.GetModel<ISupportConfigModel>();
 
-            // 只显示支援信标
             var supportTypes = new[]
             {
-                ItemTypeEnum.Marker_AirStrikes,
-                ItemTypeEnum.Marker_AirSupport,
-                ItemTypeEnum.Marker_Artillery,
-                ItemTypeEnum.Marker_Missile,
+                SupportTypeEnum.AirStrikes,
+                SupportTypeEnum.AirSupport,
+                SupportTypeEnum.Artillery,
+                SupportTypeEnum.Missile,
             };
 
             foreach (var type in supportTypes)
             {
-                if (type == ItemTypeEnum.None) continue;
-                if (model.GetItemConfig(type) == null) continue;
+                if (type == SupportTypeEnum.None) continue;
+                if (model.GetSupportConfig(type) == null) continue;
 
                 var obj = Instantiate(_pf_supportItem, _contentRoot);
                 var item = obj.GetComponent<SupportItemInfo>();
@@ -49,12 +48,12 @@ namespace QFramework.ViewController.UI.SupportConfig
             }
         }
 
-        public void ShowItems(ItemTypeEnum selectedType)
+        public void ShowItems(SupportTypeEnum selectedType)
         {
             foreach (var item in _supportItems)
             {
                 item.gameObject.SetActive(true);
-                item.SetSelected(item.ItemType == selectedType);
+                item.SetSelected(item.SupportType == selectedType);
             }
         }
 
@@ -62,7 +61,7 @@ namespace QFramework.ViewController.UI.SupportConfig
         {
             foreach (var item in _supportItems)
                 item.SetSelected(item == clicked);
-            OnItemConfirmed?.Invoke(clicked.ItemType);
+            OnItemConfirmed?.Invoke(clicked.SupportType);
         }
     }
 }

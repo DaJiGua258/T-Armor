@@ -19,6 +19,9 @@ namespace QFramework.ViewController.Enemy
                 EnemyId = Entity.enemyId,
                 Type = Entity.enemyType
             });
+
+            // 归还到对象池以便复用
+            Entity.OnRecycle?.Invoke(Entity);
         }
     }
 }

@@ -2,6 +2,7 @@ using QFramework.Command;
 using QFramework.Enum;
 using QFramework.Event;
 using QFramework.ViewController.Enemy;
+using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
 using UnityEngine;
 
@@ -83,7 +84,7 @@ namespace QFramework.ViewController
         /// <summary>
         /// 对 Collider2D 执行伤害处理（常用于范围爆炸、AOE 等场景）。
         /// </summary>
-        public static void ProcessHit(Collider2D collider, int damage)
+        public static void ProcessHit(Collider2D collider, DamageInfo damageInfo)
         {
             if (collider == null) return;
 
@@ -94,10 +95,10 @@ namespace QFramework.ViewController
                 var player = collider.GetComponentInParent<PlayerController>();
                 if (player != null)
                 {
-                    TArmorArchitecture.Interface.SendCommand(PlayerCommand.Damage.Instance.Init(damage));
+                    TArmorArchitecture.Interface.SendCommand(PlayerCommand.Damage.Instance.Init(damageInfo.Damage));
                     TypeEventSystem.Global.Send(new StatsEvent.OnDamageTaken
                     {
-                        Damage = damage,
+                        Damage = damageInfo.Damage,
                         CurrentHealth = player.PlayerModel.CurrentHealth.Value
                     });
                 }
@@ -107,8 +108,7 @@ namespace QFramework.ViewController
                     if (friendly != null)
                     {
                         TArmorArchitecture.Interface.SendCommand(
-                            EnemyCommand.Damage.Instance.Init(friendly.enemyId, damage));
-                        friendly.Flash();
+                            EnemyCommand.Damage.Instance.Init(friendly.enemyId, damageInfo.Damage));
                     }
                 }
             }
@@ -116,7 +116,7 @@ namespace QFramework.ViewController
             {
                 var destructible = collider.GetComponentInParent<DestructibleEnv>();
                 if (destructible != null)
-                    destructible.TakeDamage(damage);
+                    destructible.TakeDamage(damageInfo.Damage);
             }
             else if (tag != "Env")
             {
@@ -124,15 +124,16 @@ namespace QFramework.ViewController
                 if (enemy == null) return;
 
                 int enemyId = enemy.enemyId;
-                TArmorArchitecture.Interface.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, damage));
-                enemy.Flash();
+                TArmorArchitecture.Interface.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, damageInfo.Damage));
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdateEnemyInfo());
-                TypeEventSystem.Global.Send(new StatsEvent.OnDamageDealt
-                {
-                    EnemyId = enemyId,
-                    Damage = damage,
-                    Type = enemy.enemyType
-                });
+
+                // 异常状态效果
+                if (damageInfo.KnockbackValue > 0f)
+                    enemy.AddKnockback(damageInfo.KnockbackValue, damageInfo.AttackDirection);
+                if (damageInfo.BurnValue > 0f)
+                    enemy.AddBurn(damageInfo.BurnValue, damageInfo.Damage);
+                if (damageInfo.SlowValue > 0f)
+                    enemy.AddSlow(damageInfo.SlowValue);
 
                 if (enemy.EnemyInstanceSystem.GetData(enemyId).CurrentHealth.Value <= 0)
                 {

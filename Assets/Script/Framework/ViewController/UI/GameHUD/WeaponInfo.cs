@@ -75,47 +75,55 @@ namespace QFramework.ViewController.UI
             _hangerLeftData = PlayerSystem.PlayerWeapon.HangerLeft.Value;
             _hangerRightData = PlayerSystem.PlayerWeapon.HangerRight.Value;
 
-            // sideLeft
             if (_sideLeftData != null)
             {
-                _sideLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(sideLeft, _sideLeftData));
+                _sideLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(sideLeft, _sideLeftData))
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 _sideLeftData.CurMaxAmmo.Register(_ =>
-                {
-                    if(_sideLeftData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(sideLeft, _sideLeftData);
-                });
+                    {
+                        if (_sideLeftData.WeaponState == WeaponStateEnum.Reloading)
+                            UpdateReloadTime(sideLeft, _sideLeftData);
+                    })
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(sideLeft, _sideLeftData);
             }
 
-            // sideRight
             if (_sideRightData != null)
             {
-                _sideRightData.CurMagazine.Register(_ => UpdateWeaponInfo(sideRight, _sideRightData));
+                _sideRightData.CurMagazine.Register(_ => UpdateWeaponInfo(sideRight, _sideRightData))
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 _sideRightData.CurMaxAmmo.Register(_ =>
-                {
-                    if(_sideRightData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(sideRight, _sideRightData);
-                });
+                    {
+                        if (_sideRightData.WeaponState == WeaponStateEnum.Reloading)
+                            UpdateReloadTime(sideRight, _sideRightData);
+                    })
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(sideRight, _sideRightData);
             }
 
-            // hangerLeft
             if (_hangerLeftData != null)
             {
-                _hangerLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerLeft, _hangerLeftData));
+                _hangerLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerLeft, _hangerLeftData))
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 _hangerLeftData.CurMaxAmmo.Register(_ =>
-                {
-                    if(_hangerLeftData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(hangerLeft, _hangerLeftData);
-                });
+                    {
+                        if (_hangerLeftData.WeaponState == WeaponStateEnum.Reloading)
+                            UpdateReloadTime(hangerLeft, _hangerLeftData);
+                    })
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(hangerLeft, _hangerLeftData);
             }
 
-            // hangerRight
             if (_hangerRightData != null)
             {
-                _hangerRightData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerRight, _hangerRightData));
+                _hangerRightData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerRight, _hangerRightData))
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 _hangerRightData.CurMaxAmmo.Register(_ =>
-                {
-                    if(_hangerRightData.WeaponState == WeaponStateEnum.Reloading) UpdateReloadTime(hangerRight, _hangerRightData);
-                });
+                    {
+                        if (_hangerRightData.WeaponState == WeaponStateEnum.Reloading)
+                            UpdateReloadTime(hangerRight, _hangerRightData);
+                    })
+                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(hangerRight, _hangerRightData);
             }
         }

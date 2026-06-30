@@ -82,7 +82,8 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         PaintTilemaps();
         SpawnObstacles();
         SpawnMissionInstances();
-        SpawnPOIInstances();
+        if (poiSettings.enabled)
+            SpawnPOIInstances();
         SpawnEnvironmentObjects();
     }
 

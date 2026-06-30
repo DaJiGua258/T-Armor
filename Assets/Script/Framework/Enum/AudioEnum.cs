@@ -23,6 +23,7 @@ namespace QFramework.Enum
 
         
         // vfx
+        explosion,
         explosion_large,
         explosion_mid,
         explosion_small,

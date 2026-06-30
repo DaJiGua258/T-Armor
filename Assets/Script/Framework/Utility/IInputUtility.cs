@@ -16,9 +16,9 @@ namespace QFramework.Utility
         public bool GetRightReloadInput();  // 获取右手武器输入
         public bool GetSprintInput();  // 获取冲刺输入
         public bool GetInventoryInput();  // 获取背包输入
-        public int GetHotbarSelectInput();  // 获取快捷栏数字键输入，返回0-based索引，无输入返回-1
+        public int GetSupportSelectInput();  // 获取支援栏数字键输入，返回0-based索引，无输入返回-1
         public bool GetToggleAimModeInput();  // 获取切换瞄准模式输入（X键）
-        public bool GetHotbarCycleInput();  // 获取快捷栏切换输入（Tab键）
+        public bool GetSupportCycleInput();  // 获取支援栏切换输入（Tab键）
         public bool GetLeftMouseDownInput();  // 获取左键按下输入
         public bool GetLeftMouseUpInput();  // 获取左键抬起输入
         public bool GetHangerLeftInputDown();  // 获取左吊架武器按下输入（Q键按下）
@@ -130,7 +130,7 @@ namespace QFramework.Utility
         }
 
         // 检测数字键1-9，返回0-based索引，无输入返回-1
-        public int GetHotbarSelectInput()
+        public int GetSupportSelectInput()
         {
             for (int i = 0; i < 9; i++)
             {
@@ -145,7 +145,7 @@ namespace QFramework.Utility
             return Input.GetKeyDown(KeyCode.X);
         }
 
-        public bool GetHotbarCycleInput()
+        public bool GetSupportCycleInput()
         {
             return Input.GetKeyDown(KeyCode.Tab);
         }

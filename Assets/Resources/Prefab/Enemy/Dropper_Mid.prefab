@@ -4968,6 +4968,8 @@ MonoBehaviour:
   enemyType: 11
   IsInit: 0
   debugLock: 0
+  UseInspectorHealth: 0
+  InspectorMaxHealth: 100
   Agent: {fileID: 0}
   DetectionRange: 20
   AttackMaxRange: 5
@@ -4981,7 +4983,6 @@ MonoBehaviour:
   TargetLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  _findTargetInterval: 0.5
   _combatScanInterval: 0.3
   Target: {fileID: 0}
   pf_Bullet: {fileID: 0}
@@ -58957,6 +58958,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  CustomExplosionSound: {fileID: 0}
 --- !u!1 &3554148078777310853
 GameObject:
   m_ObjectHideFlags: 0
@@ -78528,6 +78530,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  CustomExplosionSound: {fileID: 0}
 --- !u!1 &5229091993487490515
 GameObject:
   m_ObjectHideFlags: 0

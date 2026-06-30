@@ -1,3 +1,4 @@
+using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
 using UnityEngine;
 
@@ -35,7 +36,10 @@ namespace QFramework.ViewController.Enemy
 
             if (hit.collider != null)
             {
-                HitDetectionUtility.ProcessHit(hit.collider, EnemyInstanceSystem.GetData(enemyId).Damage);
+                Vector2 attackDir = (Target.position - Muzzle.position).normalized;
+                int dmg = EnemyInstanceSystem.GetData(enemyId).Damage;
+                var damageInfo = new DamageInfo(dmg, 0f, 0f, attackDir);
+                HitDetectionUtility.ProcessHit(hit.collider, damageInfo);
             }
         }
 

@@ -9,6 +9,7 @@ namespace QFramework.ViewController.Enemy
     public class Dropper : AbstractAirEnemy
     {
         public event Action OnDropperFinished;
+        public event Action<AbstractEnemy> OnCargoDropped;
 
         [Header("Dropper参数")]
         [SerializeField] private List<CargoSlot> _cargoSlots;
@@ -197,9 +198,10 @@ namespace QFramework.ViewController.Enemy
             {
                 if (cargoSlot.Enemy == null) continue;
                 cargoSlot.Enemy.ChangeState<EnemyFallState>();
+                OnCargoDropped?.Invoke(cargoSlot.Enemy);
                 yield return new WaitForSeconds(0.1f);
             }
-            
+
             yield return new WaitForSeconds(0.5f);
 
             IsDropped = true;

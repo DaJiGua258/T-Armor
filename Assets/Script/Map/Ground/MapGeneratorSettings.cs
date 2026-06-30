@@ -109,6 +109,9 @@ public class MissionPlacementSettings
 [Serializable]
 public class POISettings
 {
+    [Tooltip("是否启用兴趣点生成")]
+    public bool enabled = false;
+
     [Tooltip("兴趣点挂载父节点，为空时挂在本 GameObject 下")]
     public Transform poiParent;
 

@@ -11,5 +11,6 @@ namespace QFramework.Event
         {
             public string State;
         }
+
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using QFramework.System;
+using QFramework.Model;
 
 namespace QFramework.ViewController.UI
 {
@@ -94,6 +95,28 @@ namespace QFramework.ViewController.UI
                 return InitNodes(generator);
             }
 
+            // 从最后两个历史节点计算"前方向"，约束新节点只在正面180°范围内生成
+            Vector3? forwardTangent = null;
+            if (orderedLevels.Count >= 2)
+            {
+                var env0 = orderedLevels[^2]?.EnvironmentData;
+                var env1 = orderedLevels[^1]?.EnvironmentData;
+                if (env0 != null && env1 != null
+                    && env0.SurfaceNormal.sqrMagnitude > 0.0001f
+                    && env1.SurfaceNormal.sqrMagnitude > 0.0001f)
+                {
+                    Vector3 n1 = env0.SurfaceNormal.normalized;
+                    Vector3 n2 = env1.SurfaceNormal.normalized;
+                    Vector3 axis = Vector3.Cross(n1, n2);
+                    if (axis.sqrMagnitude > 0.0001f)
+                    {
+                        axis.Normalize();
+                        // 在 lastNormal 处沿大圆（n1→n2→…）的前方向切线
+                        forwardTangent = Vector3.Cross(axis, lastNormal.Value).normalized;
+                    }
+                }
+            }
+
             // 以最后一个历史节点为中心继续生成可选节点
             int targetNewCount = Mathf.Max(0, continueNodeCount);
             int maxAttempts = Mathf.Max(targetNewCount * Mathf.Max(1, MaxAttemptsMultiplier), targetNewCount);
@@ -104,6 +127,19 @@ namespace QFramework.ViewController.UI
             {
                 attempts++;
                 Vector3 randomDir = SampleDirectionInCone(lastNormal.Value, maxAngularDistanceDeg);
+
+                // 正面180°限制：候选节点投影到切平面后必须在前方向半球内
+                if (forwardTangent.HasValue)
+                {
+                    Vector3 tangent = randomDir - lastNormal.Value * Vector3.Dot(lastNormal.Value, randomDir);
+                    if (tangent.sqrMagnitude > 0.0001f)
+                    {
+                        tangent.Normalize();
+                        if (Vector3.Dot(forwardTangent.Value, tangent) <= 0f)
+                            continue;
+                    }
+                }
+
                 PlanetNodeMapData mapData = generator.EvaluateNodeMapData(randomDir, lightDir, SunlitDotThreshold);
 
                 if (!mapData.IsLand || !mapData.IsSunlit)
@@ -248,6 +284,103 @@ namespace QFramework.ViewController.UI
             }
 
             return BuildCombinedNodeList();
+        }
+        /// <summary>
+        /// 从存档数据恢复整个星球节点状态
+        /// </summary>
+        public List<GameObject> RestoreFromSaveData(
+            PlanetGenerator generator,
+            IReadOnlyList<LevelDataModel> orderedLevels,
+            List<PendingNodeData> pendingNodes)
+        {
+            ClearGeneratedObjects();
+            if (!CanGenerateNodes(generator)) return BuildCombinedNodeList();
+
+            bool cacheReady = generator.BuildNoiseCacheSync();
+            if (!cacheReady)
+            {
+                Debug.LogError("PlanetNodeList: 噪声缓存构建失败，无法恢复节点。");
+                return BuildCombinedNodeList();
+            }
+
+            Vector3 lightDir = ResolveMainLightDirection();
+
+            // 按历史顺序回放已完成节点
+            for (int i = 0; i < orderedLevels.Count; i++)
+            {
+                LevelDataModel levelData = orderedLevels[i];
+                if (levelData?.EnvironmentData == null) continue;
+
+                EnvironmentData env = levelData.EnvironmentData;
+                if (env.SurfaceNormal.sqrMagnitude <= 0.0001f) continue;
+
+                Vector3 surfaceNormal = env.SurfaceNormal.normalized;
+                PlanetNodeMapData mapData = generator.EvaluateNodeMapData(surfaceNormal, lightDir, SunlitDotThreshold);
+
+                mapData.Seed = levelData.seed.Value;
+                mapData.environmentData.terrainType = env.terrainType;
+                mapData.environmentData.moistureType = env.moistureType;
+                mapData.environmentData.plantLevelType = env.plantLevelType;
+                mapData.environmentData.SurfaceNormal = surfaceNormal;
+
+                SpawnNode(mapData, surfaceNormal, _finishedNodes, true);
+            }
+
+            // 从存档恢复待选节点（不走随机生成）
+            if (pendingNodes != null)
+            {
+                foreach (var pending in pendingNodes)
+                {
+                    if (pending.SurfaceNormal.sqrMagnitude <= 0.0001f) continue;
+
+                    Vector3 normal = pending.SurfaceNormal.normalized;
+                    PlanetNodeMapData mapData = generator.EvaluateNodeMapData(normal, lightDir, SunlitDotThreshold);
+
+                    mapData.Seed = pending.Seed;
+                    mapData.HeightNoise = pending.HeightNoise;
+                    mapData.MoistureNoise = pending.MoistureNoise;
+                    mapData.IsLand = pending.IsLand;
+                    mapData.IsSunlit = pending.IsSunlit;
+                    mapData.environmentData.terrainType = pending.terrainType;
+                    mapData.environmentData.moistureType = pending.moistureType;
+                    mapData.environmentData.plantLevelType = pending.plantLevelType;
+                    mapData.environmentData.SurfaceNormal = normal;
+
+                    SpawnNode(mapData, normal, _newNodes);
+                }
+            }
+
+            BuildNodeLines();
+            return BuildCombinedNodeList();
+        }
+
+        /// <summary>
+        /// 导出所有待选节点数据（用于存档）
+        /// </summary>
+        public List<PendingNodeData> GetPendingNodesData()
+        {
+            List<PendingNodeData> data = new List<PendingNodeData>();
+            foreach (var node in _newNodes)
+            {
+                if (node == null) continue;
+                var controller = node.GetComponent<PlanetNodeController>();
+                if (controller?.MapData == null) continue;
+
+                var md = controller.MapData;
+                data.Add(new PendingNodeData
+                {
+                    SurfaceNormal = md.environmentData.SurfaceNormal,
+                    HeightNoise = md.HeightNoise,
+                    MoistureNoise = md.MoistureNoise,
+                    Seed = md.Seed,
+                    IsLand = md.IsLand,
+                    IsSunlit = md.IsSunlit,
+                    terrainType = md.environmentData.terrainType,
+                    moistureType = md.environmentData.moistureType,
+                    plantLevelType = md.environmentData.plantLevelType,
+                });
+            }
+            return data;
         }
         #endregion
 

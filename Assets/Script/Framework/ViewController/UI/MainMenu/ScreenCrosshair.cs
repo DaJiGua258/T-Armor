@@ -30,7 +30,6 @@ namespace QFramework.ViewController.MainMenuUI
         private Camera _mainCamera;
 
         private bool _isLocked;              // 锁定状态：点击 node 后固定到该位置
-        private bool _isVisible;             // 可见状态：隐藏时依然跟随鼠标，仅透明
         private Vector3 _lockedWorldPosition; // 锁定的世界坐标（每帧实时转屏幕坐标，实现镜头移动时追踪）
         private Vector2 _lockedScreenPos;     // 锁定时最后计算的屏幕坐标
         private CanvasGroup _containerCg;     // 用于控制容器透明度
@@ -58,7 +57,6 @@ namespace QFramework.ViewController.MainMenuUI
 
             // 初始不可见（透明），但保持 active 以运行 Update 跟随鼠标
             _containerCg.alpha = 0f;
-            _isVisible = false;
         }
 
         private void Update()
@@ -100,7 +98,6 @@ namespace QFramework.ViewController.MainMenuUI
         public void Show()
         {
             _isLocked = false;
-            _isVisible = true;
             _containerCg.DOKill();
             _containerCg.DOFade(1f, _fadeDuration);
         }
@@ -112,7 +109,6 @@ namespace QFramework.ViewController.MainMenuUI
         public void Hide()
         {
             _isLocked = false;
-            _isVisible = false;
             _containerCg.DOKill();
             _containerCg.DOFade(0f, _fadeDuration);
         }

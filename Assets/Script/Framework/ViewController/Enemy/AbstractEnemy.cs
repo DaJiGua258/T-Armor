@@ -2,6 +2,7 @@ using DG.Tweening;
 using Pathfinding;
 using QFramework.Command;
 using QFramework.Enum;
+using QFramework.Event;
 using QFramework.Model;
 using QFramework.System;
 using QFramework.Utility;
@@ -31,6 +32,10 @@ namespace QFramework.ViewController.Enemy
         public bool IsInit = false;
         public bool debugLock = false;
 
+        [Header("生命值（覆盖配置）")]
+        public bool UseInspectorHealth;
+        public int InspectorMaxHealth = 100;
+
         [Header("寻路与感知")]
         public FollowerEntity Agent;
         protected EnemeyConfig _enemyConfig;
@@ -54,8 +59,6 @@ namespace QFramework.ViewController.Enemy
 
         [Header("检测设置")]
         public LayerMask TargetLayerMask;  // 扫描用的 LayerMask
-        [SerializeField] private float _findTargetInterval = 0.5f;  // 常规扫描间隔
-        private float _findTargetTimer;
         [SerializeField] private float _combatScanInterval = 0.3f;  // 战斗中扫描间隔
         private float _combatScanTimer;
         private Collider2D[] _scanCache = new Collider2D[10];
@@ -77,6 +80,8 @@ namespace QFramework.ViewController.Enemy
         public Transform ColliderTrans;
         private Transform _damageVfxNode;
         private List<ParticleSystem> _damageVfxParticles;
+        private Transform _burnVfxNode;
+        private List<ParticleSystem> _burnVfxParticles;
 
         // 受击闪白
         private List<Renderer> _meshRenderers;
@@ -99,11 +104,38 @@ namespace QFramework.ViewController.Enemy
         [Header("特殊引用")]
         protected StateMachine<AbstractEnemy> _fsm;
 
+        /// <summary>
+        /// 对象池回收回调，当敌人死亡时由死亡状态触发，将实例归还给 EnemySpawnerManager 池。
+        /// </summary>
+        public delegate void RecycleCallback(AbstractEnemy enemy);
+        public RecycleCallback OnRecycle;
+
 
         [Header("移动参数")]
         [SerializeField] protected float _rotateSpeed = 5f;
         public float RotateSpeed => _rotateSpeed;
         private Vector3 _smoothVelocity;
+
+        [Header("异常状态")]
+        private bool _isKnockbackActive;
+        private Vector2 _lastKnockbackDir;
+        private bool _isBurnActive;
+        private int _lastBurnDamage;
+        private Coroutine _burnCoroutine;
+        private bool _isSlowActive;
+        private float _originalMoveSpeed;
+        private Coroutine _slowCoroutine;
+
+        // Debug 注册表
+        private static Dictionary<int, AbstractEnemy> _enemyRegistry = new();
+        public static AbstractEnemy GetById(int id)
+        {
+            _enemyRegistry.TryGetValue(id, out var enemy);
+            return enemy;
+        }
+        public bool IsKnockbackActive => _isKnockbackActive;
+        public bool IsBurnActive => _isBurnActive;
+        public bool IsSlowActive => _isSlowActive;
 
         [Header("巡逻参数")]
         private bool _hasPatrolRoute;
@@ -116,14 +148,21 @@ namespace QFramework.ViewController.Enemy
         #region ----- 生命周期 -------------------------
         void Start()
         {
-            // ----- 添加实例 -------------------------
-            enemyId = this.SendCommand(new EnemyCommand.Add(enemyType, enemyId));
-
-
             // ----- 初始化 -------------------------
-            if(IsInit) return;
+            // 如果外部已调用 InitEnemy() 则跳过，避免重复创建数据条目导致回调注册到错误的实例上
+            if (!IsInit)
+            {
+                InitEnemy();
+            }
 
-            InitEnemy();
+            // Debug 注册
+            _enemyRegistry[enemyId] = this;
+
+            // 受伤事件 → Flash
+            TypeEventSystem.Global.Register<StatsEvent.OnDamageDealt>(e =>
+            {
+                if (e.EnemyId == enemyId) Flash();
+            }).UnRegisterWhenGameObjectDestroyed(gameObject);
 
             if (debugLock)
                 _fsm.ChangeState<EnemyLockState>();
@@ -177,6 +216,8 @@ namespace QFramework.ViewController.Enemy
         public void InitEnemy()
         {
             if(IsInit) return;
+            if (enemyId == 0)
+                enemyId = this.SendCommand(new EnemyCommand.Add(enemyType, enemyId));
             InitTransofrm();
             InitData();
             InitFSM();
@@ -238,6 +279,20 @@ namespace QFramework.ViewController.Enemy
 
 
 
+            // 燃烧特效粒子（可选）
+            Transform burnVfxT = transform.Find("VFX");
+            _burnVfxNode = burnVfxT;
+            if (burnVfxT != null)
+            {
+                _burnVfxParticles = new List<ParticleSystem>(burnVfxT.GetComponentsInChildren<ParticleSystem>(true));
+                SetBurnVfx(false);
+            }
+            else
+            {
+                _burnVfxParticles = new List<ParticleSystem>();
+            }
+
+
             // 收集 Mesh 下所有渲染器（含 Body/Legs/Weapon 等），用于受击闪白
             _meshRenderers = new List<Renderer>();
             Mesh.GetComponentsInChildren(true, _meshRenderers);
@@ -274,6 +329,124 @@ namespace QFramework.ViewController.Enemy
                 AttackMinRange = config.AttackMinRange;
             }
             _moveSpeed = config.MoveSpeed;
+
+            if (UseInspectorHealth)
+            {
+                var data = EnemyInstanceSystem.GetData(enemyId);
+                data.MaxHealth.Value = InspectorMaxHealth;
+                data.CurrentHealth.Value = InspectorMaxHealth;
+            }
+
+            // 异常状态累加器监听
+            var enemyData = EnemyInstanceSystem.GetData(enemyId);
+            enemyData.KnockbackAccumulator.RegisterOnValueChanged
+            (
+                (newVal) =>
+                {
+                    if (newVal >= enemyData.EnemyConfig.KnockbackThreshold) ApplyKnockback();
+                }
+            );
+            enemyData.BurnAccumulator.RegisterOnValueChanged
+            (
+                (newVal) =>
+                {
+                    if (newVal >= enemyData.EnemyConfig.BurnThreshold) StartBurn();
+                }
+            );
+            enemyData.SlowAccumulator.RegisterOnValueChanged
+            (
+                (newVal) =>
+                {
+                    if (newVal >= enemyData.EnemyConfig.SlowThreshold) ApplySlow();
+                }
+            );
+        }
+
+        /// <summary>
+        /// 重置敌人所有运行时状态以便从对象池复用。
+        /// 保持 enemyId 和 IsInit 不变，仅复位数据、FSM、特效、物理、寻路等。
+        /// </summary>
+        public virtual void ResetEnemy()
+        {
+            StopAllCoroutines();
+
+            // 复位数据层（保持 enemyId 不变，仅重置数值）
+            if (enemyId != 0 && _enemyConfig != null)
+            {
+                var data = EnemyInstanceSystem.GetData(enemyId);
+                data.MaxHealth.Value = _enemyConfig.MaxHealth;
+                data.CurrentHealth.Value = _enemyConfig.MaxHealth;
+                data.KnockbackAccumulator.Value = 0f;
+                data.BurnAccumulator.Value = 0f;
+                data.SlowAccumulator.Value = 0f;
+            }
+
+            // 异常状态
+            _isKnockbackActive = false;
+            _isBurnActive = false;
+            _isSlowActive = false;
+            _lastBurnDamage = 0;
+            _burnCoroutine = null;
+            _slowCoroutine = null;
+            _isBurstShooting = false;
+            _flashCoroutine = null;
+
+            // 清除闪白材质属性，防止复用后残留
+            if (_meshRenderers != null)
+            {
+                foreach (var r in _meshRenderers)
+                    r.SetPropertyBlock(null);
+            }
+
+            SetBurnVfx(false);
+            HideDamageVFX();
+
+            // 移动
+            if (_enemyConfig != null)
+                _moveSpeed = _enemyConfig.MoveSpeed;
+            _originalMoveSpeed = _moveSpeed;
+            _smoothVelocity = Vector3.zero;
+
+            // 战斗
+            Target = null;
+            _combatScanTimer = 0f;
+
+            // 巡逻
+            _hasPatrolRoute = false;
+            _patrolToEndPoint = true;
+            _hasPatrolMoveSpeed = false;
+
+            // 可见性：Mesh / Shadow / Collider
+            if (Mesh != null) Mesh.gameObject.SetActive(true);
+            if (Shadow != null) Shadow.gameObject.SetActive(true);
+            if (ColliderTrans != null) ColliderTrans.gameObject.SetActive(true);
+
+            // 物理
+            if (Rb != null)
+            {
+                Rb.velocity = Vector2.zero;
+                Rb.angularVelocity = 0f;
+                Rb.bodyType = RigidbodyType2D.Dynamic;
+            }
+
+            // 寻路 Agent
+            if (Agent != null)
+            {
+                Agent.enabled = true;
+                Agent.maxSpeed = _moveSpeed;
+                Agent.Teleport(transform.position);
+                Agent.destination = transform.position;
+            }
+
+            // 变换
+            transform.rotation = Quaternion.identity;
+            if (Body != null) Body.rotation = Quaternion.identity;
+            if (Legs != null) Legs.rotation = Quaternion.identity;
+            if (Weapon != null) Weapon.rotation = Quaternion.identity;
+
+            // 重建 FSM 并从 Idle 启动
+            _fsm = new StateMachine<AbstractEnemy>();
+            InitFSM();
         }
 
         #endregion
@@ -694,6 +867,7 @@ namespace QFramework.ViewController.Enemy
         public void ShowDeathVFX()
         {
             HideDamageVFX();
+            SetBurnVfx(false);
 
             var obj = ObjectPoolUtility.GetObject(pf_DeathVFX, Mesh.position, Quaternion.identity);
 
@@ -727,6 +901,18 @@ namespace QFramework.ViewController.Enemy
                 var emission = ps.emission;
                 emission.enabled = enable;
                 ps.Play();
+            }
+        }
+
+        private void SetBurnVfx(bool enable)
+        {
+            if (_burnVfxParticles == null) return;
+            foreach (var ps in _burnVfxParticles)
+            {
+                if (ps == null) continue;
+                var emission = ps.emission;
+                emission.enabled = enable;
+                if (enable) ps.Play();
             }
         }
 
@@ -820,6 +1006,97 @@ namespace QFramework.ViewController.Enemy
             float torDir = (Random.value > 0.5f) ? 1f : -1f;
             Rb.AddTorque(torque * torDir, ForceMode2D.Impulse);
         }
+
+        #region ----- 异常状态效果 -------------------------
+
+        public void AddKnockback(float value, Vector2 attackDirection)
+        {
+            if (_isKnockbackActive || IsDead()) return;
+            _lastKnockbackDir = attackDirection;
+            EnemyInstanceSystem.GetData(enemyId).KnockbackAccumulator.Value += value;
+        }
+
+        public void AddBurn(float value, int bulletDamage)
+        {
+            if (_isBurnActive || IsDead()) return;
+            _lastBurnDamage = bulletDamage;
+            EnemyInstanceSystem.GetData(enemyId).BurnAccumulator.Value += value;
+        }
+
+        public void AddSlow(float value)
+        {
+            if (_isSlowActive || IsDead()) return;
+            EnemyInstanceSystem.GetData(enemyId).SlowAccumulator.Value += value;
+        }
+
+        private void ApplyKnockback()
+        {
+            _isKnockbackActive = true;
+            EnemyInstanceSystem.GetData(enemyId).KnockbackAccumulator.Value = 0f;
+
+            Vector2 pushDir = _lastKnockbackDir.normalized;
+            Rb.MovePosition(Rb.position + pushDir * 0.25f);
+
+            StartCoroutine(KnockbackCooldownRoutine());
+        }
+
+        private IEnumerator KnockbackCooldownRoutine()
+        {
+            yield return null;
+            _isKnockbackActive = false;
+        }
+
+        private void StartBurn()
+        {
+            _isBurnActive = true;
+            EnemyInstanceSystem.GetData(enemyId).BurnAccumulator.Value = 0f;
+            SetBurnVfx(true);
+
+            if (_burnCoroutine != null) StopCoroutine(_burnCoroutine);
+            _burnCoroutine = StartCoroutine(BurnRoutine());
+        }
+
+        private IEnumerator BurnRoutine()
+        {
+            int tickDamage = _lastBurnDamage * 2;
+            float elapsed = 0f;
+
+            while (elapsed < 3f)
+            {
+                this.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, tickDamage));
+                yield return new WaitForSeconds(0.5f);
+                elapsed += 0.5f;
+            }
+
+            _isBurnActive = false;
+            SetBurnVfx(false);
+            _burnCoroutine = null;
+        }
+
+        private void ApplySlow()
+        {
+            _isSlowActive = true;
+            EnemyInstanceSystem.GetData(enemyId).SlowAccumulator.Value = 0f;
+
+            _originalMoveSpeed = _moveSpeed;
+            _moveSpeed *= 0f;
+            if (Agent != null) Agent.maxSpeed = _moveSpeed;
+
+            if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
+            _slowCoroutine = StartCoroutine(SlowRoutine());
+        }
+
+        private IEnumerator SlowRoutine()
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            _moveSpeed = _originalMoveSpeed;
+            if (Agent != null) Agent.maxSpeed = _moveSpeed;
+            _isSlowActive = false;
+            _slowCoroutine = null;
+        }
+
+        #endregion
 
         public string GetCurrentState()
         {

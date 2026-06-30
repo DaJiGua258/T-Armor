@@ -36,7 +36,6 @@ namespace QFramework.ViewController.UI
         [Header("检测设置")]
         [SerializeField] private Vector2 _aimSize = new Vector2(2, 2);
         [SerializeField] private float _miniRadius = 1f;
-        [SerializeField] private float _castDistance = 0.1f; // 投射距离（设为很小的值即等同于原地覆盖检测）
         [SerializeField] private Vector2 _castDirection = Vector2.zero;
         [SerializeField] private LayerMask _layerMask;
 
@@ -49,7 +48,6 @@ namespace QFramework.ViewController.UI
         private Collider2D[] _interactionResults = new Collider2D[16];
 
         [Header("目标信息 (仅查看)")]
-        [SerializeField] private int _enemyId = -1;
         [SerializeField] private Collider2D _targetCollider;
         [SerializeField] private Collider2D _lastTargetCollider;
         [Header("UI 引用")]
@@ -400,6 +398,7 @@ namespace QFramework.ViewController.UI
             {
                 _enemyInfo.SetEnemyId(-1);
                 _lastTargetCollider = null;
+                TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = null });
                 return;
             }
             

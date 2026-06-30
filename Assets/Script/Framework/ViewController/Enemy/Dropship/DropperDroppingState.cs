@@ -11,7 +11,6 @@ namespace QFramework.ViewController.Enemy
     public class DropperDroppingState : AbstractState<AbstractEnemy>
     {
         private float _dropTimer;
-        private float _dropDuration = 5.0f;
 
         public DropperDroppingState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }

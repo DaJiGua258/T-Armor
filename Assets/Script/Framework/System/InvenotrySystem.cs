@@ -13,12 +13,9 @@ namespace QFramework.System
     {
         // public void AddNewItemToInventory(ItemTypeEnum itemType);
         public List<ItemDataModel> ItemDataCache { get; }
-        public LinkedList<ItemDataModel> SupportItemCache { get; }
         public void AddItem(int slotIndex, ItemDataModel itemData);
-        public ItemDataModel GetHotbarItemByIndex(int index);
         public void SetItemCount(int slotIndex, int count);
         public ItemDataModel GetInventoryItemByIndex(int slotIndex);
-        public void InitHotbarItems(List<ItemTypeEnum> itemTypes);
         public bool HasFreeSlot();
         public void AddItemToInventory(ItemTypeEnum itemType, int count);
     }
@@ -27,7 +24,6 @@ namespace QFramework.System
     {
         // int为背包索引
         public List<ItemDataModel> ItemDataCache { get; private set; } = new List<ItemDataModel>(14);
-        public LinkedList<ItemDataModel> SupportItemCache { get; private set; } = new LinkedList<ItemDataModel>();
         private IItemConfigModel _itemDataModel => this.GetModel<IItemConfigModel>();
         private IModConfigModel _modConfigModel => this.GetModel<IModConfigModel>();
 
@@ -36,11 +32,6 @@ namespace QFramework.System
             for(int i = 0; i < 14; i++)
             {
                 ItemDataCache.Add(new ItemDataModel(_itemDataModel.GetItemConfig(ItemTypeEnum.None)));
-            }
-
-            for(int i = 0; i < 3; i++)
-            {
-                SupportItemCache.AddLast(new ItemDataModel(_itemDataModel.GetItemConfig(ItemTypeEnum.None)));
             }
 
             // 开局 Mod 芯片
@@ -98,29 +89,6 @@ namespace QFramework.System
                 if (slot.ItemType == ItemTypeEnum.None)
                     return true;
             return false;
-        }
-
-        public ItemDataModel GetHotbarItemByIndex(int index)
-        {
-            if (index < 0 || index >= SupportItemCache.Count) return null;
-            var node = SupportItemCache.First;
-            for (int i = 0; i < index; i++)
-                node = node.Next;
-            return node.Value;
-        }
-
-        public void InitHotbarItems(List<ItemTypeEnum> itemTypes)
-        {
-            int i = 0;
-            var node = SupportItemCache.First;
-            while (node != null && i < itemTypes.Count)
-            {
-                var config = _itemDataModel.GetItemConfig(itemTypes[i]);
-                if (config != null)
-                    node.Value.CopyFrom(new ItemDataModel(config));
-                node = node.Next;
-                i++;
-            }
         }
     }
 

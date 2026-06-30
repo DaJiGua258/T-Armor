@@ -118,7 +118,8 @@ namespace QFramework.ViewController.Misc
 
             projectile.SetDetectMode(ProjectileMode.PointOnly);
             projectile.SetLayerMask(BulletLayerMask);
-            projectile.InitProjectile(targetPos, (int)Speed, Damage);
+            var damageInfo = new DamageInfo(Damage, 0f, 0f, dir);
+            projectile.InitProjectile(targetPos, (int)Speed, damageInfo);
 
             if (EnableHoming)
                 projectile.SetHomingTarget(transform);

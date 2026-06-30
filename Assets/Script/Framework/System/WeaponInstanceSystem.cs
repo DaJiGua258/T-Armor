@@ -81,6 +81,9 @@ namespace QFramework.System
         public int BulletSpeed;
         public int BulletDamage;
         public int Rpm;
+        public float KnockbackValue;
+        public float BurnValue;
+        public float SlowValue;
 
         // Mod 系统：已装备的 Mod（以物品形式存储，ModData 在 item.ModData 中）
         public List<ItemDataModel> EquippedMods = new();
@@ -110,6 +113,9 @@ namespace QFramework.System
             this.BulletSpeed = weaponConfig.BulletSpeed;
             this.BulletDamage = weaponConfig.BulletDamage;
             this.Rpm = weaponConfig.Rpm;
+            this.KnockbackValue = weaponConfig.KnockbackValue;
+            this.BurnValue = weaponConfig.BurnValue;
+            this.SlowValue = weaponConfig.SlowValue;
 
             // 缓存基础配置
             _baseConfig = weaponConfig;
@@ -135,6 +141,9 @@ namespace QFramework.System
             BulletSpeed = _baseConfig.BulletSpeed;
             BulletDamage = _baseConfig.BulletDamage;
             Rpm = _baseConfig.Rpm;
+            KnockbackValue = _baseConfig.KnockbackValue;
+            BurnValue = _baseConfig.BurnValue;
+            SlowValue = _baseConfig.SlowValue;
 
             // 遍历装备的 Mod 应用词条
             foreach (var item in EquippedMods)
@@ -149,6 +158,9 @@ namespace QFramework.System
                         case StatName.BulletSpeed:     ApplyMod(ref BulletSpeed, entry.Operator, entry.Value); break;
                         case StatName.Rpm:             ApplyMod(ref Rpm, entry.Operator, entry.Value); break;
                         case StatName.ReloadTime:      ApplyMod(ref ReloadTime, entry.Operator, entry.Value); break;
+                        case StatName.Knockback:       ApplyMod(ref KnockbackValue, entry.Operator, entry.Value); break;
+                        case StatName.Burn:            ApplyMod(ref BurnValue, entry.Operator, entry.Value); break;
+                        case StatName.Slow:            ApplyMod(ref SlowValue, entry.Operator, entry.Value); break;
                     }
                 }
             }

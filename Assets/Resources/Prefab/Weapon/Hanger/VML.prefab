@@ -9951,7 +9951,6 @@ MonoBehaviour:
   - {fileID: 1951039619766714295}
   - {fileID: 5036168867375012394}
   - {fileID: 271059164900450567}
-  _launchInterval: 0.3
 --- !u!1 &1963767652353174455
 GameObject:
   m_ObjectHideFlags: 0

@@ -43,6 +43,7 @@ namespace QFramework.ViewController.Player
         [Header("追踪参数")]
         [SerializeField] private bool _enableHoming;
         [SerializeField] private float _homingRotationSpeed = 360f;  // 每秒转向角度
+        private float _homingDelayDistance;  // 延迟追踪距离（飞行该距离后才开始追踪）
         [Header("垂直发射（需启用追踪）")]
         [SerializeField] private bool _enableVerticalLaunch;
         [SerializeField] private float _verticalLaunchHeight = 5f;
@@ -58,6 +59,8 @@ namespace QFramework.ViewController.Player
 
         private bool _hasExploded;  // 是否已爆炸
         private DamageInfo _damageInfo;
+        private int _remainingPierce;  // 剩余可穿透次数
+        private HashSet<GameObject> _hitEnemies = new HashSet<GameObject>();  // 已命中的敌人（跨帧去重）
         private int _speed;  // 飞行速度
         private Vector3 _targetPosition;  // 目标位置
         private GameObject _owner;  // 发射者，检测时跳过自身
@@ -68,6 +71,7 @@ namespace QFramework.ViewController.Player
         private float _initialDistanceToTarget;  // 初始到目标距离
         private float _distanceTraveled;  // 已飞行距离
         private float _excessTime;  // 超出缓冲时间
+        private bool _hasEnteredCloseRange;  // 是否已进入过目标贴身范围
         private float _launchStartY;  // 发射起始Y坐标
 
         private static readonly RaycastHit2D[] _hitBuffer = new RaycastHit2D[16];  // 碰撞检测缓存
@@ -156,25 +160,45 @@ namespace QFramework.ViewController.Player
             if (hitCount == 0) return;
 
             HashSet<GameObject> processed = new HashSet<GameObject>();
-            bool hasExploded = false;
 
-            // 遍历所有碰撞结果，处理伤害
             for (int i = 0; i < hitCount; i++)
             {
                 RaycastHit2D hit = _hitBuffer[i];
                 if (!TagMatches(hit.collider.tag)) continue;
-                // 跳过发射者自身碰撞体
                 if (_owner != null && hit.collider.transform.IsChildOf(_owner.transform)) continue;
 
-                if (!hasExploded)
+                // 墙壁直接挡住子弹，不造成伤害
+                if (hit.collider.tag == "Env")
                 {
-                    hasExploded = true;
-                    Explode(hit.point);
+                    if (!_hasExploded) Explode(hit.point);
+                    return;
                 }
 
+                // 可破坏环境/玩家 → 造成伤害后爆炸停止
+                if (hit.collider.tag == "DesEnv" || hit.collider.tag == "Player")
+                {
+                    if (!processed.Add(hit.collider.gameObject)) continue;
+                    HitDetectionUtility.ProcessHit(hit.collider, _damageInfo);
+                    if (!_hasExploded) Explode(hit.point);
+                    return;
+                }
+
+                // 敌人 → 造成伤害（跨帧去重）
                 if (!processed.Add(hit.collider.gameObject)) continue;
+                if (!_hitEnemies.Add(hit.collider.gameObject)) continue;
 
                 HitDetectionUtility.ProcessHit(hit.collider, _damageInfo);
+
+                // 穿透判断：剩余穿透 > 0 则继续飞行
+                if (_remainingPierce > 0)
+                {
+                    _remainingPierce--;
+                }
+                else if (!_hasExploded)
+                {
+                    Explode(hit.point);
+                    return;
+                }
             }
         }
 
@@ -250,6 +274,8 @@ namespace QFramework.ViewController.Player
         public void InitBullet(Vector3 direction, int speed, DamageInfo damageInfo, GameObject owner = null)
         {
             _damageInfo = damageInfo;
+            _remainingPierce = damageInfo.Penetration;
+            _hitEnemies.Clear();
             _speed = speed;
             _owner = owner;
             _hasExploded = false;
@@ -257,6 +283,18 @@ namespace QFramework.ViewController.Player
             SetVfxEmission(true);
             _moveDirection = ((Vector2)direction).normalized;
             _launchStartY = transform.position.y;
+
+            // 重置追踪与定点模式状态，避免对象池复用后残留
+            _enableHoming = false;
+            _enableVerticalLaunch = false;
+            _homingTarget = null;
+            _useFixedHomingPosition = false;
+            _targetPosition = Vector3.zero;
+            _initialDistanceToTarget = 0f;
+            _distanceTraveled = 0f;
+            _excessTime = 0f;
+            _homingDelayDistance = 0f;
+            _hasEnteredCloseRange = false;
         }
 
         /// <summary>
@@ -268,11 +306,11 @@ namespace QFramework.ViewController.Player
         /// <param name="owner">发射者（可选）</param>
         public void InitProjectile(Vector3 targetPosition, int speed, DamageInfo damageInfo, GameObject owner = null)
         {
+            InitBullet((targetPosition - transform.position).normalized, speed, damageInfo, owner);
             _targetPosition = targetPosition;
             _initialDistanceToTarget = Vector3.Distance(transform.position, targetPosition);
             _distanceTraveled = 0f;
             _excessTime = 0f;
-            InitBullet((targetPosition - transform.position).normalized, speed, damageInfo, owner);
         }
 
         #endregion
@@ -290,6 +328,7 @@ namespace QFramework.ViewController.Player
                 _homingTarget = target;
                 _enableHoming = true;
                 _useFixedHomingPosition = false;
+                _initialDistanceToTarget = Vector3.Distance(transform.position, target.position);
             }
             else if (_homingTarget != null)
             {
@@ -310,6 +349,7 @@ namespace QFramework.ViewController.Player
             _useFixedHomingPosition = true;
             _enableHoming = true;
             _homingTarget = null;
+            _initialDistanceToTarget = Vector3.Distance(transform.position, position);
         }
 
         /// <summary>
@@ -319,6 +359,14 @@ namespace QFramework.ViewController.Player
         public void SetVerticalLaunch(bool enable)
         {
             _enableVerticalLaunch = enable;
+        }
+
+        /// <summary>
+        /// 设置延迟追踪距离（子弹飞行指定距离后才开始追踪）
+        /// </summary>
+        public void SetHomingDelayDistance(float distance)
+        {
+            _homingDelayDistance = distance;
         }
 
         private void UpdateHoming()
@@ -331,24 +379,36 @@ namespace QFramework.ViewController.Player
                 if (_enableVerticalLaunch) return;
             }
 
+            // 延迟追踪：飞行指定距离后才开始转向
+            if (_homingDelayDistance > 0f && _distanceTraveled < _homingDelayDistance)
+                return;
+
             // 标准追踪：确定目标位置
             Vector3 targetPos;
-            if (_homingTarget != null)
+            if (_homingTarget != null && _homingTarget.gameObject.activeInHierarchy)
             {
                 targetPos = _homingTarget.position;
             }
-            else if (_useFixedHomingPosition)
-            {
-                targetPos = _homingFixedPosition;
-            }
             else
             {
-                Debug.LogWarning($"[Projectile] 启用了追踪但未设置追踪目标 (预制体: {gameObject.name})");
+                // 目标已死亡/失活或不存在，停止追踪，直线飞行
                 _enableHoming = false;
                 return;
             }
 
             _targetPosition = targetPos;
+
+            // 进入再脱离贴身范围则放弃追踪
+            float dist = (targetPos - transform.position).sqrMagnitude;
+            float closeRange = 2f;
+            if (dist < closeRange * closeRange)
+                _hasEnteredCloseRange = true;
+            else if (_hasEnteredCloseRange)
+            {
+                _enableHoming = false;
+                return;
+            }
+
             Vector3 dir = (targetPos - transform.position).normalized;
             _moveDirection = Vector3.RotateTowards(_moveDirection, dir,
                 _homingRotationSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime, 0f).normalized;

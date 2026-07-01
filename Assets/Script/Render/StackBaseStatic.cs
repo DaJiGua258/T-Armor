@@ -64,6 +64,12 @@ public class StackBaseStatic : StackingCore
         if (!UseRenderManagerStaticMode || !Application.isPlaying || !_runtimeInitialized || StackingMaterial == null)
             return;
 
+        if (transform.hasChanged)
+        {
+            _cachedMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.localScale);
+            transform.hasChanged = false;
+        }
+
         RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix);
     }
 }

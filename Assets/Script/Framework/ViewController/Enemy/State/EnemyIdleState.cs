@@ -45,6 +45,14 @@ namespace QFramework.ViewController.Enemy
                 return;
             }
 
+            // 无目标时扫描范围内最近目标
+            if (Entity.Target == null)
+            {
+                var nearest = Entity.FindNearestTarget(Entity.DetectionRange);
+                if (nearest != null)
+                    Entity.GetTarget(nearest);
+            }
+
             // ----- 冷却结束后检测 -------------------------
             if (Entity.Target != null)
             {

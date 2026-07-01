@@ -30,7 +30,8 @@ namespace QFramework.ViewController.Enemy
             Entity.StartMovement();
 
 
-            _stopDis = Random.Range(Entity.StopRange, Entity.AttackMinRange);
+            float maxStop = Mathf.Max(Entity.AttackMinRange, Entity.AttackMaxRange * 0.7f);
+            _stopDis = Random.Range(Entity.AttackMinRange, maxStop);
 
             _modeTimer = 0f;
             _useFlank = Random.value < Entity.FlankProbability;

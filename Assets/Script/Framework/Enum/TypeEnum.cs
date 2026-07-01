@@ -41,6 +41,7 @@ namespace QFramework.Enum
         // Mod 芯片
         Mod_Damage,
         Mod_Rpm,
+        Mod_Homing,
     }
 
     public enum SupportTypeEnum
@@ -134,6 +135,7 @@ namespace QFramework.Enum
     {
         Add,
         Mul,
+        Set,  // 直接设定值（用于 bool/开关型词条）
     }
 
     public enum StatName
@@ -152,6 +154,9 @@ namespace QFramework.Enum
         Knockback,
         Burn,
         Slow,
+        SpreadAngle,
+        EnableHoming,
+        Penetration,
     }
 
 

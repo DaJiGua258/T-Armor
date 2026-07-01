@@ -5064,11 +5064,12 @@ MonoBehaviour:
   InspectorMaxHealth: 100
   Agent: {fileID: 0}
   DetectionRange: 15
-  AttackMaxRange: 8
-  AttackMinRange: 3
-  StopRange: 1.5
+  AttackMaxRange: 10
+  AttackMinRange: 5
+  StopRange: 3
   AttackCooldown: 1.5
   FirstAttackCooldown: -1
+  BulletSpeed: 20
   FlankProbability: 0.75
   _moveSpeed: 3
   Rb: {fileID: 0}

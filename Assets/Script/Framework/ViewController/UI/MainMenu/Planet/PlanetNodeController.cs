@@ -62,7 +62,10 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
             {
                 _isClicked = true;
                 _isHighlighted = true;
-                MainUIManager.Instance.EnterLevelConfirm(transform.position);
+                if (_isHistorical)
+                    MainUIManager.Instance.ViewLevelRecord(transform.position);
+                else
+                    MainUIManager.Instance.EnterLevelConfirm(transform.position);
                 this.SendCommand<MainMenuCommand.SelectLevel>(new MainMenuCommand.SelectLevel(mapData));
             });
 
@@ -87,10 +90,6 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
     {
         _isHistorical = true;
         _isHighlighted = true;
-
-        var button = GetComponent<Button>();
-        if (button != null)
-            button.enabled = false;
     }
 
     public void SetHighlighted(bool highlighted)

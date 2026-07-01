@@ -1,10 +1,10 @@
 ﻿{
   "Items": [
-    { "WeaponType": 1, "DisplayName": "突击步枪", "AmmoMul": 5, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 25, "Rpm": 600, "SlowValue": 0, "Category": "Handheld" },
-    { "WeaponType": 3, "DisplayName": "机枪", "AmmoMul": 10, "MaxMagazine": 60, "ReloadTime": 2, "BulletSpeed": 25, "BulletDamage": 10, "Rpm": 840, "SlowValue": 0.3, "Category": "Handheld" },
-    { "WeaponType": 4, "DisplayName": "霰弹枪", "AmmoMul": 4, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 15, "Rpm": 180, "SlowValue": 0, "Category": "Handheld" },
-    { "WeaponType": 5, "DisplayName": "火箭发射器", "AmmoMul": 4, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 15, "Rpm": 120, "SlowValue": 0.2, "Category": "Handheld" },
-    { "WeaponType": 6, "DisplayName": "垂直导弹", "AmmoMul": 8, "MaxMagazine": 6, "ReloadTime": 3, "BulletSpeed": 15, "BulletDamage": 25, "Rpm": 30, "SlowValue": 0, "Category": "Hanger" },
-    { "WeaponType": 7, "DisplayName": "自动炮台", "AmmoMul": 4, "MaxMagazine": 40, "ReloadTime": 4, "BulletSpeed": 30, "BulletDamage": 5, "Rpm": 300, "SlowValue": 0, "Category": "Hanger" }
+    { "WeaponType": 1, "DisplayName": "突击步枪", "AmmoMul": 5, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 25, "Rpm": 600, "SlowValue": 0, "Category": "Handheld", "SpreadAngle": 5, "Penetration": 0.5 },
+    { "WeaponType": 3, "DisplayName": "机枪", "AmmoMul": 10, "MaxMagazine": 60, "ReloadTime": 2, "BulletSpeed": 25, "BulletDamage": 10, "Rpm": 840, "SlowValue": 0.1, "Category": "Handheld", "SpreadAngle": 15, "Penetration": 0 },
+    { "WeaponType": 4, "DisplayName": "霰弹枪", "AmmoMul": 4, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 15, "Rpm": 180, "SlowValue": 0, "Category": "Handheld", "SpreadAngle": 30, "Penetration": 0 },
+    { "WeaponType": 5, "DisplayName": "火箭发射器", "AmmoMul": 4, "MaxMagazine": 30, "ReloadTime": 2, "BulletSpeed": 20, "BulletDamage": 15, "Rpm": 120, "SlowValue": 0.2, "Category": "Handheld", "SpreadAngle": 3, "Penetration": 0 },
+    { "WeaponType": 6, "DisplayName": "垂直导弹", "AmmoMul": 8, "MaxMagazine": 6, "ReloadTime": 3, "BulletSpeed": 15, "BulletDamage": 25, "Rpm": 30, "SlowValue": 0, "Category": "Hanger", "SpreadAngle": 0, "Penetration": 0 },
+    { "WeaponType": 7, "DisplayName": "自动炮台", "AmmoMul": 4, "MaxMagazine": 40, "ReloadTime": 4, "BulletSpeed": 30, "BulletDamage": 5, "Rpm": 300, "SlowValue": 0, "Category": "Hanger", "SpreadAngle": 5, "Penetration": 0 }
   ]
 }

@@ -165,6 +165,14 @@ namespace QFramework.System
         // ----- 地图信息 -------------------------
         public BindableProperty<int> seed = new BindableProperty<int>();  // 地图种子
         public EnvironmentData EnvironmentData = new EnvironmentData();
+
+        // ----- 通关统计（仅在已通关关卡中有值） ----
+        public float CompletionTimeSeconds;
+        public int Kills;
+        public int DamageDealt;
+        public int DamageTaken;
+        public int ShotsFired;
+        public int Accuracy;
     }
 
 

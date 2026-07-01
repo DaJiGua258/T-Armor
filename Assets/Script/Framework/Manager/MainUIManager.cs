@@ -74,7 +74,7 @@ namespace QFramework.Manager
         [Header("镜头过渡")]
         [SerializeField] private float _cameraTransitionDuration = 1f;
         [SerializeField] private float _panelFadeDuration = 0.3f;
-        [SerializeField] private Ease _cameraEase = Ease.InOutQuad;
+        [SerializeField] private Ease _cameraEase = Ease.InOutExpo;
         [SerializeField] private Ease _fadeEase = Ease.OutQuad;
         [SerializeField] private Vector3 _levelSelectDirection = new Vector3(0f, 0.342f, -0.94f);
 
@@ -379,21 +379,12 @@ namespace QFramework.Manager
                         _playMainMenuCameraAnimation = false;
                         MainCamera.transform.DOKill();
 
-                        // 初始隐藏 MainMenu，Step 2 再淡入
+                        // 初始隐藏 MainMenu，摄像机到达后淡入
                         var menuCG = GetPanelCanvasGroup(UIMainPanelType.MainMenuPanel);
                         if (menuCG != null) menuCG.alpha = 0f;
 
-                        Vector3 defaultOrbitPos = OrbitOrbitCamera.GetDefaultOrbitPosition();
-                        Quaternion defaultOrbitRot = Quaternion.LookRotation(
-                            OrbitOrbitCamera.planetCenter.position - defaultOrbitPos, Vector3.up);
-
                         var cameraSeq = DOTween.Sequence();
-                        // Step 1: 回到默认轨道位置（MainMenu 不可见）
-                        cameraSeq.Append(MainCamera.transform.DOMove(defaultOrbitPos, _cameraTransitionDuration).SetEase(_cameraEase));
-                        cameraSeq.Join(MainCamera.transform.DORotateQuaternion(defaultOrbitRot, _cameraTransitionDuration).SetEase(_cameraEase));
-
-                        // Step 2: 回到初始菜单位置 + MainMenu 淡入
-                        cameraSeq.Append(MainCamera.transform.DOMove(StartCameraPosition, _cameraTransitionDuration).SetEase(_cameraEase));
+                        cameraSeq.Join(MainCamera.transform.DOMove(StartCameraPosition, _cameraTransitionDuration).SetEase(_cameraEase));
                         cameraSeq.Join(MainCamera.transform.DORotateQuaternion(StartCameraRotation, _cameraTransitionDuration).SetEase(_cameraEase));
                         if (menuCG != null)
                             cameraSeq.Join(menuCG.DOFade(1f, _cameraTransitionDuration).SetEase(_fadeEase));
@@ -590,6 +581,18 @@ namespace QFramework.Manager
             PushGroup(new UIMainPanelGroup(
                 UIMainPanelType.LevelDetailPanel,
                 UIMainPanelType.PlayerConfigPanel));
+        }
+
+        public void ViewLevelRecord(Vector3 nodeWorldPosition)
+        {
+            _screenCrosshair?.LockAtWorldPosition(nodeWorldPosition);
+
+            if (OrbitOrbitCamera != null)
+            {
+                OrbitOrbitCamera.FocusOnNode(nodeWorldPosition, _cameraTransitionDuration);
+            }
+            PushGroup(new UIMainPanelGroup(
+                UIMainPanelType.LevelDetailPanel));
         }
 
         #endregion

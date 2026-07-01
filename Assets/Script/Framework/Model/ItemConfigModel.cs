@@ -32,6 +32,10 @@ namespace QFramework.Model
             {ItemTypeEnum.Mod_Rpm, new ItemConfig(
                     ItemTypeEnum.Mod_Rpm, "射速芯片", false, 1,
                         ModIconPath(ItemTypeEnum.Mod_Rpm), "提升武器射速", false)},
+
+            {ItemTypeEnum.Mod_Homing, new ItemConfig(
+                    ItemTypeEnum.Mod_Homing, "追踪芯片", false, 1,
+                        ModIconPath(ItemTypeEnum.Mod_Homing), "子弹自动追踪敌人", false)},
         };
 
         private static string ModIconPath(ItemTypeEnum modType)

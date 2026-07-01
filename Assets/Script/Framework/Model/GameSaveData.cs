@@ -57,6 +57,14 @@ namespace QFramework.Model
             model.LevelMissionConfig.LevelDescription = LevelDescription;
             model.LevelMissionConfig.LevelMissionType = (LevelMissionTypeEnum)LevelMissionType;
             model.LevelMissionConfig.MissionType = (MissionTypeEnum)MissionType;
+
+            // 映射通关统计
+            model.CompletionTimeSeconds = CompletionTimeSeconds;
+            model.Kills = Kills;
+            model.DamageDealt = DamageDealt;
+            model.DamageTaken = DamageTaken;
+            model.ShotsFired = ShotsFired;
+            model.Accuracy = Accuracy;
             return model;
         }
     }

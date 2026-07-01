@@ -67,8 +67,8 @@ namespace QFramework.ViewController.UI
 
             _weaponInfo.Show(
                 _weaponConfig.GetDisplayName(w.WeaponType),
-                "伤害：\n射速：\n弹匣：\n弹药：\n装填：\n弹速：",
-                $"{w.BulletDamage}\n{w.Rpm}\n{w.CurMagazine.Value} / {w.MaxMagazine}\n{w.CurMaxAmmo.Value} / {w.MaxAmmo}\n{w.ReloadTime:F1}s\n{w.BulletSpeed}"
+                "伤害：\n射速：\n弹匣：\n装填：\n弹速：\n散射：",
+                $"{FormatStatWithMod(w.BulletDamage, w.ModDisplayPct, StatName.BulletDamage)}\n{FormatStatWithMod(w.Rpm, w.ModDisplayPct, StatName.Rpm)}\n{w.MaxMagazine}\n{FormatStatWithMod(w.ReloadTime, w.ModDisplayPct, StatName.ReloadTime, "s")}\n{FormatStatWithMod(w.BulletSpeed, w.ModDisplayPct, StatName.BulletSpeed)}\n{FormatStatWithMod(w.SpreadAngle, w.ModDisplayPct, StatName.SpreadAngle, "°")}"
             );
         }
 
@@ -109,6 +109,28 @@ namespace QFramework.ViewController.UI
                 _modInfo?.Clear();
         }
 
+        private static string FormatStatWithMod(float current, Dictionary<StatName, float> modPct, StatName stat, string suffix = "")
+        {
+            string val = current == (int)current ? $"{current:F0}{suffix}" : $"{current:F1}{suffix}";
+            if (modPct.TryGetValue(stat, out float pct))
+            {
+                pct *= 100f;
+                return pct >= 0 ? $"{val}（+{pct:F0}%）" : $"{val}（{pct:F0}%）";
+            }
+            return val;
+        }
+
+        private static string FormatStatWithMod(int current, Dictionary<StatName, float> modPct, StatName stat, string suffix = "")
+        {
+            string val = $"{current}{suffix}";
+            if (modPct.TryGetValue(stat, out float pct))
+            {
+                pct *= 100f;
+                return pct >= 0 ? $"{val}（+{pct:F0}%）" : $"{val}（{pct:F0}%）";
+            }
+            return val;
+        }
+
         private static string FormatLabel(ModEntry entry)
         {
             return entry.Target switch
@@ -121,16 +143,28 @@ namespace QFramework.ViewController.UI
                 StatName.MaxHealth => "生命上限：",
                 StatName.Speed => "移动速度：",
                 StatName.MaxFuel => "燃料上限：",
+                StatName.SpreadAngle => "散射：",
+                StatName.EnableHoming => "目标追踪",
                 _ => entry.Target.ToString()
             };
         }
 
         private static string FormatValue(ModEntry entry)
         {
-            if (entry.Operator == ModOp.Add)
-                return $"+{entry.Value:F0}";
-            else
-                return $"+{entry.Value * 100:F0}%";
+            switch (entry.Operator)
+            {
+                case ModOp.Add:
+                    return $"+{entry.Value:F0}";
+                case ModOp.Mul:
+                    {
+                        float pct = entry.Value * 100f;
+                        return pct >= 0 ? $"+{pct:F0}%" : $"{pct:F0}%";
+                    }
+                case ModOp.Set:
+                    return string.Empty;
+                default:
+                    return entry.Value.ToString();
+            }
         }
 
         [Serializable]

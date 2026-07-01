@@ -57,6 +57,9 @@ namespace QFramework.Model
         public float DetectionRange;
         public float AttackMaxRange;
         public float AttackMinRange;
+        public float StopRange;
+        public float ShootAccuracy;
+        public int BulletSpeed = 20;
         public float MoveSpeed;
 
         // 异常状态阈值
@@ -80,6 +83,7 @@ namespace QFramework.Model
         public EnemeyConfig(
             int enemySize, int maxHealth, float reactionTime, int speed, int damage,
             float detectionRange, float attackMaxRange, float attackMinRange, float moveSpeed,
+            float stopRange = 1.5f, float shootAccuracy = 1f, int bulletSpeed = 20,
             float knockbackThreshold = 0.5f, float burnThreshold = 0.5f, float slowThreshold = 0.5f)
         {
             this.enemySize = enemySize;
@@ -90,6 +94,9 @@ namespace QFramework.Model
             this.DetectionRange = detectionRange;
             this.AttackMaxRange = attackMaxRange;
             this.AttackMinRange = attackMinRange;
+            this.StopRange = stopRange;
+            this.ShootAccuracy = shootAccuracy;
+            this.BulletSpeed = bulletSpeed;
             this.MoveSpeed = moveSpeed;
             this.KnockbackThreshold = knockbackThreshold;
             this.BurnThreshold = burnThreshold;

@@ -64,6 +64,14 @@ namespace QFramework.ViewController.UI
                 .SetAutoKill(false);
         }
 
+        private void OnDestroy()
+        {
+            hangerLeft?.Tweener?.Kill();
+            hangerRight?.Tweener?.Kill();
+            sideLeft?.Tweener?.Kill();
+            sideRight?.Tweener?.Kill();
+        }
+
         /// <summary>
         /// 由于武器数据创建时间比较晚，所以需要将这个方法注册为事件
         /// 用事件来通知另外一个事件的注册

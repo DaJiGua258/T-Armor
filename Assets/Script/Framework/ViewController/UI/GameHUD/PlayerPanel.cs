@@ -32,6 +32,12 @@ namespace QFramework.ViewController.UI
             UpdateHealthBar();
         }
 
+        private void OnDestroy()
+        {
+            _healthBar?.Tweener?.Kill();
+            _fuelBar?.Tweener?.Kill();
+        }
+
         private void InitBar(SliderlBar bar)
         {
             bar.Tweener = bar.Img.DOFillAmount(0f, 0f).SetAutoKill(false);

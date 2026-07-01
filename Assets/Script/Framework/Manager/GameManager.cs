@@ -51,7 +51,7 @@ namespace QFramework.Manager
 
         // ----- 运行时状态 ------------------------------
         [SerializeField] private RuntimeGameState _runtimeState = RuntimeGameState.None;
-        [SerializeField] private GameResultState _gameResultState = GameResultState.None; // 仅用于读取的游戏结果标识
+        [SerializeField] private GameResultState _gameResultState = GameResultState.None;
 
         private Transform _manager;
         private Transform _scene;
@@ -66,6 +66,7 @@ namespace QFramework.Manager
         protected override void Awake()
         {
             base.Awake();
+            DontDestroyOnLoad(gameObject);
         }
 
         void Start()
@@ -87,6 +88,7 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterMainScene()
         {
+            Time.timeScale = 1f;
             StartMainSceneFlow();
         }
 
@@ -95,6 +97,7 @@ namespace QFramework.Manager
         /// </summary>
         public void EnterGameScene()
         {
+            Time.timeScale = 1f;
             StartGameSceneFlow();
         }
 
@@ -287,10 +290,6 @@ namespace QFramework.Manager
 
             _map.GenerateMapByLoadAsset(_levelSystem.LoadedLevelData);
 
-            // 地图生成后刷新寻路网格
-            if (AstarPath.active != null)
-                AstarPath.active.Scan();
-
             // 读取 Entry 位置，传送玩家并初始化组件
             var missionSystem = this.GetSystem<IMissionSystem>();
             if (missionSystem.EntrySpawnPosition.HasValue)
@@ -338,7 +337,7 @@ namespace QFramework.Manager
         }
 
         private void InitMainScene()
-        { 
+        {
 
         }
         #endregion

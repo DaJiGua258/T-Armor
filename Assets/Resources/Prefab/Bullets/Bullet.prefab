@@ -4907,9 +4907,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8231925553303829552}
-  - component: {fileID: 4995064897792522863}
-  - component: {fileID: 7698153020938028494}
-  - component: {fileID: 6377581165219434049}
+  - component: {fileID: 8608412088365535313}
+  - component: {fileID: 4688797609313383234}
+  - component: {fileID: 7817096971747161723}
   m_Layer: 10
   m_Name: Mesh
   m_TagString: Untagged
@@ -4926,13 +4926,13 @@ Transform:
   m_GameObject: {fileID: 7782407028947840349}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.25051883}
+  m_LocalPosition: {x: 0, y: 0, z: -0.15051882}
   m_LocalScale: {x: 1, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5051814083861341237}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4995064897792522863
+--- !u!114 &8608412088365535313
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4941,18 +4941,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 7782407028947840349}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 287a2a0e2fe99144fbedd2bc706ead9c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0e87843f1718510478f44782ca45628d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StackingMaterial: {fileID: 2100000, guid: a406ca1ecfcaaf1449319e50cb543996, type: 2}
   UseLocalZSort: 1
   OrderParent: {fileID: 0}
-  ZSortOffset: -1
+  ZSortOffset: 0
   HeightLevel: 0
   CanSetScale: 0
   SizeMultiplier: 1
   SizeHeight: 1
---- !u!33 &7698153020938028494
+--- !u!33 &4688797609313383234
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4960,7 +4960,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7782407028947840349}
   m_Mesh: {fileID: 0}
---- !u!23 &6377581165219434049
+--- !u!23 &7817096971747161723
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

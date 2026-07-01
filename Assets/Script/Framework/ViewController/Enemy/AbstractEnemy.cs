@@ -47,6 +47,8 @@ namespace QFramework.ViewController.Enemy
         public float AttackCooldown = 1.5f;
         [Tooltip("-1 使用 AttackCooldown，≥0 则作为首次攻击冷却")]
         public float FirstAttackCooldown = -1f;
+        [Header("子弹参数")]
+        public int BulletSpeed = 20;
 
         [Header("包抄参数")]
         [Range(0f, 1f)] public float FlankProbability = 0.75f;  // 包抄概率
@@ -158,6 +160,9 @@ namespace QFramework.ViewController.Enemy
             // Debug 注册
             _enemyRegistry[enemyId] = this;
 
+            // 小地图注册
+            this.GetSystem<IEnemyInstanceSystem>().RegisterInstance(enemyId, this);
+
             // 受伤事件 → Flash
             TypeEventSystem.Global.Register<StatsEvent.OnDamageDealt>(e =>
             {
@@ -166,6 +171,11 @@ namespace QFramework.ViewController.Enemy
 
             if (debugLock)
                 _fsm.ChangeState<EnemyLockState>();
+        }
+
+        void OnDestroy()
+        {
+            this.GetSystem<IEnemyInstanceSystem>().UnregisterInstance(enemyId);
         }
 
         
@@ -323,6 +333,9 @@ namespace QFramework.ViewController.Enemy
 
             _enemyConfig = config;
             DetectionRange = config.DetectionRange;
+            StopRange = config.StopRange;
+            _shootAccuracy = config.ShootAccuracy;
+            BulletSpeed = config.BulletSpeed;
             if (!UseInspectorRange)
             {
                 AttackMaxRange = config.AttackMaxRange;
@@ -417,7 +430,11 @@ namespace QFramework.ViewController.Enemy
             _hasPatrolMoveSpeed = false;
 
             // 可见性：Mesh / Shadow / Collider
-            if (Mesh != null) Mesh.gameObject.SetActive(true);
+            if (Mesh != null)
+            {
+                Mesh.gameObject.SetActive(true);
+                Mesh.localPosition = new Vector3(0, 0, Mesh.localPosition.z);
+            }
             if (Shadow != null) Shadow.gameObject.SetActive(true);
             if (ColliderTrans != null) ColliderTrans.gameObject.SetActive(true);
 

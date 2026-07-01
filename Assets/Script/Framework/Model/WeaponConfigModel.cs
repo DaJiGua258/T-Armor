@@ -87,6 +87,8 @@ namespace QFramework.Model
         public float KnockbackValue;  // TODO: 已禁用，归零处理
         public float BurnValue;  // TODO: 已禁用，归零处理
         public float SlowValue;  // 减速幅度
+        public float SpreadAngle;  // 散射角度（0-180°），0 表示无散射
+        public float Penetration;  // 穿透值：整数部分=必定穿透数，小数部分=额外穿透概率
 
         // JsonUtility 反序列化需要无参构造器
         public WeaponConfig() { }
@@ -109,7 +111,8 @@ namespace QFramework.Model
             int bulletSpeed,
             int bulletDamage,
             int rpm,
-            float slowValue = 0f)
+            float slowValue = 0f,
+            float spreadAngle = 0f)
         {
             this.WeaponType = weaponType;
             this.DisplayName = displayName;
@@ -121,6 +124,7 @@ namespace QFramework.Model
             this.BulletDamage = bulletDamage;
             this.Rpm = rpm;
             this.SlowValue = slowValue;
+            this.SpreadAngle = spreadAngle;
         }
     }
 

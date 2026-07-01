@@ -209,10 +209,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56d3b8100fab254ea32db033aa792fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _button: {fileID: 3792608304938664040}
   _nameText: {fileID: 1085983942065436574}
-  _nameImage: {fileID: 2313159928502592523}
   _iconImage: {fileID: 5460826764642438229}
+  _nameImage: {fileID: 2313159928502592523}
+  _highlight: {fileID: 0}
 --- !u!114 &3792608304938664040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,11 +399,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_Font: {fileID: 12800000, guid: c5f5a4dbf9685c8438ee5f1d881b39bb, type: 2}
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 2
     m_MaxSize: 40
     m_Alignment: 3
     m_AlignByGeometry: 0
@@ -411,7 +411,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '> AR'
+  m_Text: '>AR'
 --- !u!1 &6224171709973243470
 GameObject:
   m_ObjectHideFlags: 0

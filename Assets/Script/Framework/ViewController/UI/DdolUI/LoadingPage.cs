@@ -11,9 +11,23 @@ namespace Framework.ViewController.UI
 {
     public class LoadingPage : MonoBehaviour
     {
-        [SerializeField] private CanvasGroup _loadingCanvasGroup; // 拖入加载面板的 CanvasGroup 组件
+        public static LoadingPage Instance { get; private set; }
+
+        [SerializeField] private CanvasGroup _loadingCanvasGroup;
         [SerializeField] private Image _loadingImage;
         [SerializeField] private Image _fadePage;
+
+        void Awake()
+        {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
 
         void OnEnable()
         {

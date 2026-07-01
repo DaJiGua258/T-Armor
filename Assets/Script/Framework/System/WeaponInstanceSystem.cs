@@ -84,12 +84,19 @@ namespace QFramework.System
         public float KnockbackValue;
         public float BurnValue;
         public float SlowValue;
+        public float SpreadAngle;  // 散射角度（0-180°）
+        public float Penetration;  // 穿透值
+        public bool EnableHoming;  // 子弹追踪开关
 
         // Mod 系统：已装备的 Mod（以物品形式存储，ModData 在 item.ModData 中）
         public List<ItemDataModel> EquippedMods = new();
 
         // 基础配置缓存，供 RecalculateStats 重算时使用
         private WeaponConfig _baseConfig;
+        public WeaponConfig BaseConfig => _baseConfig;
+
+        // Mod 显示用百分比（key = StatName，value = mod 带来的百分比变化）
+        public Dictionary<StatName, float> ModDisplayPct = new();
 
         public WeaponDataModel(WeaponConfig weaponConfig)
         {
@@ -116,6 +123,9 @@ namespace QFramework.System
             this.KnockbackValue = weaponConfig.KnockbackValue;
             this.BurnValue = weaponConfig.BurnValue;
             this.SlowValue = weaponConfig.SlowValue;
+            this.SpreadAngle = weaponConfig.SpreadAngle;
+            this.Penetration = weaponConfig.Penetration;
+            this.EnableHoming = false;  // 默认关闭追踪
 
             // 缓存基础配置
             _baseConfig = weaponConfig;
@@ -144,42 +154,104 @@ namespace QFramework.System
             KnockbackValue = _baseConfig.KnockbackValue;
             BurnValue = _baseConfig.BurnValue;
             SlowValue = _baseConfig.SlowValue;
+            SpreadAngle = _baseConfig.SpreadAngle;
+            Penetration = _baseConfig.Penetration;
+            EnableHoming = false;
 
-            // 遍历装备的 Mod 应用词条
+            // 收集 Mod 加成：Add 累加，Mul 累加百分比，Set 直接赋值
+            int aBulletDamage = 0, aMaxMagazine = 0, aBulletSpeed = 0, aRpm = 0;
+            float aReloadTime = 0, aKnockback = 0, aBurn = 0, aSlow = 0, aSpread = 0f, aPenetration = 0f;
+            float mBulletDamage = 0, mMaxMagazine = 0, mBulletSpeed = 0, mRpm = 0;
+            float mReloadTime = 0, mKnockback = 0, mBurn = 0, mSlow = 0, mSpread = 0f, mPenetration = 0f;
+
             foreach (var item in EquippedMods)
             {
                 if (item.ModData == null) continue;
                 foreach (var entry in item.ModData.Entries)
                 {
-                    switch (entry.Target)
+                    switch (entry.Operator)
                     {
-                        case StatName.BulletDamage:    ApplyMod(ref BulletDamage, entry.Operator, entry.Value); break;
-                        case StatName.MaxMagazine:     ApplyMod(ref MaxMagazine, entry.Operator, entry.Value); break;
-                        case StatName.BulletSpeed:     ApplyMod(ref BulletSpeed, entry.Operator, entry.Value); break;
-                        case StatName.Rpm:             ApplyMod(ref Rpm, entry.Operator, entry.Value); break;
-                        case StatName.ReloadTime:      ApplyMod(ref ReloadTime, entry.Operator, entry.Value); break;
-                        case StatName.Knockback:       ApplyMod(ref KnockbackValue, entry.Operator, entry.Value); break;
-                        case StatName.Burn:            ApplyMod(ref BurnValue, entry.Operator, entry.Value); break;
-                        case StatName.Slow:            ApplyMod(ref SlowValue, entry.Operator, entry.Value); break;
+                        case ModOp.Add:
+                            switch (entry.Target)
+                            {
+                                case StatName.BulletDamage: aBulletDamage += (int)entry.Value; break;
+                                case StatName.MaxMagazine:  aMaxMagazine  += (int)entry.Value; break;
+                                case StatName.BulletSpeed:  aBulletSpeed  += (int)entry.Value; break;
+                                case StatName.Rpm:          aRpm          += (int)entry.Value; break;
+                                case StatName.ReloadTime:   aReloadTime   += entry.Value;       break;
+                                case StatName.Knockback:    aKnockback    += entry.Value;       break;
+                                case StatName.Burn:         aBurn         += entry.Value;       break;
+                                case StatName.Slow:         aSlow         += entry.Value;       break;
+                                case StatName.SpreadAngle:  aSpread       += entry.Value;       break;
+                                case StatName.Penetration:  aPenetration  += entry.Value;       break;
+                            }
+                            break;
+                        case ModOp.Mul:
+                            switch (entry.Target)
+                            {
+                                case StatName.BulletDamage: mBulletDamage += entry.Value; break;
+                                case StatName.MaxMagazine:  mMaxMagazine  += entry.Value; break;
+                                case StatName.BulletSpeed:  mBulletSpeed  += entry.Value; break;
+                                case StatName.Rpm:          mRpm          += entry.Value; break;
+                                case StatName.ReloadTime:   mReloadTime   += entry.Value; break;
+                                case StatName.Knockback:    mKnockback    += entry.Value; break;
+                                case StatName.Burn:         mBurn         += entry.Value; break;
+                                case StatName.Slow:         mSlow         += entry.Value; break;
+                                case StatName.SpreadAngle:  mSpread       += entry.Value; break;
+                                case StatName.Penetration:  mPenetration  += entry.Value; break;
+                            }
+                            break;
+                        case ModOp.Set:
+                            switch (entry.Target)
+                            {
+                                case StatName.EnableHoming: EnableHoming = entry.Value > 0f; break;
+                            }
+                            break;
                     }
                 }
             }
+
+            // 最终公式：(base + sumAdd) * (1 + sumMul)
+            BulletDamage   = Compute(BulletDamage,   aBulletDamage, mBulletDamage);
+            MaxMagazine    = Compute(MaxMagazine,    aMaxMagazine,  mMaxMagazine);
+            BulletSpeed    = Compute(BulletSpeed,    aBulletSpeed,  mBulletSpeed);
+            Rpm            = Compute(Rpm,            aRpm,          mRpm);
+            ReloadTime     = Compute(ReloadTime,     aReloadTime,   mReloadTime);
+            KnockbackValue = Compute(KnockbackValue, aKnockback,    mKnockback);
+            BurnValue      = Compute(BurnValue,      aBurn,         mBurn);
+            SlowValue      = Compute(SlowValue,      aSlow,         mSlow);
+            SpreadAngle    = Compute(SpreadAngle,    aSpread,       mSpread);
+            Penetration    = Compute(Penetration,    aPenetration,  mPenetration);
+
+            // 构建 Mod 显示百分比：Add = addSum/base，Mul = mulSum，直接取词条值
+            ModDisplayPct.Clear();
+            AddModPct(StatName.BulletDamage, aBulletDamage, _baseConfig.BulletDamage, mBulletDamage);
+            AddModPct(StatName.MaxMagazine,  aMaxMagazine,  _baseConfig.MaxMagazine,  mMaxMagazine);
+            AddModPct(StatName.BulletSpeed,  aBulletSpeed,  _baseConfig.BulletSpeed,  mBulletSpeed);
+            AddModPct(StatName.Rpm,          aRpm,          _baseConfig.Rpm,          mRpm);
+            AddModPct(StatName.ReloadTime,   aReloadTime,   _baseConfig.ReloadTime,   mReloadTime);
+            AddModPct(StatName.SpreadAngle,  aSpread,       _baseConfig.SpreadAngle,  mSpread);
+            AddModPct(StatName.Penetration,  aPenetration,  _baseConfig.Penetration,  mPenetration);
         }
 
-        private static void ApplyMod(ref int stat, ModOp op, float value)
+        private void AddModPct(StatName stat, float addSum, float baseVal, float mulSum)
         {
-            if (op == ModOp.Add)
-                stat += (int)value;
-            else
-                stat = (int)(stat * (1f + value));
+            float pct = 0f;
+            if (baseVal != 0f)
+                pct += addSum / baseVal;
+            pct += mulSum;
+            if (Mathf.Abs(pct) > 0.001f)
+                ModDisplayPct[stat] = pct;
         }
 
-        private static void ApplyMod(ref float stat, ModOp op, float value)
+        private static int Compute(int baseVal, int addSum, float mulSum)
         {
-            if (op == ModOp.Add)
-                stat += value;
-            else
-                stat *= (1f + value);
+            return Mathf.RoundToInt((baseVal + addSum) * (1f + mulSum));
+        }
+
+        private static float Compute(float baseVal, float addSum, float mulSum)
+        {
+            return (baseVal + addSum) * (1f + mulSum);
         }
     }
 }

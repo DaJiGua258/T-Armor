@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using QFramework.Enum;
 using QFramework.Event;
 using QFramework.Model;
+using QFramework.ViewController.Enemy;
 using UnityEngine;
 
 
@@ -14,6 +16,11 @@ namespace QFramework.System
 
         public void DamageEnemy(int id, int damage);
         public EnemeyDataModel GetData(int id);
+
+        // 小地图用：实例追踪
+        public void RegisterInstance(int id, AbstractEnemy enemy);
+        public void UnregisterInstance(int id);
+        public IEnumerable<AbstractEnemy> GetActiveInstances();
     }
 
     public class EnemyInstanceSystem : AbstractSystem, IEnemyInstanceSystem
@@ -23,7 +30,10 @@ namespace QFramework.System
         /// </summary>
         private Dictionary<int, EnemeyDataModel> _enemyDataCache = new Dictionary<int, EnemeyDataModel>();
         private int _enemyCounter = 0;
-        
+
+        // 实例追踪（小地图用）
+        private Dictionary<int, AbstractEnemy> _instanceMap = new Dictionary<int, AbstractEnemy>();
+
         private IEnemeyConfigModel _enemeyConfigModel => this.GetModel<IEnemeyConfigModel>();
 
         /// <summary>
@@ -57,6 +67,21 @@ namespace QFramework.System
         public EnemeyDataModel GetData(int id)
         {
             return _enemyDataCache[id];
+        }
+
+        public void RegisterInstance(int id, AbstractEnemy enemy)
+        {
+            _instanceMap[id] = enemy;
+        }
+
+        public void UnregisterInstance(int id)
+        {
+            _instanceMap.Remove(id);
+        }
+
+        public IEnumerable<AbstractEnemy> GetActiveInstances()
+        {
+            return _instanceMap.Values.Where(e => e != null && e.gameObject.activeInHierarchy);
         }
     }
 

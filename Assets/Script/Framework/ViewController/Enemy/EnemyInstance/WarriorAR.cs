@@ -35,7 +35,7 @@ namespace QFramework.ViewController.Enemy
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
             var damageInfo = new DamageInfo(10, 0f, 0f, shootDir);
-            bulletComponent.InitBullet(shootDir, 20, damageInfo, gameObject);
+            bulletComponent.InitBullet(shootDir, BulletSpeed, damageInfo, gameObject);
             bulletComponent.SetLayerMask(TargetLayerMask);
         }
     }

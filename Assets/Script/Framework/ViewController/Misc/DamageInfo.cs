@@ -9,6 +9,7 @@ namespace QFramework.ViewController.Misc
         public float BurnValue;
         public float SlowValue;
         public Vector2 AttackDirection;
+        public int Penetration;  // 有效穿透次数（开枪时由float值掷骰决定）
 
         public static readonly DamageInfo Default = new DamageInfo
         {
@@ -17,15 +18,17 @@ namespace QFramework.ViewController.Misc
             BurnValue = 0f,
             SlowValue = 0f,
             AttackDirection = Vector2.zero,
+            Penetration = 0,
         };
 
-        public DamageInfo(int damage, float knockbackValue, float burnValue, Vector2 attackDirection, float slowValue = 0f)
+        public DamageInfo(int damage, float knockbackValue, float burnValue, Vector2 attackDirection, float slowValue = 0f, int penetration = 0)
         {
             Damage = damage;
             KnockbackValue = knockbackValue;
             BurnValue = burnValue;
             SlowValue = slowValue;
             AttackDirection = attackDirection;
+            Penetration = penetration;
         }
     }
 }

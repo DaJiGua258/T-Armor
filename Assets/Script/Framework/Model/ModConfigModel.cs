@@ -63,6 +63,13 @@ namespace QFramework.Model
                 {
                     new(StatName.Rpm, 0.90f, ModOp.Mul)
                 });
+
+            AddConfig(ItemTypeEnum.Mod_Homing, ModCategory.Weapon, new()
+                {
+                    new(StatName.EnableHoming, 1f, ModOp.Set),
+                    new(StatName.BulletSpeed, -0.30f, ModOp.Mul),
+                    new(StatName.SpreadAngle, 1f, ModOp.Mul),
+                });
         }
 
         private void AddConfig(ItemTypeEnum itemType, ModCategory category, List<ModEntry> entries)

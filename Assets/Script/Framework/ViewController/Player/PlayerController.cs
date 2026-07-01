@@ -7,6 +7,7 @@ using QFramework.UtilityKit;
 using QFramework.ViewController.FSM;
 using QFramework.Event;
 using QFramework.ViewController.UI;
+using QFramework.Manager;
 using DG.Tweening;
 using QFramework.Command;
 
@@ -97,21 +98,18 @@ namespace QFramework.ViewController.Player
         private void Update()
         {
             if(_fsm.CurrentStateType == typeof(PlayerDeathState)
-                || _fsm.CurrentStateType == typeof(PlayerLockState))
+                || _fsm.CurrentStateType == typeof(PlayerLockState)
+                || UIGameManager.Instance == null
+                || UIGameManager.Instance.IsModalActive())
             {
                 return;
             }
 
             _fsm.Update();
-
-            if(_fsm.CurrentStateType != typeof(PlayerDeathState)
-                || _fsm.CurrentStateType != typeof(PlayerLockState))
-            {
-                RotateBody();           // 旋转躯干
-                RotateLegs();
-                WeaponInput();          // 武器输入
-                CheckFuel();
-            }
+            RotateBody();           // 旋转躯干
+            RotateLegs();
+            WeaponInput();          // 武器输入
+            CheckFuel();
 
             TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdatePos { Pos = transform.position });
         }

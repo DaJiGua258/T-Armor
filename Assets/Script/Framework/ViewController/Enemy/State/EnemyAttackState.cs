@@ -33,6 +33,17 @@ namespace QFramework.ViewController.Enemy
             Entity.RefreshTargetInCombat();
             Entity.RotateToTarget(Entity.Target.position);
 
+            // 远程敌人距离过近时拉开距离
+            if (Entity.AttackMinRange > Entity.StopRange + 2f)
+            {
+                float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
+                if (distance < Entity.StopRange)
+                {
+                    FSM.ChangeState<EnemyMoveState>();
+                    return;
+                }
+            }
+
             // 超出最大攻击范围 → 追击
             if (!Entity.IsInAttackMaxRange())
             {

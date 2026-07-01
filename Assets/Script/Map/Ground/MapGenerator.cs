@@ -8,6 +8,7 @@ using QFramework.Utility;
 using QFramework;
 using QFramework.System;
 using QFramework.ViewController.Mission;
+using Pathfinding;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -85,6 +86,17 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         if (poiSettings.enabled)
             SpawnPOIInstances();
         SpawnEnvironmentObjects();
+
+        // 同步物理变换后延迟扫描，等待物理系统稳定
+        Physics2D.SyncTransforms();
+        StartCoroutine(DelayedScan());
+    }
+
+    private System.Collections.IEnumerator DelayedScan()
+    {
+        yield return new WaitForFixedUpdate();
+        if (AstarPath.active != null)
+            AstarPath.active.Scan();
     }
 
     [ContextMenu("清空地图")]
@@ -741,25 +753,8 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
         template.name = $"{prefab.name}_RuntimeTemplate";
         if (template.activeSelf) template.SetActive(false);
 
-        RemoveMeshRelatedComponentsRecursively(template.transform);
         _runtimeSpawnTemplateCache[prefab] = template;
         return template;
-    }
-
-    private static void RemoveMeshRelatedComponentsRecursively(Transform root)
-    {
-        if (root == null) return;
-
-        var meshFilter = root.GetComponent<MeshFilter>();
-        var meshRenderer = root.GetComponent<MeshRenderer>();
-
-        if (meshFilter != null) Destroy(meshFilter);
-        if (meshRenderer != null) Destroy(meshRenderer);
-
-        for (int i = 0; i < root.childCount; i++)
-        {
-            RemoveMeshRelatedComponentsRecursively(root.GetChild(i));
-        }
     }
 
     private void OnDestroy()

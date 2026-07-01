@@ -27,7 +27,6 @@ namespace QFramework.UtilityKit
                 Destroy(gameObject);
             }
 
-            DontDestroyOnLoad(gameObject);
         }
     }
 

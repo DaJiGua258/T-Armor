@@ -32,7 +32,6 @@ public sealed class RenderManager : MonoBehaviour
         }
 
         _instance = this;
-        DontDestroyOnLoad(gameObject);
         EnsureSharedQuad();
     }
 

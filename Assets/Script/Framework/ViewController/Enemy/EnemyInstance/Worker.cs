@@ -6,6 +6,8 @@ namespace QFramework.ViewController.Enemy
 {
     public class Worker : AbstractEnemy
     {
+        private static readonly RaycastHit2D[] _hitCache = new RaycastHit2D[8];
+
         [Header("特殊引用")]
         [SerializeField] private ElecShock _light;  // 电击特效引用
 
@@ -21,7 +23,7 @@ namespace QFramework.ViewController.Enemy
         }
 
         /// <summary>
-        /// 电击射击：从枪口发射射线到目标，检测路径上的障碍与目标并处理伤害。
+        /// 近战电击：从枪口到目标做射线检测判定命中。
         /// </summary>
         public override void Shoot()
         {
@@ -30,16 +32,32 @@ namespace QFramework.ViewController.Enemy
 
             Vector2 origin = Muzzle.position;
             Vector2 direction = ((Vector2)Target.position - origin).normalized;
-            float distance = Vector2.Distance(origin, Target.position);
+            float distToTarget = Vector2.Distance(origin, Target.position);
 
-            RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, TargetLayerMask);
+            // 射线起点回退 + 远端延伸：
+            // - 回退：避免 Muzzle 在目标碰撞体内部时，Physics2D.Raycast 不检测该碰撞体
+            // - 延伸：避免 Target.position 未对齐碰撞体实际中心时射线终点够不到碰撞体表面
+            const float backOffset = 0.5f;
+            const float forwardExtra = 0.5f;
+            Vector2 rayOrigin = origin - direction * backOffset;
+            float rayDistance = distToTarget + backOffset + forwardExtra;
 
-            if (hit.collider != null)
+            int hitCount = Physics2D.RaycastNonAlloc(rayOrigin, direction, _hitCache, rayDistance, TargetLayerMask);
+
+            for (int i = 0; i < hitCount; i++)
             {
+                var hit = _hitCache[i];
+                if (hit.collider.transform.IsChildOf(transform)) continue;
+
+                // 跳过非战斗碰撞体（如 MovingBox），继续检测后续是否有 Player/Enemy 碰撞体
+                string tag = hit.collider.tag;
+                if (tag != "Player" && tag != "Enemy" && tag != "DesEnv") continue;
+
                 Vector2 attackDir = (Target.position - Muzzle.position).normalized;
                 int dmg = EnemyInstanceSystem.GetData(enemyId).Damage;
                 var damageInfo = new DamageInfo(dmg, 0f, 0f, attackDir);
                 HitDetectionUtility.ProcessHit(hit.collider, damageInfo);
+                break;
             }
         }
 

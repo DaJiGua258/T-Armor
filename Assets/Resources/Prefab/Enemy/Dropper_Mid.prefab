@@ -4977,6 +4977,7 @@ MonoBehaviour:
   StopRange: 1.5
   AttackCooldown: 1.5
   FirstAttackCooldown: -1
+  BulletSpeed: 20
   FlankProbability: 0.75
   _moveSpeed: 3
   Rb: {fileID: 0}

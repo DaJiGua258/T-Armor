@@ -37,6 +37,8 @@ namespace QFramework.System
             // 开局 Mod 芯片
             AddItemToInventory(ItemTypeEnum.Mod_Damage, 1);
             AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Homing, 1);
         }
 
         /// <summary>

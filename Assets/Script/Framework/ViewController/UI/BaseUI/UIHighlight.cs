@@ -1,4 +1,7 @@
+using QFramework.Enum;
+using QFramework.Manager;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace QFramework.ViewController.UI
@@ -8,7 +11,7 @@ namespace QFramework.ViewController.UI
     /// 激活态：sprite = null（纯白底），color = Color.black
     /// 常态  ：sprite = 默认边框图，   color = Color.white
     /// </summary>
-    public class UIHighlight : MonoBehaviour
+    public class UIHighlight : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler
     {
         [SerializeField] private Image _targetImage;
         [SerializeField] private Text _targetText;
@@ -42,6 +45,21 @@ namespace QFramework.ViewController.UI
                 _targetImage.sprite = highlighted ? null : _defaultSprite;
             if (_targetText != null)
                 _targetText.color = highlighted ? Color.black : Color.white;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFXFixed(SFXType.ui_hover);
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFXFixed(SFXType.ui_click);
+            // 将点击事件向上传递（从父级开始），让 WeaponEnhanceView 等也能触发选择逻辑
+            if (transform.parent != null)
+                ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.pointerClickHandler);
         }
     }
 }

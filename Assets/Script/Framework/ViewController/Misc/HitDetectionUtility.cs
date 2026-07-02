@@ -1,6 +1,7 @@
 using QFramework.Command;
 using QFramework.Enum;
 using QFramework.Event;
+using QFramework.Manager;
 using QFramework.ViewController.Enemy;
 using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
@@ -126,6 +127,9 @@ namespace QFramework.ViewController
                 int enemyId = enemy.enemyId;
                 TArmorArchitecture.Interface.SendCommand(EnemyCommand.Damage.Instance.Init(enemyId, damageInfo.Damage));
                 TypeEventSystem.Global.Send(new WeaponInfoEvent.UpdateEnemyInfo());
+
+                // 受击音效
+                AudioManager.Instance.PlaySFX(SFXType.enemy_hit, collider.transform.position);
 
                 // 异常状态效果
                 if (damageInfo.KnockbackValue > 0f)

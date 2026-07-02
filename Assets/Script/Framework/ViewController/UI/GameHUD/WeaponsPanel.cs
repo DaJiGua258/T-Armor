@@ -11,6 +11,7 @@ namespace QFramework.ViewController.UI
     {
         private WeaponSlot[] _slots;
         private WeaponDataModel[] _weaponDatas;
+        private bool[] _prevReloading;
 
         void Awake()
         {
@@ -19,7 +20,7 @@ namespace QFramework.ViewController.UI
 
             _slots = new WeaponSlot[content.childCount];
             for (int i = 0; i < content.childCount; i++)
-        {
+            {
                 var child = content.GetChild(i);
                 var numTxt = child.Find("Num/Txt");
                 var reloadImg = child.Find("Reload/Img");
@@ -46,10 +47,31 @@ namespace QFramework.ViewController.UI
                 PlayerSystem.PlayerWeapon.HangerLeft.Value,
                 PlayerSystem.PlayerWeapon.HangerRight.Value,
             };
+            _prevReloading = new bool[_weaponDatas.Length];
 
             for (int i = 0; i < _slots.Length && i < _weaponDatas.Length; i++)
             {
                 RegisterSlot(_slots[i], _weaponDatas[i]);
+            }
+        }
+
+        private void Update()
+        {
+            if (_weaponDatas == null) return;
+            // 检测换弹状态变化，启动/停止换弹动画
+            for (int i = 0; i < _slots.Length && i < _weaponDatas.Length; i++)
+            {
+                var data = _weaponDatas[i];
+                if (data == null) continue;
+                bool reloading = data.WeaponState == WeaponStateEnum.Reloading;
+                if (reloading != _prevReloading[i])
+                {
+                    _prevReloading[i] = reloading;
+                    if (reloading)
+                        StartReloadAnimation(_slots[i], data);
+                    else
+                        _slots[i]?.FillTweener?.Kill();
+                }
             }
         }
 
@@ -58,8 +80,6 @@ namespace QFramework.ViewController.UI
             if (data == null) return;
 
             data.CurMagazine.Register(_ => OnMagazineChanged(slot, data))
-                .UnRegisterWhenGameObjectDestroyed(gameObject);
-            data.CurMaxAmmo.Register(_ => OnMaxAmmoChanged(slot, data))
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
             UpdateSlot(slot, data);
         }
@@ -70,19 +90,11 @@ namespace QFramework.ViewController.UI
             UpdateSlot(slot, data);
         }
 
-        private void OnMaxAmmoChanged(WeaponSlot slot, WeaponDataModel data)
-        {
-            if (data.WeaponState == WeaponStateEnum.Reloading)
-            {
-                StartReloadAnimation(slot, data);
-            }
-        }
-
         private void UpdateSlot(WeaponSlot slot, WeaponDataModel data)
         {
             if (slot == null) return;
             if (slot.ammoTxt != null)
-                slot.ammoTxt.text = $"{data.CurMagazine.Value:D3} / {data.CurMaxAmmo.Value:D3}";
+                slot.ammoTxt.text = $"{data.CurMagazine.Value:D3} / {data.MaxMagazine:D3}";
 
             if (slot.fillImg != null)
                 slot.fillImg.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;

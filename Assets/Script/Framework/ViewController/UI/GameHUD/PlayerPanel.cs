@@ -68,7 +68,7 @@ namespace QFramework.ViewController.UI
                 .SetEase(Ease.Linear)
                 .Restart();
 
-            bar.txt.text = $"> {Mathf.RoundToInt(current):000}";
+            bar.txt.text = $">{Mathf.RoundToInt(current):000}";
         }
 
     }

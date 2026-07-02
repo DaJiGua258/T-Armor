@@ -92,19 +92,17 @@ namespace QFramework.ViewController.Player
         {
     // 如果尚未接收到目标位置，则获取鼠标位置作为目标
             if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
-                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMaxAmmo.Value > 0)
+                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }
         }
 
         public void ReloadAuto()
-        { 
+        {
             if(WeaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMagazine.Value <= 0
-                && WeaponDataModel.CurMaxAmmo.Value > 0)
+                && WeaponDataModel.CurMagazine.Value <= 0)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }
@@ -144,6 +142,7 @@ namespace QFramework.ViewController.Player
 
         public virtual void ShootDetal()
         {
+            if (Muzzle == null) return;
             // 计算发射方向：与武器朝向一致
             Vector3 shootDir = Muzzle.right; // local right 是2D武器的默认枪口方向 (一般为右)
 

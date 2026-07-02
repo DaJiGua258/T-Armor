@@ -67,6 +67,7 @@ namespace QFramework.ViewController.UI
 
             _weaponInfo.Show(
                 _weaponConfig.GetDisplayName(w.WeaponType),
+                w.Description,
                 "伤害：\n射速：\n弹匣：\n装填：\n弹速：\n散射：",
                 $"{FormatStatWithMod(w.BulletDamage, w.ModDisplayPct, StatName.BulletDamage)}\n{FormatStatWithMod(w.Rpm, w.ModDisplayPct, StatName.Rpm)}\n{w.MaxMagazine}\n{FormatStatWithMod(w.ReloadTime, w.ModDisplayPct, StatName.ReloadTime, "s")}\n{FormatStatWithMod(w.BulletSpeed, w.ModDisplayPct, StatName.BulletSpeed)}\n{FormatStatWithMod(w.SpreadAngle, w.ModDisplayPct, StatName.SpreadAngle, "°")}"
             );
@@ -98,7 +99,7 @@ namespace QFramework.ViewController.UI
             }
             string values = _sb.ToString();
 
-            _modInfo.Show(item.name, labels, values);
+            _modInfo.Show(item.name, "", labels, values);
         }
 
         private void OnUpdateViewer(UpdateViewerEvent e)
@@ -171,13 +172,17 @@ namespace QFramework.ViewController.UI
         public class InfoBlock
         {
             [SerializeField] private Transform _root;
-            private Text _nameText;
-            private Text _infoText;
-            private Text _dataText;
+            [SerializeField] private Text _nameText;
+            [SerializeField] private Text _descText;
+            [SerializeField] private Text _infoText;
+            [SerializeField] private Text _dataText;
 
             public void Init()
             {
                 if (_root == null) return;
+                // 如果已通过 Inspector 拖拽赋值，则跳过自动查找
+                if (_nameText != null && _infoText != null && _dataText != null) return;
+
                 for (int i = 0; i < _root.childCount; i++)
                 {
                     var child = _root.GetChild(i);
@@ -185,9 +190,10 @@ namespace QFramework.ViewController.UI
                     if (text == null) continue;
                     switch (child.name)
                     {
-                        case "Name":  _nameText = text; break;
-                        case "Info":  _infoText = text; break;
-                        case "Data":  _dataText = text; break;
+                        case "Name":  if (_nameText == null) _nameText = text; break;
+                        case "Description": if (_descText == null) _descText = text; break;
+                        case "Info":  if (_infoText == null) _infoText = text; break;
+                        case "Data":  if (_dataText == null) _dataText = text; break;
                     }
                 }
             }
@@ -195,13 +201,15 @@ namespace QFramework.ViewController.UI
             public void Clear()
             {
                 if (_nameText != null) _nameText.text = string.Empty;
+                if (_descText != null) _descText.text = string.Empty;
                 if (_infoText != null) _infoText.text = string.Empty;
                 if (_dataText != null) _dataText.text = string.Empty;
             }
 
-            public void Show(string name, string info, string data)
+            public void Show(string name, string description, string info, string data)
             {
                 if (_nameText != null) _nameText.text = name;
+                if (_descText != null) _descText.text = description;
                 if (_infoText != null) _infoText.text = info;
                 if (_dataText != null) _dataText.text = data;
             }

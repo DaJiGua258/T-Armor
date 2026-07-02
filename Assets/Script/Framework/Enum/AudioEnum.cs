@@ -4,10 +4,19 @@ namespace QFramework.Enum
     {
     }
 
+    public enum EnvType
+    {
+        main_menu,
+        game,
+    }
+
     public enum SFXType
     {
         // ui
         ui_click,
+        ui_open,
+        ui_close,
+        ui_hover,
 
         // player
         player_moving_engine,
@@ -17,9 +26,17 @@ namespace QFramework.Enum
         weapon_reload,
         weapon_shoot_ar,
         weapon_shoot_sg,
+        weapon_shoot_hsa,
 
-        // 
+        //
         enemy_dropper_falling,
+
+        // enemy
+        enemy_hit,
+
+        // item
+        item_pickup,
+
 
         
         // vfx

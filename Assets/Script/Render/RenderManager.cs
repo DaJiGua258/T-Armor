@@ -19,9 +19,33 @@ public sealed class RenderManager : MonoBehaviour
         }
     }
 
-    private readonly Dictionary<Material, RenderBatch> _batchDict = new Dictionary<Material, RenderBatch>(16);
+    private readonly Dictionary<BatchKey, RenderBatch> _batchDict = new Dictionary<BatchKey, RenderBatch>(16);
     private readonly HashSet<Material> _instancingUnsupportedWarned = new HashSet<Material>();
     private Mesh _sharedQuad;
+
+    private readonly struct BatchKey : System.IEquatable<BatchKey>
+    {
+        public readonly Material Material;
+        public readonly MaterialPropertyBlock Properties;
+
+        public BatchKey(Material material, MaterialPropertyBlock properties)
+        {
+            Material = material;
+            Properties = properties;
+        }
+
+        public bool Equals(BatchKey other) => Material == other.Material && Properties == other.Properties;
+
+        public override bool Equals(object obj) => obj is BatchKey other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (Material != null ? Material.GetHashCode() : 0);
+            hash = hash * 23 + (Properties != null ? Properties.GetHashCode() : 0);
+            return hash;
+        }
+    }
 
     private void Awake()
     {
@@ -35,24 +59,25 @@ public sealed class RenderManager : MonoBehaviour
         EnsureSharedQuad();
     }
 
+    /// <summary>提交一个实例（不带 per-instance 属性）</summary>
     public void Submit(Material mat, Matrix4x4 matrix)
     {
-        if (mat == null)
-        {
-            return;
-        }
+        Submit(mat, matrix, null);
+    }
 
-        if (!EnsureInstancingReady(mat))
-        {
-            return;
-        }
+    /// <summary>提交一个实例（带 per-instance 属性）</summary>
+    public void Submit(Material mat, Matrix4x4 matrix, MaterialPropertyBlock properties)
+    {
+        if (mat == null) return;
 
-        RenderBatch batch;
-        if (!_batchDict.TryGetValue(mat, out batch))
+        if (!EnsureInstancingReady(mat)) return;
+
+        var key = new BatchKey(mat, properties);
+        if (!_batchDict.TryGetValue(key, out var batch))
         {
             EnsureSharedQuad();
-            batch = new RenderBatch(_sharedQuad, mat);
-            _batchDict.Add(mat, batch);
+            batch = new RenderBatch(_sharedQuad, mat, properties);
+            _batchDict.Add(key, batch);
         }
 
         batch.MatrixList.Add(matrix);
@@ -60,21 +85,13 @@ public sealed class RenderManager : MonoBehaviour
 
     private bool EnsureInstancingReady(Material mat)
     {
-        if (mat.enableInstancing)
-        {
-            return true;
-        }
+        if (mat.enableInstancing) return true;
 
         mat.enableInstancing = true;
-        if (mat.enableInstancing)
-        {
-            return true;
-        }
+        if (mat.enableInstancing) return true;
 
         if (_instancingUnsupportedWarned.Add(mat))
-        {
             Debug.LogWarning($"RenderManager: 材质 {mat.name} 未启用/不支持 Instancing，已跳过该材质的实例化绘制。");
-        }
 
         return false;
     }
@@ -92,10 +109,7 @@ public sealed class RenderManager : MonoBehaviour
 
     private void EnsureSharedQuad()
     {
-        if (_sharedQuad != null)
-        {
-            return;
-        }
+        if (_sharedQuad != null) return;
 
         _sharedQuad = new Mesh { name = "RenderManager_Quad" };
         _sharedQuad.vertices = new[]

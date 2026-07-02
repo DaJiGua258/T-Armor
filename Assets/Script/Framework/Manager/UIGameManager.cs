@@ -81,8 +81,8 @@ namespace QFramework.Manager
         {
             SetConfig(UIGamePanelType.GameHUDPanel,     UIGamePanelLayer.HUD,     false);
             SetConfig(UIGamePanelType.InteractionPanel, UIGamePanelLayer.Overlay, false);
-            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  true);
-            SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   true);
+            SetConfig(UIGamePanelType.InventoryPanel,   UIGamePanelLayer.Screen,  false);
+            SetConfig(UIGamePanelType.PausePanel,       UIGamePanelLayer.Modal,   false);
             SetConfig(UIGamePanelType.SettingsPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.GameOverPanel,    UIGamePanelLayer.Modal,   true);
             SetConfig(UIGamePanelType.TerminalPanel,    UIGamePanelLayer.Modal,   false);
@@ -129,6 +129,18 @@ namespace QFramework.Manager
             foreach (var kvp in _panelDict)
             {
                 if (_panelLayers[kvp.Key] == UIGamePanelLayer.Modal && kvp.Value.gameObject.activeSelf)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>Screen / Modal 层面板是否在显示（Inventory、Pause、Settings、GameOver、Terminal）
+        /// InteractionPanel（Overlay 层）默认常驻，不纳入判断</summary>
+        public bool IsAnyPanelOpenAboveHUD()
+        {
+            foreach (var kvp in _panelDict)
+            {
+                if (_panelLayers[kvp.Key] >= UIGamePanelLayer.Screen && kvp.Value.gameObject.activeSelf)
                     return true;
             }
             return false;

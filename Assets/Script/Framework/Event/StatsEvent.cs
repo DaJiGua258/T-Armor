@@ -37,7 +37,9 @@ namespace QFramework.Event
 
         public struct OnItemCollected
         {
-            public int ItemId;
+            public ItemTypeEnum ItemType;
+            public string ItemName;
+            public int Count;
         }
     }
 }

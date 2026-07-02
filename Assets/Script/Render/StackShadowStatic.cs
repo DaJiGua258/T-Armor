@@ -63,6 +63,12 @@ public class StackShadowStatic : StackingCore
         if (!UseRenderManagerStaticMode || !Application.isPlaying || !_runtimeInitialized || StackingMaterial == null)
             return;
 
-        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix);
+        if (transform.hasChanged)
+        {
+            _cachedMatrix = transform.localToWorldMatrix;
+            transform.hasChanged = false;
+        }
+
+        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix, _customPropertyBlock);
     }
 }

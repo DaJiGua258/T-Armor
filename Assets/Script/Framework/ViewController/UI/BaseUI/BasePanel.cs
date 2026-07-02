@@ -1,3 +1,5 @@
+using QFramework.Enum;
+using QFramework.Manager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +16,8 @@ namespace QFramework.ViewController.UI
     {
         public void Show()
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFXFixed(SFXType.ui_open);
             gameObject.SetActive(true);
             OnShow();
             RebuildLayout();
@@ -21,6 +25,8 @@ namespace QFramework.ViewController.UI
 
         public virtual void Hide()
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFXFixed(SFXType.ui_close);
             OnHide();
             RebuildLayout();
             gameObject.SetActive(false);

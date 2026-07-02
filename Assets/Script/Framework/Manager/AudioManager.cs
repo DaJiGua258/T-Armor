@@ -5,6 +5,7 @@ using QFramework.Enum;
 using QFramework.Utility;
 using QFramework.UtilityKit;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace QFramework.Manager
 {
@@ -58,6 +59,13 @@ namespace QFramework.Manager
             }
 
             LoadSavedSettings();
+
+            // 根据场景自动播放环境音
+            var sceneName = SceneManager.GetActiveScene().name;
+            if (sceneName == "Game")
+                PlayEnv(EnvType.game);
+            else
+                PlayEnv(EnvType.main_menu);
         }
 
         // ===== BGM =====
@@ -160,6 +168,23 @@ namespace QFramework.Manager
             _envSource.Play();
         }
 
+        public void PlayEnv(EnvType type)
+        {
+            if (_isMuted) return;
+
+            var clip = LoadClip("EnvType", type.ToString());
+            if (clip == null)
+            {
+                Debug.LogWarning($"[AudioManager] Env clip not found: {type}");
+                return;
+            }
+
+            _envSource.clip = clip;
+            _envSource.loop = true;
+            _envSource.volume = GetEnvVolumeMultiplier();
+            _envSource.Play();
+        }
+
         public void StopEnv()
         {
             _envSource.Stop();
@@ -207,6 +232,23 @@ namespace QFramework.Manager
             var source = GetAvailableSFXSource();
             ApplySFXVariation(source);
             source.transform.position = position;
+            source.PlayOneShot(clip);
+        }
+
+        public void PlaySFXFixed(SFXType type)
+        {
+            if (_isMuted) return;
+
+            var clip = LoadClip("SFXType", type.ToString());
+            if (clip == null)
+            {
+                Debug.LogWarning($"[AudioManager] SFX clip not found: {type}");
+                return;
+            }
+
+            var source = GetAvailableSFXSource();
+            source.pitch = 1f;
+            source.volume = GetSFXVolumeMultiplier();
             source.PlayOneShot(clip);
         }
 

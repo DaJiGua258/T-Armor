@@ -1,0 +1,9 @@
+﻿{
+  "Items": [
+    { "ItemType": 4, "Category": 0, "EntryTarget": 0, "EntryValue": 3, "EntryOp": 0 },
+    { "ItemType": 5, "Category": 0, "EntryTarget": 3, "EntryValue": 0.9, "EntryOp": 1 },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 14, "EntryValue": 1, "EntryOp": 2 },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 2, "EntryValue": -0.3, "EntryOp": 1 },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 13, "EntryValue": 1, "EntryOp": 1 }
+  ]
+}

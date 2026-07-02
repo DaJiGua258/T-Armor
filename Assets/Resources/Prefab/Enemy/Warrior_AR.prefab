@@ -4885,7 +4885,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5283900053652784545
 Transform:
   m_ObjectHideFlags: 0
@@ -5078,7 +5078,7 @@ MonoBehaviour:
     m_Bits: 1024
   _combatScanInterval: 0.3
   Target: {fileID: 0}
-  pf_Bullet: {fileID: 617970467497839275, guid: b78afcb6a2c1f2743851aab1fe54c95d, type: 3}
+  pf_Bullet: {fileID: 617970467497839275, guid: e2298322054087443af2d99dbd90eb1b, type: 3}
   pf_DeathVFX: {fileID: 8486971914317455159, guid: 75bf4c14e84a953489cc5cfd6a0884bb, type: 3}
   ShoottingVFX: {fileID: 6191496771103452491}
   Mesh: {fileID: 174613620693680565}
@@ -5094,6 +5094,7 @@ MonoBehaviour:
   _burstCount: 2
   _burstInterval: 0.1
   _rotateSpeed: 5
+  RepositionRequested: 0
 --- !u!114 &1783405537121989179
 MonoBehaviour:
   m_ObjectHideFlags: 0

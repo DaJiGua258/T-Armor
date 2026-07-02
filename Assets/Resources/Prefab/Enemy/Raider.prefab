@@ -29376,7 +29376,7 @@ MonoBehaviour:
     m_Bits: 1024
   _combatScanInterval: 0.3
   Target: {fileID: 0}
-  pf_Bullet: {fileID: 617970467497839275, guid: f16a605332be37b4aba55dd9a8ddb1ed, type: 3}
+  pf_Bullet: {fileID: 617970467497839275, guid: 1e4629410a206a04680b08b18ca954dd, type: 3}
   pf_DeathVFX: {fileID: 8486971914317455159, guid: b74cff75454ab3a4387694510af56cb0, type: 3}
   ShoottingVFX: {fileID: 3135758594895841411}
   Mesh: {fileID: 0}
@@ -29392,6 +29392,7 @@ MonoBehaviour:
   _burstCount: 3
   _burstInterval: 0.1
   _rotateSpeed: 5
+  RepositionRequested: 0
   _amplitude: 0.5
   _frequency: 1
   _horizontalAmplitude: 0.3
@@ -29484,7 +29485,7 @@ MonoBehaviour:
   managedSettings:
     pathfindingSettings:
       graphMask:
-        value: 2
+        value: 1
       traversableTags: -1
       tagCostMultipliers:
       - 1
@@ -63962,7 +63963,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1392717225051939871
 Transform:
   m_ObjectHideFlags: 0

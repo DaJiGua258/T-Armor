@@ -1,8 +1,8 @@
-{
+﻿{
   "Items": [
     { "EnemyType": 1, "enemySize": 5, "MaxHealth": 50, "ReactionTime": 0.5, "Speed": 10, "Damage": 5, "DetectionRange": 15, "AttackMaxRange": 2.5, "AttackMinRange": 1, "StopRange": 1.5, "ShootAccuracy": 1, "BulletSpeed": 20, "MoveSpeed": 3, "KnockbackThreshold": 0.5, "BurnThreshold": 0.6, "SlowThreshold": 0.5 },
     { "EnemyType": 2, "enemySize": 10, "MaxHealth": 100, "ReactionTime": 0.5, "Speed": 20, "Damage": 20, "DetectionRange": 15, "AttackMaxRange": 12, "AttackMinRange": 8, "StopRange": 5, "ShootAccuracy": 0.5, "BulletSpeed": 10, "MoveSpeed": 2, "KnockbackThreshold": 0.3, "BurnThreshold": 0.4, "SlowThreshold": 0.5 },
-    { "EnemyType": 3, "enemySize": 10, "MaxHealth": 80, "ReactionTime": 0.5, "Speed": 20, "Damage": 50, "DetectionRange": 20, "AttackMaxRange": 18, "AttackMinRange": 12, "StopRange": 5, "ShootAccuracy": 1, "BulletSpeed": 25, "MoveSpeed": 1.5, "KnockbackThreshold": 0.3, "BurnThreshold": 0.3, "SlowThreshold": 0.5 },
+    { "EnemyType": 3, "enemySize": 10, "MaxHealth": 80, "ReactionTime": 0.5, "Speed": 20, "Damage": 50, "DetectionRange": 20, "AttackMaxRange": 18, "AttackMinRange": 12, "StopRange": 5, "ShootAccuracy": 1, "BulletSpeed": 45, "MoveSpeed": 1.5, "KnockbackThreshold": 0.3, "BurnThreshold": 0.3, "SlowThreshold": 0.5 },
     { "EnemyType": 9, "enemySize": 15, "MaxHealth": 50, "ReactionTime": 0.5, "Speed": 30, "Damage": 30, "DetectionRange": 20, "AttackMaxRange": 8, "AttackMinRange": 4, "StopRange": 3, "ShootAccuracy": 0.5, "BulletSpeed": 10, "MoveSpeed": 4, "KnockbackThreshold": 0.25, "BurnThreshold": 0.3, "SlowThreshold": 0.5 },
     { "EnemyType": 11, "enemySize": 15, "MaxHealth": 10, "ReactionTime": 1, "Speed": 30, "Damage": 30, "DetectionRange": 20, "AttackMaxRange": 5, "AttackMinRange": 5, "StopRange": 1.5, "ShootAccuracy": 1, "BulletSpeed": 10, "MoveSpeed": 3, "KnockbackThreshold": 999, "BurnThreshold": 999, "SlowThreshold": 999 }
   ]

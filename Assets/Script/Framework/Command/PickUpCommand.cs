@@ -1,4 +1,6 @@
 using QFramework.Enum;
+using QFramework.Event;
+using QFramework.Model;
 using QFramework.System;
 using UnityEngine;
 
@@ -22,6 +24,14 @@ namespace QFramework.Command
             protected override void OnExecute()
             {
                 _invenotrySystem.AddItemToInventory(_itemType, 1);
+
+                var config = this.GetModel<IItemConfigModel>().GetItemConfig(_itemType);
+                TypeEventSystem.Global.Send(new StatsEvent.OnItemCollected
+                {
+                    ItemType = _itemType,
+                    ItemName = config?.name ?? _itemType.ToString(),
+                    Count = 1,
+                });
             }
         }
 

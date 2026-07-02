@@ -70,6 +70,8 @@ namespace QFramework.Manager
         public Camera MainCamera;
         public Vector3 StartCameraPosition;
         public Quaternion StartCameraRotation;
+        private Vector3 _mainMenuCameraPosition;
+        private Quaternion _mainMenuCameraRotation;
 
         [Header("镜头过渡")]
         [SerializeField] private float _cameraTransitionDuration = 1f;
@@ -105,6 +107,8 @@ namespace QFramework.Manager
         {
             StartCameraPosition = MainCamera.transform.position;
             StartCameraRotation = MainCamera.transform.rotation;
+            _mainMenuCameraPosition = StartCameraPosition;
+            _mainMenuCameraRotation = StartCameraRotation;
 
             if (GameManager.Instance.GetGameResultState() == GameResultState.GameFinished)
             {
@@ -384,8 +388,8 @@ namespace QFramework.Manager
                         if (menuCG != null) menuCG.alpha = 0f;
 
                         var cameraSeq = DOTween.Sequence();
-                        cameraSeq.Join(MainCamera.transform.DOMove(StartCameraPosition, _cameraTransitionDuration).SetEase(_cameraEase));
-                        cameraSeq.Join(MainCamera.transform.DORotateQuaternion(StartCameraRotation, _cameraTransitionDuration).SetEase(_cameraEase));
+                        cameraSeq.Join(MainCamera.transform.DOMove(_mainMenuCameraPosition, _cameraTransitionDuration).SetEase(_cameraEase));
+                        cameraSeq.Join(MainCamera.transform.DORotateQuaternion(_mainMenuCameraRotation, _cameraTransitionDuration).SetEase(_cameraEase));
                         if (menuCG != null)
                             cameraSeq.Join(menuCG.DOFade(1f, _cameraTransitionDuration).SetEase(_fadeEase));
                         cameraSeq.OnComplete(() => OrbitOrbitCamera.SyncFromPosition());
@@ -416,9 +420,7 @@ namespace QFramework.Manager
                                 OrbitOrbitCamera.planetCenter.position - targetPos, Vector3.up);
 
                             var cameraSeq = DOTween.Sequence();
-                            cameraSeq.Join(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration)
-                                .From(StartCameraPosition)
-                                .SetEase(_cameraEase));
+                            cameraSeq.Join(MainCamera.transform.DOMove(targetPos, _cameraTransitionDuration).SetEase(_cameraEase));
                             cameraSeq.Join(MainCamera.transform.DORotateQuaternion(targetRot, _cameraTransitionDuration)
                                 .SetEase(_cameraEase));
                             cameraSeq.OnComplete(() =>
@@ -489,7 +491,7 @@ namespace QFramework.Manager
             switch (panelType)
             {
                 case UIMainPanelType.MainMenuPanel:
-                    return StartCameraPosition;
+                    return _mainMenuCameraPosition;
 
                 case UIMainPanelType.LevelSelectPanel:
                     return OrbitOrbitCamera != null
@@ -601,7 +603,7 @@ namespace QFramework.Manager
 
         public void ResetCamera()
         {
-            MainCamera.transform.SetPositionAndRotation(StartCameraPosition, StartCameraRotation);
+            MainCamera.transform.SetPositionAndRotation(_mainMenuCameraPosition, _mainMenuCameraRotation);
         }
 
         public void LockCamera()

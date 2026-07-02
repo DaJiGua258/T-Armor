@@ -3,16 +3,10 @@ using UnityEngine;
 
 public class StackBase : StackBaseStatic
 {
-    protected override bool UseRenderManagerStaticMode => false;
-
+    protected override bool UseRenderManagerStaticMode => true;
 
     void Update()
     {
-        UpdateZSort();   
-        if (!Application.isPlaying || transform.hasChanged)
-        {
-            
-            transform.hasChanged = false;
-        }
+        UpdateZSort();
     }
 }

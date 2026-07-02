@@ -52,6 +52,7 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Collider2D _lastTargetCollider;
         [Header("UI 引用")]
         [SerializeField] private EnemyInfo _enemyInfo;
+        [SerializeField] private Text _enemyTypeText;
 
         [Header("旋转设置")]
         private float _interactionRotation = -45f;
@@ -79,8 +80,29 @@ namespace QFramework.ViewController.UI
             _rectTransform.sizeDelta = _fixedSize;
         }
 
+        void HideVisual()
+        {
+            _aimImage.enabled = false;
+            if (_combatFrame != null) _combatFrame.gameObject.SetActive(false);
+            if (_interactionFrame != null) _interactionFrame.gameObject.SetActive(false);
+            if (_selectionBox != null) _selectionBox.gameObject.SetActive(false);
+        }
+
+        void ShowVisual()
+        {
+            _aimImage.enabled = true;
+        }
+
         void Update()
         {
+            // 有更高层面板打开时，隐藏瞄准框并停止检测
+            if (UIGameManager.Instance.IsAnyPanelOpenAboveHUD())
+            {
+                HideVisual();
+                return;
+            }
+            ShowVisual();
+
             if (this.GetUtility<IInputUtility>().GetToggleAimModeInput())
             {
                 _currentMode = _currentMode == AimingModeEnum.Combat ? AimingModeEnum.Interaction : AimingModeEnum.Combat;
@@ -398,6 +420,7 @@ namespace QFramework.ViewController.UI
             {
                 _enemyInfo.SetEnemyId(-1);
                 _lastTargetCollider = null;
+                if (_enemyTypeText != null) _enemyTypeText.text = "";
                 TypeEventSystem.Global.Send(new WeaponEvent.GetTargetRig() { TargetRig = null });
                 return;
             }
@@ -409,6 +432,7 @@ namespace QFramework.ViewController.UI
             {
                 int enemyId = enemy.enemyId;
                 _enemyInfo.SetEnemyId(enemyId);
+                if (_enemyTypeText != null) _enemyTypeText.text = $"{enemy.enemyType.ToString().ToUpper()}{enemyId}";
 
                 TypeEventSystem.Global.Send(new DebugEvent.GetEnemyId() { Id = enemyId });
                 TypeEventSystem.Global.Send(new DebugEvent.GetEnemyState() { State = enemy.GetCurrentState() });
@@ -417,6 +441,7 @@ namespace QFramework.ViewController.UI
             }
             else if (_targetCollider.CompareTag("AimTarget"))
             {
+                if (_enemyTypeText != null) _enemyTypeText.text = "";
                 // AimTarget 从父级获取 Rigidbody2D 提供给武器提前量计算
                 var rig = _targetCollider.GetComponentInParent<Rigidbody2D>();
                 if (rig != null)

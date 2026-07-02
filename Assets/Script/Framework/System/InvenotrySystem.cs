@@ -59,6 +59,7 @@ namespace QFramework.System
                     {
                         ItemDataCache[i].ModData = new ModData(modConfig.ItemType, new List<ModEntry>(modConfig.Entries));
                     }
+
                     return;
                 }
             }

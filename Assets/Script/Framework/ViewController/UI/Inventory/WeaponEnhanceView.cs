@@ -62,7 +62,7 @@ namespace QFramework.ViewController.UI
         private void Update()
         {
             if (!_rtCamera || !_rtCamera.gameObject.activeSelf) return;
-            var delta = _rotationSpeed * Time.deltaTime;
+            var delta = _rotationSpeed * Time.unscaledDeltaTime;
             if (_meshTransform != null)
                 _meshTransform.Rotate(0f, 0, delta);
             if (_shadowTransform != null)
@@ -139,7 +139,10 @@ namespace QFramework.ViewController.UI
             var prefabChild = _rtCamera.transform.parent.Find("Prefab");
             _weaponModel = Instantiate(prefab, prefabChild);
             foreach (var mb in _weaponModel.GetComponentsInChildren<MonoBehaviour>())
+            {
+                if (mb is StackingCore) continue;
                 mb.enabled = false;
+            }
 
             _meshTransform = _weaponModel.transform.Find("Mesh");
             _shadowTransform = _weaponModel.transform.Find("Shadow");

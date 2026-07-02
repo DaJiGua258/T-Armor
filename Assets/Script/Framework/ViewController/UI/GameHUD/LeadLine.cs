@@ -45,10 +45,17 @@ namespace QFramework.ViewController.UI
 
         void LateUpdate()
         {
+            // 有更高层面板打开时，隐藏连线并停止跟随鼠标
+            if (UIGameManager.Instance.IsAnyPanelOpenAboveHUD())
+            {
+                SetLineActive(false);
+                return;
+            }
+            SetLineActive(true);
+
             Vector2 localPoint = UITool
                 .ScreenToCanvasPoint(UIGameManager.Instance.Canvas.transform as RectTransform, Input.mousePosition);
 
-            
             SetTo(localPoint);
 
             // 3. 执行刷新
@@ -87,6 +94,14 @@ namespace QFramework.ViewController.UI
         }
 
         // ── 内部刷新 ─────────────────────────────────────────────────────────
+
+        void SetLineActive(bool active)
+        {
+            if (_start.gameObject.activeSelf == active) return;
+            _start.gameObject.SetActive(active);
+            _line.gameObject.SetActive(active);
+            _end.gameObject.SetActive(active);
+        }
 
         void Refresh()
         {

@@ -69,6 +69,7 @@ namespace QFramework.Model
     {
         public WeaponTypeEnum WeaponType;
         public string DisplayName;
+        public string Description;
 
         // JSON 原始字段
         public int AmmoMul;  // 备弹倍率，MaxAmmo = MaxMagazine * AmmoMul

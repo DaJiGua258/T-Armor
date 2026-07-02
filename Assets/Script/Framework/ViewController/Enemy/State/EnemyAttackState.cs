@@ -1,80 +1,65 @@
+using QFramework.Enum;
 using QFramework.ViewController.FSM;
 using UnityEngine;
 
 namespace QFramework.ViewController.Enemy
 {
     /// <summary>
-    /// 敌人停车射击状态。
-    /// 进入时在 StopRange~AttackMinRange 之间随机选停车距离，
-    /// 到达后原地攻击；视线丢失持续超过容忍时间或目标超出范围则切回待机。
+    /// 敌人停车射击状态，锁定位置向目标持续开火
     /// </summary>
     public class EnemyAttackState : AbstractState<AbstractEnemy>
     {
-        private const float LosLostBuffer = 0.5f;
-        private float _attackTimer;
-        private float _losLostTimer;
+        private float _attackTimer;  // 攻击间隔计时器
+        private int _shotCount;  // 本次停车射击已射击次数
+        private int _maxShotCount;  // 本次停车射击次数上限（2~3 随机）
 
         public EnemyAttackState(AbstractEnemy owner, StateMachine<AbstractEnemy> fsm)
             : base(owner, fsm) { }
 
         public override void OnEnter()
         {
+            // 锁定 RVO 使敌人原地不动
             Entity.SetAgentRvoLocked(true);
-
-            // 首次攻击冷却：面板值≥0用面板，-1则等同 AttackCooldown
-            _attackTimer = Entity.FirstAttackCooldown >= 0f
-                ? Mathf.Max(0f, Entity.AttackCooldown - Entity.FirstAttackCooldown)
-                : 0f;
-            _losLostTimer = 0f;
+            _attackTimer = 0f;
+            _shotCount = 0;
+            _maxShotCount = Random.Range(2, 4);  // 2~3 次射击后调整位置
         }
 
         public override void OnUpdate()
         {
-            Entity.RefreshTargetInCombat();
-            Entity.RotateToTarget(Entity.Target.position);
+            if (Entity.Target == null) return;
 
-            // 远程敌人距离过近时拉开距离
-            if (Entity.AttackMinRange > Entity.StopRange + 2f)
-            {
-                float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
-                if (distance < Entity.StopRange)
-                {
-                    FSM.ChangeState<EnemyMoveState>();
-                    return;
-                }
-            }
-
-            // 超出最大攻击范围 → 追击
-            if (!Entity.IsInAttackMaxRange())
+            // 目标超出最大攻击范围 → 切回追击
+            float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
+            if (distance > Entity.AttackMaxRange)
             {
                 FSM.ChangeState<EnemyMoveState>();
                 return;
             }
 
-            // 视线丢失 → 累积计时，超过容忍值则追击
-            if (!Entity.HasLineOfSightToTarget())
-            {
-                _losLostTimer += Time.deltaTime;
-                if (_losLostTimer >= LosLostBuffer)
-                {
-                    FSM.ChangeState<EnemyMoveState>();
-                    return;
-                }
-            }
-            else
-            {
-                _losLostTimer = 0f;
-            }
+            // 转向目标
+            Entity.RotateToTarget(Entity.Target.position);
 
+            // 按冷却间隔射击
             _attackTimer += Time.deltaTime;
             if (_attackTimer < Entity.AttackCooldown) return;
 
             Entity.Attack();
             _attackTimer = 0f;
+            _shotCount++;
+
+            // 射满次数后重新调整位置（Worker 不随机跑）
+            if (_shotCount >= _maxShotCount)
+            {
+                if (Entity.enemyType != EnemyTypeEnum.Worker)
+                    Entity.RepositionRequested = true;
+                FSM.ChangeState<EnemyMoveState>();
+            }
         }
 
         public override void OnExit()
         {
+            // 解锁 RVO，允许移动
             Entity.SetAgentRvoLocked(false);
         }
     }

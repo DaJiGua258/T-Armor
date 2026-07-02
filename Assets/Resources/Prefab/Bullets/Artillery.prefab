@@ -59,7 +59,6 @@ MonoBehaviour:
   _arrivalThreshold: 1
   _maxBufferTime: 2
   _minRayDistance: 0.25
-  _bulletTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1168464848693939194
 GameObject:
   m_ObjectHideFlags: 0

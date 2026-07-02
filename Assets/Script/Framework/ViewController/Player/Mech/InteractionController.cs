@@ -122,6 +122,7 @@ namespace QFramework.ViewController.Player
                 this.GetSystem<IPlayerSystem>().PlayerWeapon.Left.Value.InstanceId.Value,
                 pickUp.GetInstanceId()));
 
+            AudioManager.Instance.PlaySFX(SFXType.item_pickup);
             _objectPoolUtility.PushObject(pickUp.gameObject);
         }
 
@@ -130,6 +131,7 @@ namespace QFramework.ViewController.Player
             this.SendCommand(new PickUpCommand.PickUpItemInstance(
                 pickUp.GetInstanceId()));
 
+            AudioManager.Instance.PlaySFX(SFXType.item_pickup);
             _objectPoolUtility.PushObject(pickUp.gameObject);
         }
     }

@@ -1,3 +1,6 @@
+using System.Linq;
+using UnityEngine;
+
 namespace QFramework.Model
 {
     public interface IPlayerModel : IModel
@@ -24,25 +27,35 @@ namespace QFramework.Model
         public float FuelRecovery { get; set; }  // 每秒恢复
         public int DashCost { get; set; }  // 每次消耗
         public int SprintCost { get; set; }  // 每秒消耗
-        
-        public int SprintSmooth { get; set; }  // 冲刺平滑
-        
 
+        public int SprintSmooth { get; set; }  // 冲刺平滑
 
         protected override void OnInit()
         {
-            MaxHealth.Value = 999;
-            CurrentHealth.Value = 999;
-            Speed.Value = 3;
-            MaxFuel.Value = 100;
-            CurrentFuel.Value = 100;
+            var configs = ConfigLoader.LoadFromJson<PlayerConfig>("Config/PlayerConfig");
+            var cfg = configs.FirstOrDefault();
+            if (cfg == null)
+            {
+                Debug.LogError("[PlayerModel] PlayerConfig 加载失败，使用默认值");
+                ApplyConfig(new PlayerConfig { MaxHealth = 999, Speed = 3, MaxFuel = 100, FuelRecovery = 8, DashCost = 10, SprintCost = 5, SprintSmooth = 3 });
+                return;
+            }
 
-            FuelRecovery = 8;
-            DashCost = 10;
-            SprintCost = 5;
-            SprintSmooth = 3;
+            Debug.Log($"[PlayerModel] 从 JSON 加载玩家配置: HP={cfg.MaxHealth}, Speed={cfg.Speed}");
+            ApplyConfig(cfg);
         }
-        
-        
+
+        private void ApplyConfig(PlayerConfig cfg)
+        {
+            MaxHealth.Value = cfg.MaxHealth;
+            CurrentHealth.Value = cfg.MaxHealth;
+            Speed.Value = cfg.Speed;
+            MaxFuel.Value = cfg.MaxFuel;
+            CurrentFuel.Value = cfg.MaxFuel;
+            FuelRecovery = cfg.FuelRecovery;
+            DashCost = cfg.DashCost;
+            SprintCost = cfg.SprintCost;
+            SprintSmooth = cfg.SprintSmooth;
+        }
     }
 }

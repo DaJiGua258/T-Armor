@@ -25,7 +25,8 @@ namespace QFramework.ViewController.UI
         private WeaponDataModel _sideLeftData;
         private WeaponDataModel _sideRightData;
 
-
+        private bool _prevSideLeftReload, _prevSideRightReload;
+        private bool _prevHangerLeftReload, _prevHangerRightReload;
 
         void Awake()
         {
@@ -87,24 +88,12 @@ namespace QFramework.ViewController.UI
             {
                 _sideLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(sideLeft, _sideLeftData))
                     .UnRegisterWhenGameObjectDestroyed(gameObject);
-                _sideLeftData.CurMaxAmmo.Register(_ =>
-                    {
-                        if (_sideLeftData.WeaponState == WeaponStateEnum.Reloading)
-                            UpdateReloadTime(sideLeft, _sideLeftData);
-                    })
-                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(sideLeft, _sideLeftData);
             }
 
             if (_sideRightData != null)
             {
                 _sideRightData.CurMagazine.Register(_ => UpdateWeaponInfo(sideRight, _sideRightData))
-                    .UnRegisterWhenGameObjectDestroyed(gameObject);
-                _sideRightData.CurMaxAmmo.Register(_ =>
-                    {
-                        if (_sideRightData.WeaponState == WeaponStateEnum.Reloading)
-                            UpdateReloadTime(sideRight, _sideRightData);
-                    })
                     .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(sideRight, _sideRightData);
             }
@@ -113,24 +102,12 @@ namespace QFramework.ViewController.UI
             {
                 _hangerLeftData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerLeft, _hangerLeftData))
                     .UnRegisterWhenGameObjectDestroyed(gameObject);
-                _hangerLeftData.CurMaxAmmo.Register(_ =>
-                    {
-                        if (_hangerLeftData.WeaponState == WeaponStateEnum.Reloading)
-                            UpdateReloadTime(hangerLeft, _hangerLeftData);
-                    })
-                    .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(hangerLeft, _hangerLeftData);
             }
 
             if (_hangerRightData != null)
             {
                 _hangerRightData.CurMagazine.Register(_ => UpdateWeaponInfo(hangerRight, _hangerRightData))
-                    .UnRegisterWhenGameObjectDestroyed(gameObject);
-                _hangerRightData.CurMaxAmmo.Register(_ =>
-                    {
-                        if (_hangerRightData.WeaponState == WeaponStateEnum.Reloading)
-                            UpdateReloadTime(hangerRight, _hangerRightData);
-                    })
                     .UnRegisterWhenGameObjectDestroyed(gameObject);
                 UpdateWeaponInfo(hangerRight, _hangerRightData);
             }
@@ -139,7 +116,7 @@ namespace QFramework.ViewController.UI
         private void UpdateWeaponInfo(InfoItemSlider info, WeaponDataModel data)
         {
             if (info.Txt != null)
-                info.Txt.text = (data.CurMaxAmmo.Value + data.CurMagazine.Value).ToString();
+                info.Txt.text = $"{data.CurMagazine.Value:D2} / {data.MaxMagazine:D2}";
             info.Img.fillAmount = (float)data.CurMagazine.Value / data.MaxMagazine;
         }
 

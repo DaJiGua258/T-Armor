@@ -86,7 +86,7 @@ namespace QFramework.ViewController.Enemy
         private List<ParticleSystem> _burnVfxParticles;
 
         // 受击闪白
-        private List<Renderer> _meshRenderers;
+        private List<StackingCore> _stackCores;
         private MaterialPropertyBlock _flashBlock;
 
         [Header("武器引用")]
@@ -138,6 +138,9 @@ namespace QFramework.ViewController.Enemy
         public bool IsKnockbackActive => _isKnockbackActive;
         public bool IsBurnActive => _isBurnActive;
         public bool IsSlowActive => _isSlowActive;
+
+        [Header("状态控制")]
+        public bool RepositionRequested;  // 请求追击状态执行重新调整位置
 
         [Header("巡逻参数")]
         private bool _hasPatrolRoute;
@@ -303,9 +306,9 @@ namespace QFramework.ViewController.Enemy
             }
 
 
-            // 收集 Mesh 下所有渲染器（含 Body/Legs/Weapon 等），用于受击闪白
-            _meshRenderers = new List<Renderer>();
-            Mesh.GetComponentsInChildren(true, _meshRenderers);
+            // 收集 Mesh 下所有 StackingCore（含 Body/Legs/Weapon 等），用于受击闪白
+            _stackCores = new List<StackingCore>();
+            Mesh.GetComponentsInChildren(true, _stackCores);
             _flashBlock = new MaterialPropertyBlock();
         }
 
@@ -405,10 +408,10 @@ namespace QFramework.ViewController.Enemy
             _flashCoroutine = null;
 
             // 清除闪白材质属性，防止复用后残留
-            if (_meshRenderers != null)
+            if (_stackCores != null)
             {
-                foreach (var r in _meshRenderers)
-                    r.SetPropertyBlock(null);
+                foreach (var s in _stackCores)
+                    s.ClearCustomPropertyBlock();
             }
 
             SetBurnVfx(false);
@@ -938,7 +941,7 @@ namespace QFramework.ViewController.Enemy
 
         public void Flash()
         {
-            if (_meshRenderers == null || _meshRenderers.Count == 0) return;
+            if (_stackCores == null || _stackCores.Count == 0) return;
 
             if (_flashCoroutine != null)
                 StopCoroutine(_flashCoroutine);
@@ -950,27 +953,23 @@ namespace QFramework.ViewController.Enemy
         /// </summary>
         private IEnumerator FlashRoutine()
         {
-            // 初始化计时器，设置为闪烁持续时间
-            float timer = FlashDuration;
+            // 将闪白 PropertyBlock 挂到所有 StackingCore 上
+            foreach (var s in _stackCores)
+                s.SetCustomPropertyBlock(_flashBlock);
 
-            // 当计时器大于0时，继续闪烁效果
+            float timer = FlashDuration;
             while (timer > 0f)
             {
                 timer -= Time.deltaTime;
                 float t = timer / FlashDuration + 0.5f;
-
-                // 设置材质中的闪烁强度参数
                 _flashBlock.SetFloat("_FlashAmount", t);
-                // 将属性块应用到所有网格渲染器
-                foreach (var r in _meshRenderers)
-                    r.SetPropertyBlock(_flashBlock);
-                // 等待下一帧
+                // StackBaseStatic.LateUpdate → RenderManager 会自动读取 _flashBlock 的最新值
                 yield return null;
             }
 
-            // 清除 PropertyBlock，恢复材质默认状态
-            foreach (var r in _meshRenderers)
-                r.SetPropertyBlock(null);
+            // 清除 PropertyBlock，恢复默认渲染
+            foreach (var s in _stackCores)
+                s.ClearCustomPropertyBlock();
         }
 
 

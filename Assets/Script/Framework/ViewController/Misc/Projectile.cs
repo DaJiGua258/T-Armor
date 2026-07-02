@@ -389,6 +389,10 @@ namespace QFramework.ViewController.Player
             {
                 targetPos = _homingTarget.position;
             }
+            else if (_useFixedHomingPosition)
+            {
+                targetPos = _homingFixedPosition;
+            }
             else
             {
                 // 目标已死亡/失活或不存在，停止追踪，直线飞行

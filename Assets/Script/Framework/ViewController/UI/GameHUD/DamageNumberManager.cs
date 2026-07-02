@@ -35,6 +35,8 @@ namespace QFramework.ViewController.UI
         [SerializeField] private float _randomXOffset = 0.25f;
         [SerializeField] private float _randomYOffset = 0.25f;
 
+        public static bool ShowDamageNumbers = true;
+
         private readonly Stack<DamageNumber>           _pool       = new Stack<DamageNumber>();
         private readonly Dictionary<int, AbstractEnemy> _enemyCache = new Dictionary<int, AbstractEnemy>();
 
@@ -112,6 +114,7 @@ namespace QFramework.ViewController.UI
 
         private void OnDamageDealt(StatsEvent.OnDamageDealt evt)
         {
+            if (!ShowDamageNumbers) return;
             var enemy = FindEnemy(evt.EnemyId);
             if (enemy == null) return;
 

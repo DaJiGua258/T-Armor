@@ -59,6 +59,19 @@ public abstract class StackingCore : MonoBehaviour
 #endif
     }
 
+    // ── per-instance 自定义属性块（用于受击闪白等效果）──
+    protected MaterialPropertyBlock _customPropertyBlock;
+
+    public void SetCustomPropertyBlock(MaterialPropertyBlock block)
+    {
+        _customPropertyBlock = block;
+    }
+
+    public void ClearCustomPropertyBlock()
+    {
+        _customPropertyBlock = null;
+    }
+
     protected virtual void Init()
     {
         if (Application.isPlaying && UseRenderManagerStaticMode)

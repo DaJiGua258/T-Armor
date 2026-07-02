@@ -30,6 +30,8 @@ namespace QFramework.ViewController.Player
             for (int i = 0; i < _launchPositions.Length; i++)
             {
                 _launchVfx[i] = _launchPositions[i].GetComponentInChildren<ParticleSystem>();
+                var emission = _launchVfx[i].emission;
+                emission.enabled = true;
                 _launchVfx[i].Stop();
             }
 

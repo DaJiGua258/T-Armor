@@ -87,7 +87,6 @@ namespace QFramework.Command
             {
                 if (_weaponData == null
                     || _weaponData.WeaponState == WeaponStateEnum.Reloading
-                    || _weaponData.CurMaxAmmo.Value <= 0
                     || _weaponData.CurMagazine.Value >= _weaponData.MaxMagazine)
                 {
                     return;
@@ -96,12 +95,7 @@ namespace QFramework.Command
                 _weaponData.WeaponState = WeaponStateEnum.Reloading;
                 AudioManager.Instance.PlaySFX(SFXType.weapon_reload);
 
-                int needReloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
-                int reloadCount = Mathf.Min(needReloadCount, _weaponData.CurMaxAmmo.Value);
-
-                    
-                _weaponData.CurMaxAmmo.Value -= reloadCount;  // 触发换弹UI更新
-                    
+                int reloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
 
                 this.GetUtility<ITimerUtility>().AddOnce(() =>
                 {

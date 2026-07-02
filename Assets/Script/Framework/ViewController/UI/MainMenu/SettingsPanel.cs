@@ -11,11 +11,14 @@ namespace QFramework.ViewController.UI
         [SerializeField] private Slider _sfxSlider;
         [SerializeField] private Toggle _muteToggle;
         [SerializeField] private Image _muteIcon;
+        [SerializeField] private Toggle _damageNumberToggle;
+        [SerializeField] private Image _damageNumberIcon;
 
         private const string KEY_MASTER = "MasterVolume";
         private const string KEY_ENV = "EnvVolume";
         private const string KEY_SFX = "SFXVolume";
         private const string KEY_MUTE = "IsMuted";
+        private const string KEY_DAMAGE_NUM = "ShowDamageNumbers";
 
         public override void OnInit()
         {
@@ -26,6 +29,9 @@ namespace QFramework.ViewController.UI
             _sfxSlider.onValueChanged.AddListener(val => AudioManager.Instance.SetSFXVolume(val));
 
             _muteToggle.onValueChanged.AddListener(OnMuteToggleChanged);
+
+            if (_damageNumberToggle != null)
+                _damageNumberToggle.onValueChanged.AddListener(OnDamageNumberToggleChanged);
         }
 
         public override void OnShow()
@@ -47,6 +53,13 @@ namespace QFramework.ViewController.UI
                 _muteIcon.enabled = isOn;
         }
 
+        private void OnDamageNumberToggleChanged(bool isOn)
+        {
+            DamageNumberManager.ShowDamageNumbers = isOn;
+            if (_damageNumberIcon != null)
+                _damageNumberIcon.enabled = isOn;
+        }
+
         private void LoadSettings()
         {
             _masterSlider.value = PlayerPrefs.GetFloat(KEY_MASTER, 1f);
@@ -56,6 +69,13 @@ namespace QFramework.ViewController.UI
 
             if (_muteIcon != null)
                 _muteIcon.enabled = _muteToggle.isOn;
+
+            bool showDmg = PlayerPrefs.GetInt(KEY_DAMAGE_NUM, 1) == 1;
+            DamageNumberManager.ShowDamageNumbers = showDmg;
+            if (_damageNumberToggle != null)
+                _damageNumberToggle.isOn = showDmg;
+            if (_damageNumberIcon != null)
+                _damageNumberIcon.enabled = showDmg;
         }
 
         private void SaveSettings()
@@ -64,6 +84,7 @@ namespace QFramework.ViewController.UI
             PlayerPrefs.SetFloat(KEY_ENV, _envSlider.value);
             PlayerPrefs.SetFloat(KEY_SFX, _sfxSlider.value);
             PlayerPrefs.SetInt(KEY_MUTE, _muteToggle.isOn ? 1 : 0);
+            PlayerPrefs.SetInt(KEY_DAMAGE_NUM, DamageNumberManager.ShowDamageNumbers ? 1 : 0);
             PlayerPrefs.Save();
         }
     }

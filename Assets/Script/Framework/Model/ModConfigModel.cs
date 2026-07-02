@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using QFramework.Enum;
+using UnityEngine;
 
 namespace QFramework.Model
 {
@@ -54,27 +56,16 @@ namespace QFramework.Model
 
         protected override void OnInit()
         {
-            AddConfig(ItemTypeEnum.Mod_Damage, ModCategory.Weapon, new()
-                {
-                    new(StatName.BulletDamage, 3, ModOp.Add)
-                });
+            var rows = ConfigLoader.LoadFromJson<ModConfigRow>("Config/ModConfig");
+            Debug.Log($"[ModConfig] 从 JSON 加载了 {rows.Count} 个词条");
 
-            AddConfig(ItemTypeEnum.Mod_Rpm, ModCategory.Weapon, new()
-                {
-                    new(StatName.Rpm, 0.90f, ModOp.Mul)
-                });
-
-            AddConfig(ItemTypeEnum.Mod_Homing, ModCategory.Weapon, new()
-                {
-                    new(StatName.EnableHoming, 1f, ModOp.Set),
-                    new(StatName.BulletSpeed, -0.30f, ModOp.Mul),
-                    new(StatName.SpreadAngle, 1f, ModOp.Mul),
-                });
-        }
-
-        private void AddConfig(ItemTypeEnum itemType, ModCategory category, List<ModEntry> entries)
-        {
-            _modConfigs[itemType] = new ModConfig(itemType, category, entries);
+            foreach (var group in rows.GroupBy(r => r.ItemType))
+            {
+                var first = group.First();
+                var entries = group.Select(r => new ModEntry(r.EntryTarget, r.EntryValue, r.EntryOp)).ToList();
+                _modConfigs[group.Key] = new ModConfig(group.Key, first.Category, entries);
+                Debug.Log($"[ModConfig]   → {group.Key} ({first.Category}), {entries.Count} 个词条");
+            }
         }
 
         public ModConfig GetModConfig(ItemTypeEnum itemType)

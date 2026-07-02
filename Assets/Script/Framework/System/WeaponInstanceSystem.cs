@@ -73,6 +73,7 @@ namespace QFramework.System
         private static int _weaponCounter = 0;
         public WeaponTypeEnum WeaponType;
         public WeaponStateEnum WeaponState;
+        public string Description;
         public int MaxAmmo;
         public BindableProperty<int> CurMaxAmmo = new BindableProperty<int>();  // 当前所有的弹药
         public int MaxMagazine;
@@ -106,6 +107,7 @@ namespace QFramework.System
 
             this.WeaponType = weaponConfig.WeaponType;
             this.WeaponState = WeaponStateEnum.Idle;
+            this.Description = weaponConfig.Description;
 
             //
             this.MaxAmmo = weaponConfig.MaxAmmo;

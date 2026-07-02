@@ -17,9 +17,10 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
     public PlanetNodeMapData MapData { get; private set; }
 
     private const float HIGHLIGHT_ALPHA = 1f;
-    private static readonly Color DefaultNodeColor = new Color(0.7f, 0.7f, 0.7f);
-    private static readonly Color HighlightNodeColor = Color.white;
-    private static readonly Color HistoricalNodeColor = new Color(1f, 0.78f, 0.27f, 1f);
+
+    private Color _defaultNodeColor = new Color(0.7f, 0.7f, 0.7f);
+    private Color _highlightNodeColor = Color.white;
+    private Color _historicalNodeColor = new Color(1f, 0.78f, 0.27f, 1f);
 
     private bool _isHistorical;
 
@@ -43,7 +44,7 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         _nodeImages = GetComponentsInChildren<Image>(true);
         foreach (var img in _nodeImages)
         {
-            img.color = DefaultNodeColor;
+            img.color = _defaultNodeColor;
         }
 
         // 禁用 Button 的 ColorTint，避免与 CanvasGroup 冲突
@@ -92,6 +93,13 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         _isHighlighted = true;
     }
 
+    public void SetColors(Color defaultColor, Color highlightColor, Color historicalColor)
+    {
+        _defaultNodeColor = defaultColor;
+        _highlightNodeColor = highlightColor;
+        _historicalNodeColor = historicalColor;
+    }
+
     public void SetHighlighted(bool highlighted)
     {
         _isClicked = false;
@@ -130,20 +138,20 @@ public class PlanetNodeController : AbstractBasePanel, IPointerEnterHandler, IPo
         {
             _canvasGroup.alpha = HIGHLIGHT_ALPHA;
             foreach (var img in _nodeImages)
-                img.color = HistoricalNodeColor;
+                img.color = _historicalNodeColor;
         }
         else if (_isHighlighted || _isClicked)
         {
             _canvasGroup.alpha = HIGHLIGHT_ALPHA;
             foreach (var img in _nodeImages)
-                img.color = HighlightNodeColor;
+                img.color = _highlightNodeColor;
         }
         else
         {
             float alpha = Mathf.Lerp(minAlpha, maxAlpha, dot);
             _canvasGroup.alpha = alpha;
             foreach (var img in _nodeImages)
-                img.color = DefaultNodeColor;
+                img.color = _defaultNodeColor;
         }
     }
 }

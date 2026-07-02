@@ -95,8 +95,7 @@ namespace QFramework.ViewController.Player
         public void ReloadByInput()
         {
             if (WeaponDataModel.WeaponState == WeaponStateEnum.Idle
-                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMaxAmmo.Value > 0)
+                && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }
@@ -106,8 +105,7 @@ namespace QFramework.ViewController.Player
         {
             if (WeaponDataModel.WeaponState == WeaponStateEnum.Idle
                 && WeaponDataModel.CurMagazine.Value < WeaponDataModel.MaxMagazine
-                && WeaponDataModel.CurMagazine.Value <= 0
-                && WeaponDataModel.CurMaxAmmo.Value > 0)
+                && WeaponDataModel.CurMagazine.Value <= 0)
             {
                 this.SendCommand(new WeaponCommand.Reload(WeaponDataModel));
             }

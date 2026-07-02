@@ -11,11 +11,20 @@ namespace QFramework.ViewController.Player
         [SerializeField] private LayerMask _targetLayerMask;
         [SerializeField] private float _rotationSpeed = 10f;
 
+        // Debug 信息（临时）
+        //[Header("Debug 信息")]
+        //[SerializeField] private string _debugState = "未激活";
+        //[SerializeField] private string _debugTarget = "无";
+        //[SerializeField] private float _debugScanCountdown;
+        //[SerializeField] private int _debugScanFound;
+        //[SerializeField] private int _debugScanEmpty;
+        //[SerializeField] private string _debugScanDetail = "";
+
         private Transform _currentTarget;
-        private Collider2D[] _scanCache = new Collider2D[10];
+        private Collider2D[] _scanCache = new Collider2D[20];
         private float _scanTimer;
         private float _autoFireTimer;
-        private const float SCAN_INTERVAL = 2f;
+        private const float SCAN_INTERVAL = 0.5f;
 
         protected override void Start()
         {
@@ -32,12 +41,23 @@ namespace QFramework.ViewController.Player
 
         protected override void UpdateActive()
         {
-            if (!IsActive) return;
+            if (!IsActive)
+            {
+                //_debugState = "未激活";
+                //_debugTarget = "无";
+                return;
+            }
+
+            //_debugState = "激活";
 
             if (_currentTarget != null && !_currentTarget.gameObject.activeInHierarchy)
+            {
                 _currentTarget = null;
+                //_debugTarget = "目标已失效";
+            }
 
             _scanTimer -= Time.deltaTime;
+            //_debugScanCountdown = _scanTimer;
             if (_scanTimer <= 0f)
             {
                 _scanTimer = SCAN_INTERVAL;
@@ -46,9 +66,14 @@ namespace QFramework.ViewController.Player
 
             if (_currentTarget != null)
             {
+                //_debugTarget = _ScanForTargetText();
                 RotateTowardTarget();
                 AutoFire();
             }
+            //else
+            //{
+            //    _debugTarget = "搜索中...";
+            //}
         }
 
         private void ScanForTarget()
@@ -56,6 +81,8 @@ namespace QFramework.ViewController.Player
             int count = Physics2D.OverlapCircleNonAlloc(
                 transform.position, _detectionRadius, _scanCache, _targetLayerMask);
 
+            //HashSet<string> tags = new HashSet<string>();
+            int filteredInactive = 0, filteredDead = 0;
             float closestSq = float.MaxValue;
             Transform nearest = null;
 
@@ -63,10 +90,11 @@ namespace QFramework.ViewController.Player
             {
                 var col = _scanCache[i];
                 if (col == null) continue;
-                if (!col.CompareTag("Enemy")) continue;
-                if (!col.gameObject.activeInHierarchy) continue;
+                //tags.Add(col.tag);
+                if (!col.gameObject.activeInHierarchy) { filteredInactive++; continue; }
                 var enemyRoot = col.GetComponentInParent<AbstractEnemy>();
-                if (enemyRoot != null && enemyRoot.IsDead()) continue;
+                if (enemyRoot == null) continue;
+                if (enemyRoot.IsDead()) { filteredDead++; continue; }
 
                 float sq = ((Vector2)col.transform.position - (Vector2)transform.position).sqrMagnitude;
                 if (sq < closestSq)
@@ -76,9 +104,28 @@ namespace QFramework.ViewController.Player
                 }
             }
 
+            //_debugScanDetail = $"总数:{count} tag:[{string.Join(",", tags)}] 未激活:{filteredInactive} 死亡:{filteredDead}";
+
             _currentTarget = nearest;
+
+            //if (_currentTarget != null)
+            //    _debugScanFound++;
+            //else
+            //    _debugScanEmpty++;
+
+            //_debugTarget = _currentTarget != null
+            //    ? _ScanForTargetText()
+            //    : "搜索中...";
         }
 
+        //private string _ScanForTargetText()
+        //{
+        //    var enemy = _currentTarget.GetComponentInParent<AbstractEnemy>();
+        //    string typeName = enemy != null ? enemy.enemyType.ToString() : "?";
+        //    int id = enemy != null ? enemy.enemyId : -1;
+        //    float dist = Vector2.Distance(transform.position, _currentTarget.position);
+        //    return $"{typeName} - {id} (距离:{dist:F1})";
+        //
         private void RotateTowardTarget()
         {
             Vector3 dir = _currentTarget.position - transform.position;

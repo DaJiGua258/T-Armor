@@ -96,7 +96,10 @@ namespace QFramework.ViewController.UI.WeaponConfig
                 {
                     var weaponObj = Instantiate(weaponPrefab, prefabChild);
                     foreach (var mb in weaponObj.GetComponentsInChildren<MonoBehaviour>())
+                    {
+                        if (mb is StackingCore) continue;
                         mb.enabled = false;
+                    }
 
                     var mesh = weaponObj.transform.Find("Mesh");
                     if (mesh != null) _weaponModels.Add(mesh);

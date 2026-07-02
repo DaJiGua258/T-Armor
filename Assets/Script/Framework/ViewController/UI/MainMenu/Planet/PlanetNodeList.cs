@@ -26,6 +26,11 @@ namespace QFramework.ViewController.UI
         public Color FinishedLineColor = new Color(0.23f, 0.72f, 1f, 1f);
         public Color HistoryToNewLineColor = new Color(1f, 0.78f, 0.27f, 1f);
 
+        [Header("节点颜色")]
+        public Color DefaultNodeColor = new Color(0.7f, 0.7f, 0.7f);
+        public Color HighlightNodeColor = Color.white;
+        public Color HistoricalNodeColor = new Color(1f, 0.78f, 0.27f, 1f);
+
 
         #region ----- 运行时缓存 ------------------------------
         private readonly List<GameObject> _finishedNodes = new List<GameObject>(); // 已完成历史节点
@@ -417,6 +422,7 @@ namespace QFramework.ViewController.UI
             }
 
             controller.Init(Planet, mapData);
+            controller.SetColors(DefaultNodeColor, HighlightNodeColor, HistoricalNodeColor);
             if (isHistorical)
                 controller.SetHistorical();
             targetList.Add(node);

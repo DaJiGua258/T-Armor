@@ -5002,6 +5002,7 @@ MonoBehaviour:
   _burstCount: 3
   _burstInterval: 0.1
   _rotateSpeed: 0.5
+  RepositionRequested: 0
   _amplitude: 0.2
   _frequency: 0.5
   _horizontalAmplitude: 0.3

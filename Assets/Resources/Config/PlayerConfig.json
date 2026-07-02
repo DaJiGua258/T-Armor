@@ -1,0 +1,5 @@
+﻿{
+  "Items": [
+    { "MaxHealth": 999, "Speed": 3, "MaxFuel": 100, "FuelRecovery": 8, "DashCost": 10, "SprintCost": 5, "SprintSmooth": 3 }
+  ]
+}

@@ -491,7 +491,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &164521905794511273
 Transform:
   m_ObjectHideFlags: 0
@@ -5522,6 +5522,7 @@ MonoBehaviour:
   _burstCount: 3
   _burstInterval: 0.1
   _rotateSpeed: 20
+  RepositionRequested: 0
   _light: {fileID: 4226961380013284781}
 --- !u!114 &4097027512556796547
 MonoBehaviour:

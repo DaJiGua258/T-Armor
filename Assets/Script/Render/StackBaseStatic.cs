@@ -70,6 +70,6 @@ public class StackBaseStatic : StackingCore
             transform.hasChanged = false;
         }
 
-        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix);
+        RenderManager.Instance.Submit(StackingMaterial, _cachedMatrix, _customPropertyBlock);
     }
 }

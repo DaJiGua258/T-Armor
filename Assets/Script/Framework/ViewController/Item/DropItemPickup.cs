@@ -98,6 +98,7 @@ namespace QFramework.ViewController.Item
             if (itemType == ItemTypeEnum.None) return;
 
             this.SendCommand(new PickUpCommand.AddDropItem(itemType));
+            AudioManager.Instance.PlaySFX(SFXType.item_pickup);
 
             if (_pickUpVFX != null)
             {

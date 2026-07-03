@@ -5498,7 +5498,7 @@ MonoBehaviour:
   AttackCooldown: 1.5
   FirstAttackCooldown: 0.1
   BulletSpeed: 20
-  FlankProbability: 0.75
+  FlankProbability: 0.8
   _moveSpeed: 3
   Rb: {fileID: 0}
   TargetLayerMask:

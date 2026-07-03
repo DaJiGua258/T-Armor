@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e10ef73292629474d98c6e706a477bda, type: 3}
+  m_Name: Hills
+  m_EditorClassIdentifier: 
+  mapSize: 64
+  noiseScale: 20
+  octaves: 2
+  persistence: 0.841
+  lacunarity: 2
+  seed: 7
+  noiseOffset: {x: 0, y: 0}
+  useFalloff: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.006326368
+      outSlope: 0.006326368
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.85046947
+      value: 0.0053803828
+      inSlope: -0.005172954
+      outSlope: 7.293797
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.17134511
+      outWeight: 0.3092239
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 6.6516156
+      outSlope: 6.6516156
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  defaultTileSet:
+    fullVariants:
+    - {fileID: 11400000, guid: 8f4b92e48c9af9d49af02404594cd70d, type: 2}
+    borderTiles:
+    - {fileID: 11400000, guid: 7fee3c8614ef05f429d474e3572466c7, type: 2}
+    - {fileID: 11400000, guid: e1760c6964468804195bf3788a169685, type: 2}
+    - {fileID: 11400000, guid: 648a597250dafb44796c8b67609c75ba, type: 2}
+    - {fileID: 11400000, guid: 51f720f789309a04bbdbd6fb4505e9f8, type: 2}
+    - {fileID: 11400000, guid: 0a1e42bfa8f5f7849af6080a1a69ec6b, type: 2}
+    - {fileID: 11400000, guid: ed408b1aec41a0a46b91870fd5f07220, type: 2}
+    - {fileID: 11400000, guid: 40ddf736578af144ba121d93aadae1dd, type: 2}
+    - {fileID: 11400000, guid: 10ea947a8754078498797123a91b1bc3, type: 2}
+    - {fileID: 11400000, guid: 5c7e23c6e1ff4f84781213e0c912c6bd, type: 2}
+    - {fileID: 11400000, guid: 1d5ed769db25e0e4ca4c468f544ff933, type: 2}
+    - {fileID: 11400000, guid: b45b759afd3541242933619910603b00, type: 2}
+    - {fileID: 11400000, guid: 62156ad0c4964f046bb572c155c53a3a, type: 2}
+  layers:
+  - threshold: 0.363
+    tint: {r: 0.5439059, g: 0.54901963, b: 0.4392157, a: 1}
+    tileSet:
+      fullVariants: []
+      borderTiles: []
+  - threshold: 0.571
+    tint: {r: 0.4156488, g: 0.4509804, b: 0.36078432, a: 1}
+    tileSet:
+      fullVariants: []
+      borderTiles: []
+  - threshold: 0.811
+    tint: {r: 0.35850084, g: 0.408805, b: 0.3123887, a: 1}
+    tileSet:
+      fullVariants: []
+      borderTiles: []
+  enableShapePostProcess: 1
+  postProcessIterations: 4
+  obstacleColor: {r: 0.8836478, g: 0.9006772, b: 1, a: 1}
+  Pf_obstacle1x1: {fileID: 8482001784776433974, guid: 8909adee8f868c541aa547bd76c87371, type: 3}
+  Pf_obstacle2x2: {fileID: 8482001784776433974, guid: 2d79fbe12cbcc274b8f24e22653a9888, type: 3}
+  Pf_obstacle3x3: {fileID: 8482001784776433974, guid: ea2e60fca168a4444b30bea132190496, type: 3}
+  preferLowestNoise: 1
+  extraMarginCells: 0
+  minDistanceBetweenMissions: 3
+  distanceStep: 1
+  poiCount: 3
+  poiExtraMarginCells: 0
+  poiAvoidMissionRadius: 2.5
+  poiMinDistance: 3
+  environmentEnabled: 1
+  environmentRules:
+  - prefab: {fileID: 7494403134742495345, guid: 09be885cb91555441bf7adcb89731d51, type: 3}
+    weight: 1
+    spawnChance: 0.646
+    noiseMin: 0.175
+    noiseMax: 0.394
+  - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
+    weight: 1
+    spawnChance: 0.182
+    noiseMin: 0.682
+    noiseMax: 0.807
+  poissonRadius: 1
+  maxSamplesPerPoint: 24
+  environmentSpawnChance: 1
+  validNoiseMin: 0
+  validNoiseMax: 1
+  edgePaddingCells: 1
+  avoidObstaclePadding: 0.25
+  avoidMissionRadius: 2.5
+  cellJitterRatio: 0.25
+  environmentSeedOffset: 9973

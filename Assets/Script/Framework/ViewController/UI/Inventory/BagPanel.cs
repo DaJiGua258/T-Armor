@@ -68,8 +68,8 @@ namespace QFramework.ViewController.UI
             _weaponInfo.Show(
                 _weaponConfig.GetDisplayName(w.WeaponType),
                 w.Description,
-                "伤害：\n射速：\n弹匣：\n装填：\n弹速：\n散射：",
-                $"{FormatStatWithMod(w.BulletDamage, w.ModDisplayPct, StatName.BulletDamage)}\n{FormatStatWithMod(w.Rpm, w.ModDisplayPct, StatName.Rpm)}\n{w.MaxMagazine}\n{FormatStatWithMod(w.ReloadTime, w.ModDisplayPct, StatName.ReloadTime, "s")}\n{FormatStatWithMod(w.BulletSpeed, w.ModDisplayPct, StatName.BulletSpeed)}\n{FormatStatWithMod(w.SpreadAngle, w.ModDisplayPct, StatName.SpreadAngle, "°")}"
+                "伤害：\n射速：\n弹匣：\n装填：\n弹速：\n散射：\n穿透：",
+                $"{FormatStatWithMod(w.BulletDamage, w.ModDisplayPct, StatName.BulletDamage)}\n{FormatStatWithMod(w.Rpm, w.ModDisplayPct, StatName.Rpm)}\n{w.MaxMagazine}\n{FormatStatWithMod(w.ReloadTime, w.ModDisplayPct, StatName.ReloadTime, "s")}\n{FormatStatWithMod(w.BulletSpeed, w.ModDisplayPct, StatName.BulletSpeed)}\n{FormatStatWithMod(w.SpreadAngle, w.ModDisplayPct, StatName.SpreadAngle, "°")}\n{FormatStatWithMod(w.Penetration, w.ModDisplayPct, StatName.Penetration)}"
             );
         }
 
@@ -116,7 +116,7 @@ namespace QFramework.ViewController.UI
             if (modPct.TryGetValue(stat, out float pct))
             {
                 pct *= 100f;
-                return pct >= 0 ? $"{val}（+{pct:F0}%）" : $"{val}（{pct:F0}%）";
+                return pct >= 0 ? $"{val}(+{pct:F0}%)" : $"{val}({pct:F0}%)";
             }
             return val;
         }
@@ -127,7 +127,7 @@ namespace QFramework.ViewController.UI
             if (modPct.TryGetValue(stat, out float pct))
             {
                 pct *= 100f;
-                return pct >= 0 ? $"{val}（+{pct:F0}%）" : $"{val}（{pct:F0}%）";
+                return pct >= 0 ? $"{val}(+{pct:F0}%)" : $"{val}({pct:F0}%)";
             }
             return val;
         }
@@ -137,15 +137,16 @@ namespace QFramework.ViewController.UI
             return entry.Target switch
             {
                 StatName.BulletDamage => "伤害：",
-                StatName.MaxMagazine => "弹匣容量：",
+                StatName.MaxMagazine => "弹匣：",
                 StatName.BulletSpeed => "弹速：",
                 StatName.Rpm => "射速：",
-                StatName.ReloadTime => "装填时间：",
+                StatName.ReloadTime => "装填：",
                 StatName.MaxHealth => "生命上限：",
                 StatName.Speed => "移动速度：",
                 StatName.MaxFuel => "燃料上限：",
                 StatName.SpreadAngle => "散射：",
                 StatName.EnableHoming => "目标追踪",
+                StatName.Penetration => "穿透：",
                 _ => entry.Target.ToString()
             };
         }
@@ -155,7 +156,7 @@ namespace QFramework.ViewController.UI
             switch (entry.Operator)
             {
                 case ModOp.Add:
-                    return $"+{entry.Value:F0}";
+                    return entry.Value >= 0 ? $"+{entry.Value:F0}" : $"{entry.Value:F0}";
                 case ModOp.Mul:
                     {
                         float pct = entry.Value * 100f;

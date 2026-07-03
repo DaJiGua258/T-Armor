@@ -24,6 +24,9 @@ namespace QFramework.ViewController.UI
         private static ItemDataModel _dragItemData;
         private static int _dragFromIndex;
 
+        // ----- 悬停+F 删除 Mod -----
+        private static Slot _hoveredSlot;
+
         void Start()
         {
             if (_dragIcon == null)
@@ -64,6 +67,8 @@ namespace QFramework.ViewController.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            _hoveredSlot = this;
+
             if (_itemData != null)
             {
                 TypeEventSystem.Global.
@@ -74,7 +79,31 @@ namespace QFramework.ViewController.UI
             }
         }
 
-        public void OnPointerExit(PointerEventData eventData) { }
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_hoveredSlot == this)
+                _hoveredSlot = null;
+        }
+
+        void Update()
+        {
+            if (_hoveredSlot != this) return;
+            if (!Input.GetKeyDown(KeyCode.F)) return;
+            if (_itemData == null || _itemData.ModData == null) return;
+
+            // 清空当前槽位的 Mod
+            _itemData.ItemType = ItemTypeEnum.None;
+            _itemData.name = "空";
+            _itemData.iconPath = string.Empty;
+            _itemData.description = string.Empty;
+            _itemData.ModData = null;
+            _itemData.Count.Value = 0;
+
+            UpdateSlot();
+
+            // 通知武器系统重算属性
+            TypeEventSystem.Global.Send<ModsUpdatedEvent>();
+        }
 
         public void OnBeginDrag(PointerEventData eventData)
         {

@@ -19,36 +19,41 @@ namespace QFramework.Utility
 
         public GameObject GetObject(GameObject prefab, Vector3 position, Quaternion rotation)
         {
-            // Debug.Log("VAR");
-            GameObject obj;
-            // 如果当前出池的对象，不在存在字典对应的队列，或所对应的队列中的预制体个数为0...
-            if (!objectPool.ContainsKey(prefab.name) || objectPool[prefab.name].Count == 0)
+            // 先清理队列中已被外部销毁的悬空引用
+            if (objectPool.TryGetValue(prefab.name, out var queue))
             {
-                obj = GameObject.Instantiate(prefab, position, rotation);  // 则创建新的物体
-                PushObject(obj);  // 先预热入池，再立即出池复用，统一对象生命周期路径
+                while (queue.Count > 0 && queue.Peek() == null)
+                {
+                    queue.Dequeue();
+                }
+            }
 
-                if (_pool == null)  // 如果pool这个代表对象池的物体不存在，则创建一个新的
+            GameObject obj;
+            // 队列为空时直接实例化
+            if (queue == null || queue.Count == 0)
+            {
+                obj = GameObject.Instantiate(prefab, position, rotation);
+                PushObject(obj);
+
+                if (_pool == null)
                 {
                     _pool = new GameObject("GameObjectPool");
                 }
-                
-                // 从对象池中，查找子对象池
+
                 GameObject childPool = GameObject.Find(prefab.name + "Pool");
-                if (!childPool)  // 如果所查找的子对象池为空
+                if (!childPool)
                 {
-                    // 则创建对应的子对象池，并将其设为对象池的子物体
                     childPool = new GameObject(prefab.name + "Pool");
                     childPool.transform.SetParent(_pool.transform);
                 }
                 obj.transform.SetParent(childPool.transform);
-                
             }
-            obj = objectPool[prefab.name].Dequeue(); 
-            // 对象已出池，移除“池内标记”，后续才能正常再次回收。
+
+            obj = objectPool[prefab.name].Dequeue();
             _pooledInstanceIds.Remove(obj.GetInstanceID());
 
             obj.transform.SetPositionAndRotation(position, rotation);
-            obj.SetActive(true);  // 设置为启用状态
+            obj.SetActive(true);
 
             return obj;
         }

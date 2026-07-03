@@ -6,6 +6,55 @@ using System;
 
 namespace QFramework.Model
 {
+    // ===== 玩家配装存档 DTO =====
+
+    [Serializable]
+    public class PlayerLoadoutData
+    {
+        public List<SupportTypeEnum> SupportItems = new();
+
+        // 武器 4 槽
+        public WeaponSlotSaveData WeaponLeft = new();
+        public WeaponSlotSaveData WeaponRight = new();
+        public WeaponSlotSaveData WeaponHangerLeft = new();
+        public WeaponSlotSaveData WeaponHangerRight = new();
+
+        // 背包 14 槽
+        public List<InventorySlotSaveData> Inventory = new();
+    }
+
+    [Serializable]
+    public class WeaponSlotSaveData
+    {
+        public WeaponTypeEnum WeaponType = WeaponTypeEnum.None;
+        public List<ItemSaveData> EquippedMods = new();
+    }
+
+    [Serializable]
+    public class InventorySlotSaveData
+    {
+        public ItemTypeEnum ItemType = ItemTypeEnum.None;
+        public int Count;
+        public List<ModEntrySaveData> ModEntries = new();
+    }
+
+    [Serializable]
+    public class ItemSaveData
+    {
+        public ItemTypeEnum ItemType = ItemTypeEnum.None;
+        public int Count;
+        public List<ModEntrySaveData> ModEntries = new();
+    }
+
+    [Serializable]
+    public class ModEntrySaveData
+    {
+        public StatName Target;
+        public float Value;
+        public ModOp Operator;
+    }
+
+    // ===== 存档主体 =====
     /// <summary>
     /// 存档顶层数据
     /// </summary>
@@ -14,6 +63,9 @@ namespace QFramework.Model
     {
         public List<CompletedLevelData> CompletedLevels = new();
         public List<PendingNodeData> PendingNodes = new();
+
+        // 玩家配装
+        public PlayerLoadoutData PlayerLoadout = new();
     }
 
     /// <summary>

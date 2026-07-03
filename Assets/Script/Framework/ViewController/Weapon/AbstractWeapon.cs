@@ -39,7 +39,7 @@ namespace QFramework.ViewController.Player
         // 瞄准目标追踪（VML 同款模式，供追踪 Mod 使用）
         private Vector3 _aimTargetPos;
         private Transform _targetTransform;
-        private bool _hasReceivedTarget;
+        // private bool _hasReceivedTarget;
 
         void Awake()
         {
@@ -60,7 +60,7 @@ namespace QFramework.ViewController.Player
             TypeEventSystem.Global.Register<PlayerEvent.UpdateTarget>(e =>
             {
                 _aimTargetPos = e.Target;
-                _hasReceivedTarget = true;
+                // _hasReceivedTarget = true;
                 if (!e.HasTarget) _targetTransform = null;
             }).UnRegisterWhenGameObjectDestroyed(gameObject);
 

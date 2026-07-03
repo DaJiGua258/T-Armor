@@ -12,6 +12,8 @@ namespace QFramework.Model
     {
         public ItemTypeEnum ItemType;
         public ModCategory Category;
+        public string Name;
+        public string Description;
         public StatName EntryTarget;
         public float EntryValue;
         public ModOp EntryOp;

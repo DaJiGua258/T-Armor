@@ -23,7 +23,8 @@ namespace QFramework.Enum
         player_moving_ground,
 
         // weapon
-        weapon_reload,
+        weapon_reload_start,
+        weapon_reload_end,
         weapon_shoot_ar,
         weapon_shoot_sg,
         weapon_shoot_hsa,
@@ -33,6 +34,7 @@ namespace QFramework.Enum
 
         // enemy
         enemy_hit,
+        enemy_shoot,
 
         // item
         item_pickup,

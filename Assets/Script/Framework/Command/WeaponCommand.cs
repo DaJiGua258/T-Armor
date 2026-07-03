@@ -93,7 +93,7 @@ namespace QFramework.Command
                 }
 
                 _weaponData.WeaponState = WeaponStateEnum.Reloading;
-                AudioManager.Instance.PlaySFX(SFXType.weapon_reload);
+                AudioManager.Instance.PlaySFX(SFXType.weapon_reload_start);
 
                 int reloadCount = _weaponData.MaxMagazine - _weaponData.CurMagazine.Value;
 
@@ -101,6 +101,7 @@ namespace QFramework.Command
                 {
                     _weaponData.WeaponState = WeaponStateEnum.Idle;
                     _weaponData.CurMagazine.Value += reloadCount;  // 触发弹药数UI更新
+                    AudioManager.Instance.PlaySFX(SFXType.weapon_reload_end);
                 },
                 _weaponData.ReloadTime
                 );

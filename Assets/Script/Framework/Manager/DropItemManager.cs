@@ -21,7 +21,7 @@ namespace QFramework.Manager
     public class DropItemEntry
     {
         public ItemTypeEnum itemType;
-        [Range(1, 100)] public int weight = 1;
+        [Range(1, 100)] public int probability = 50;
     }
 
     public class DropItemManager : SceneMonoSingleton<DropItemManager>, IController
@@ -70,26 +70,28 @@ namespace QFramework.Manager
         }
 
         /// <summary>
-        /// 玩家拾取时回调：权重随机结算掉落物品
+        /// 权重随机：掉落物概率作为 weight，总和归一化后按比例抽取（互斥，必定掉落其一）
         /// </summary>
         public ItemTypeEnum SettleDrop()
         {
             if (_dropTable == null || _dropTable.Count == 0)
                 return ItemTypeEnum.None;
 
-            int totalWeight = 0;
+            int total = 0;
             foreach (var entry in _dropTable)
-                totalWeight += entry.weight;
+                total += entry.probability;
 
-            int roll = UnityEngine.Random.Range(0, totalWeight);
+            if (total <= 0) return ItemTypeEnum.None;
+
+            int roll = UnityEngine.Random.Range(0, total);
             foreach (var entry in _dropTable)
             {
-                roll -= entry.weight;
+                roll -= entry.probability;
                 if (roll < 0)
                     return entry.itemType;
             }
 
-            return _dropTable[0].itemType;
+            return _dropTable[^1].itemType;
         }
 
         private AbstractEnemy FindEnemyById(int enemyId)
@@ -115,7 +117,7 @@ namespace QFramework.Manager
                 Debug.Log($"  {c.enemyType} → {c.dropProbability:P0}");
             Debug.Log($"--- Drop Table ({_dropTable.Count}) ---");
             foreach (var e in _dropTable)
-                Debug.Log($"  {e.itemType}  weight={e.weight}");
+                Debug.Log($"  {e.itemType}  {e.probability}%");
         }
 #endif
     }

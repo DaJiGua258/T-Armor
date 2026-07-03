@@ -63,6 +63,9 @@ namespace QFramework.ViewController.UI
                 _bagPanel.ShowWeaponInfo(_selectedWeapon);
                 _bagPanel.ShowModInfo(null);
             }
+
+            // Mod 变更后立即存盘
+            this.GetSystem<ILevelSystem>().SavePlayerLoadoutToDisk();
         }
     }
 }

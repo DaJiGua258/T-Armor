@@ -29,9 +29,9 @@ namespace QFramework.ViewController.Enemy
         {
             if (Entity.Target == null) return;
 
-            // 目标超出最大攻击范围 → 切回追击
+            // 目标超出最大攻击范围或视线被阻挡 → 切回追击重新找位置
             float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
-            if (distance > Entity.AttackMaxRange)
+            if (distance > Entity.AttackMaxRange || !Entity.HasLineOfSightToTarget())
             {
                 FSM.ChangeState<EnemyMoveState>();
                 return;

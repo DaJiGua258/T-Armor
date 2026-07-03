@@ -38,6 +38,15 @@ namespace QFramework.ViewController.UI
                 .UnRegisterWhenGameObjectDestroyed(gameObject);
         }
 
+        private void OnDestroy()
+        {
+            if (_slots != null)
+            {
+                foreach (var slot in _slots)
+                    slot?.FillTweener?.Kill();
+            }
+        }
+
         private void RegisterWeaponInfo()
         {
             _weaponDatas = new[]

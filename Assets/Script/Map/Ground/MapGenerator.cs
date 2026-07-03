@@ -61,7 +61,12 @@ public partial class MapGenerator : OverrideMonoSingleton<MapGenerator>
 
     public void GenerateMapByLoadAsset(LevelDataModel levelData)
     {
-        parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + levelData.EnvironmentData.terrainType.ToString());
+        TerrainType terrain = levelData.EnvironmentData.terrainType;
+        // Polar 复用 Snow 配置
+        if (terrain == TerrainType.Polar)
+            terrain = TerrainType.Snow;
+
+        parameterAsset = _resourceLoad.Load<MapGeneratorParametersSO>("SOData/MapConfig/" + terrain.ToString());
 
         if (parameterAsset == null)
         {

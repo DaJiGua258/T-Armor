@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Snow
   m_EditorClassIdentifier: 
   mapSize: 64
-  noiseScale: 16
-  octaves: 2
-  persistence: 0.082
-  lacunarity: 3.15
-  seed: 7
+  noiseScale: 10
+  octaves: 3
+  persistence: 0.547
+  lacunarity: 2.77
+  seed: 562
   noiseOffset: {x: 0, y: 0}
   useFalloff: 1
   curve:
@@ -26,26 +26,26 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 0.006326368
-      outSlope: 0.006326368
+      inSlope: -0.016645996
+      outSlope: -0.016645996
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.85046947
-      value: 0.0053803828
+      time: 0.6796453
+      value: -0.011313373
       inSlope: -0.005172954
-      outSlope: 7.293797
+      outSlope: 1.9352173
       tangentMode: 1
       weightedMode: 0
       inWeight: 0.17134511
-      outWeight: 0.3092239
+      outWeight: 0.38470334
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 6.6516156
-      outSlope: 6.6516156
+      inSlope: 3.1568549
+      outSlope: 3.1568549
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -70,18 +70,18 @@ MonoBehaviour:
     - {fileID: 11400000, guid: b45b759afd3541242933619910603b00, type: 2}
     - {fileID: 11400000, guid: 62156ad0c4964f046bb572c155c53a3a, type: 2}
   layers:
-  - threshold: 0.434
-    tint: {r: 0.9607843, g: 0.9764706, b: 1, a: 1}
+  - threshold: 0.445
+    tint: {r: 0.81666666, g: 0.8291667, b: 0.85, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.526
-    tint: {r: 0.8784314, g: 0.91764706, b: 0.9607843, a: 1}
+  - threshold: 0.668
+    tint: {r: 0.7329843, g: 0.7664922, b: 0.8, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.654
-    tint: {r: 0.83962256, g: 0.90377355, b: 1, a: 1}
+  - threshold: 0.746
+    tint: {r: 0.62934786, g: 0.675, b: 0.75, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
@@ -100,7 +100,12 @@ MonoBehaviour:
   poiAvoidMissionRadius: 2.5
   poiMinDistance: 3
   environmentEnabled: 1
-  environmentRules: []
+  environmentRules:
+  - prefab: {fileID: 5245828199637682485, guid: faa2c981b01b6bd468171aa231d9cd66, type: 3}
+    weight: 1
+    spawnChance: 0.1
+    noiseMin: 0
+    noiseMax: 1
   poissonRadius: 2.2
   maxSamplesPerPoint: 24
   environmentSpawnChance: 0.75

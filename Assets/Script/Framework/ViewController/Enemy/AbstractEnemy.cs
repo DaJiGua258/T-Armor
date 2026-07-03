@@ -345,6 +345,7 @@ namespace QFramework.ViewController.Enemy
                 AttackMinRange = config.AttackMinRange;
             }
             _moveSpeed = config.MoveSpeed;
+            AttackCooldown = config.AttackCooldown;
 
             if (UseInspectorHealth)
             {
@@ -769,7 +770,9 @@ namespace QFramework.ViewController.Enemy
                 if (hit.collider == null) continue;
                 // 跳过自身碰撞体
                 if (hit.collider.transform.IsChildOf(transform)) continue;
-                // 第一个非自身碰撞体是目标 → 视线畅通
+                // 跳过同阵营敌人（不互相阻挡视线）
+                if (hit.collider.CompareTag("Enemy")) continue;
+                // 第一个非自身、非同阵营的碰撞体是目标 → 视线畅通
                 if (hit.collider.transform == Target || hit.collider.transform.IsChildOf(Target))
                     return true;
                 // 被其他物体（障碍物）阻挡

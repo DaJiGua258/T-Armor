@@ -18,14 +18,17 @@ MonoBehaviour:
   MaxEnemyCount: 30
   Weights:
   - EnemyType: 1
-    InitialWeight: 10
-    MaxWeight: 10
+    InitialWeight: 6
+    MaxWeight: 6
   - EnemyType: 2
-    InitialWeight: 1.9
-    MaxWeight: 1.99
+    InitialWeight: 2
+    MaxWeight: 3
   - EnemyType: 9
-    InitialWeight: 1.03
-    MaxWeight: 1.15
+    InitialWeight: 2
+    MaxWeight: 4
+  - EnemyType: 3
+    InitialWeight: 2
+    MaxWeight: 3
   ProgressionCurve:
     serializedVersion: 2
     m_Curve:

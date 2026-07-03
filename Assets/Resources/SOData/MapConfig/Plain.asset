@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Plain
   m_EditorClassIdentifier: 
   mapSize: 64
-  noiseScale: 16
+  noiseScale: 20
   octaves: 2
-  persistence: 0.445
+  persistence: 0.841
   lacunarity: 2
-  seed: 2
+  seed: 7
   noiseOffset: {x: 0, y: 0}
   useFalloff: 1
   curve:
@@ -70,17 +70,17 @@ MonoBehaviour:
     - {fileID: 11400000, guid: b45b759afd3541242933619910603b00, type: 2}
     - {fileID: 11400000, guid: 62156ad0c4964f046bb572c155c53a3a, type: 2}
   layers:
-  - threshold: 0.363
+  - threshold: 0.495
     tint: {r: 0.5176471, g: 0.54901963, b: 0.43921572, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.487
+  - threshold: 0.776
     tint: {r: 0.39607847, g: 0.45098042, b: 0.36078432, a: 1}
     tileSet:
       fullVariants: []
       borderTiles: []
-  - threshold: 0.76
+  - threshold: 0.852
     tint: {r: 0.30588236, g: 0.34901962, b: 0.29411766, a: 1}
     tileSet:
       fullVariants: []
@@ -100,12 +100,17 @@ MonoBehaviour:
   poiAvoidMissionRadius: 2.5
   poiMinDistance: 3
   environmentEnabled: 1
-  environmentRules: []
-  poissonRadius: 2.2
+  environmentRules:
+  - prefab: {fileID: 7494403134742495345, guid: 09be885cb91555441bf7adcb89731d51, type: 3}
+    weight: 1
+    spawnChance: 0.646
+    noiseMin: 0
+    noiseMax: 0.241
+  poissonRadius: 1
   maxSamplesPerPoint: 24
-  environmentSpawnChance: 0.75
-  validNoiseMin: 0.15
-  validNoiseMax: 0.75
+  environmentSpawnChance: 1
+  validNoiseMin: 0
+  validNoiseMax: 1
   edgePaddingCells: 1
   avoidObstaclePadding: 0.25
   avoidMissionRadius: 2.5

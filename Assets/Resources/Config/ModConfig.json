@@ -1,9 +1,20 @@
 ﻿{
   "Items": [
-    { "ItemType": 4, "Category": 0, "EntryTarget": 0, "EntryValue": 3, "EntryOp": 0 },
-    { "ItemType": 5, "Category": 0, "EntryTarget": 3, "EntryValue": 0.9, "EntryOp": 1 },
-    { "ItemType": 6, "Category": 0, "EntryTarget": 14, "EntryValue": 1, "EntryOp": 2 },
-    { "ItemType": 6, "Category": 0, "EntryTarget": 2, "EntryValue": -0.3, "EntryOp": 1 },
-    { "ItemType": 6, "Category": 0, "EntryTarget": 13, "EntryValue": 1, "EntryOp": 1 }
+    { "ItemType": 4, "Category": 0, "EntryTarget": 0, "EntryValue": 0.3, "EntryOp": 1, "Name": "伤害芯片", "Description": "提升武器伤害" },
+    { "ItemType": 4, "Category": 0, "EntryTarget": 13, "EntryValue": 0.1, "EntryOp": 1, "Name": "伤害芯片", "Description": "提升武器伤害" },
+    { "ItemType": 5, "Category": 0, "EntryTarget": 3, "EntryValue": 20, "EntryOp": 0, "Name": "射速芯片", "Description": "提升武器射速" },
+    { "ItemType": 5, "Category": 0, "EntryTarget": 4, "EntryValue": -0.2, "EntryOp": 1, "Name": "射速芯片", "Description": "提升武器射速" },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 14, "EntryValue": 1, "EntryOp": 2, "Name": "追踪芯片", "Description": "子弹自动追踪敌人" },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 2, "EntryValue": -0.3, "EntryOp": 1, "Name": "追踪芯片", "Description": "子弹自动追踪敌人" },
+    { "ItemType": 6, "Category": 0, "EntryTarget": 13, "EntryValue": 1, "EntryOp": 1, "Name": "追踪芯片", "Description": "子弹自动追踪敌人" },
+    { "ItemType": 7, "Category": 0, "EntryTarget": 0, "EntryValue": -2, "EntryOp": 0, "Name": "稳定芯片", "Description": "减少武器散射" },
+    { "ItemType": 7, "Category": 0, "EntryTarget": 13, "EntryValue": -0.3, "EntryOp": 1, "Name": "稳定芯片", "Description": "减少武器散射" },
+    { "ItemType": 8, "Category": 0, "EntryTarget": 15, "EntryValue": 1, "EntryOp": 0, "Name": "穿透芯片", "Description": "子弹穿透敌人" },
+    { "ItemType": 8, "Category": 0, "EntryTarget": 0, "EntryValue": 0.1, "EntryOp": 1, "Name": "穿透芯片", "Description": "子弹穿透敌人" },
+    { "ItemType": 8, "Category": 0, "EntryTarget": 4, "EntryValue": 0.1, "EntryOp": 1, "Name": "穿透芯片", "Description": "子弹穿透敌人" },
+    { "ItemType": 9, "Category": 0, "EntryTarget": 1, "EntryValue": 0.4, "EntryOp": 1, "Name": "扩容芯片", "Description": "增加弹匣容量" },
+    { "ItemType": 9, "Category": 0, "EntryTarget": 4, "EntryValue": 0.1, "EntryOp": 1, "Name": "扩容芯片", "Description": "增加弹匣容量" },
+    { "ItemType": 10, "Category": 0, "EntryTarget": 4, "EntryValue": -0.25, "EntryOp": 1, "Name": "装填芯片", "Description": "加快换弹速度" },
+    { "ItemType": 10, "Category": 0, "EntryTarget": 0, "EntryValue": -0.1, "EntryOp": 1, "Name": "装填芯片", "Description": "加快换弹速度" }
   ]
 }

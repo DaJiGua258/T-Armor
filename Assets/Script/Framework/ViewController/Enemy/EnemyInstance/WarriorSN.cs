@@ -1,4 +1,6 @@
 using System.Collections;
+using QFramework.Enum;
+using QFramework.Manager;
 using QFramework.Utility;
 using QFramework.ViewController.Misc;
 using QFramework.ViewController.Player;
@@ -56,6 +58,10 @@ namespace QFramework.ViewController.Enemy
             }
 
             AttackWarningLine.enabled = false;
+
+            // 瞄准后 0.1s 空隙再发射
+            yield return new WaitForSeconds(0.1f);
+
             Shoot();
         }
 
@@ -72,6 +78,7 @@ namespace QFramework.ViewController.Enemy
             var bullet = this.GetUtility<IObjectPoolUtility>().GetObject(pf_Bullet, Muzzle.position, bulletRotation);
 
             ShoottingVFX.Play();
+            AudioManager.Instance.PlaySFX(SFXType.enemy_shoot);
 
             Projectile bulletComponent = bullet.GetComponent<Projectile>();
             var damageInfo = new DamageInfo(10, 0f, 0f, shootDir, penetration: 3);

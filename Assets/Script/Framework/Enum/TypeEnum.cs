@@ -42,6 +42,10 @@ namespace QFramework.Enum
         Mod_Damage,
         Mod_Rpm,
         Mod_Homing,
+        Mod_Spread,
+        Mod_Penetration,
+        Mod_Ammo,
+        Mod_Reload,
     }
 
     public enum SupportTypeEnum

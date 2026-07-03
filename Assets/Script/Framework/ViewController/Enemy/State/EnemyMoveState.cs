@@ -72,18 +72,18 @@ namespace QFramework.ViewController.Enemy
 
             float distance = Vector2.Distance(Entity.transform.position, Entity.Target.position);
 
-            // 到达停车距离 → 停车射击
-            if (distance <= _stopDis)
+            // 到达停车距离且有视线 → 停车射击
+            if (distance <= _stopDis && Entity.HasLineOfSightToTarget())
             {
                 FSM.ChangeState<EnemyAttackState>();
                 return;
             }
 
-            // 未超出最大攻击范围且有视线 → 边追边射（冷却 1.5 倍，Worker 不移动射击）
+            // 未超出最大攻击范围且有视线 → 边追边射（Worker 不移动射击）
             if (Entity.enemyType != EnemyTypeEnum.Worker && distance <= Entity.AttackMaxRange && Entity.HasLineOfSightToTarget())
             {
                 _shootTimer += Time.deltaTime;
-                if (_shootTimer >= Entity.AttackCooldown * 1.5f)
+                if (_shootTimer >= Entity.AttackCooldown)
                 {
                     _shootTimer = 0f;
                     Entity.Attack();

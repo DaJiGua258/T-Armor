@@ -103,6 +103,8 @@ namespace QFramework.ViewController.UI
             {
                 // generation 不匹配说明该对象已被重用或重置，直接忽略
                 if (capturedGen != _generation) return;
+                // 对象已被销毁（如场景切换），不再操作
+                if (this == null || _canvasGroup == null) return;
 
                 // 修复：先 ChangeValues，再挂 OnComplete，再 Restart
                 _fadeTweener

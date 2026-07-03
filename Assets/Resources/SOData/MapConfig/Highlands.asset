@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Highlands
   m_EditorClassIdentifier: 
   mapSize: 64
-  noiseScale: 32
-  octaves: 2
-  persistence: 0.466
-  lacunarity: 3.15
-  seed: 0
+  noiseScale: 20
+  octaves: 3
+  persistence: 0.653
+  lacunarity: 2
+  seed: 248
   noiseOffset: {x: -9.4, y: 0}
   useFalloff: 1
   curve:

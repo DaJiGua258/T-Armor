@@ -61,6 +61,7 @@ namespace QFramework.Model
         public float ShootAccuracy;
         public int BulletSpeed = 20;
         public float MoveSpeed;
+        public float AttackCooldown;
 
         // 异常状态阈值
         public float KnockbackThreshold;  // TODO: 已禁用

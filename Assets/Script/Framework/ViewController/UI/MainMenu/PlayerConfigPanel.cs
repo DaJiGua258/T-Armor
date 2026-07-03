@@ -137,9 +137,9 @@ namespace QFramework.ViewController.UI
             if (_supportSelect != null)
                 _supportSelect.OnItemConfirmed += OnSupportItemSelected;
 
-            // 初始化热键槽显示
-            for (int i = 0; i < _selectedSupportItems.Length; i++)
-                _selectedSupportItems[i] = SupportTypeEnum.None;
+            // 从 PlayerSystem 恢复上次的支援物品选中状态
+            for (int i = 0; i < _selectedSupportItems.Length && i < _playerSystem.SupportItems.Count; i++)
+                _selectedSupportItems[i] = _playerSystem.SupportItems[i].SupportType;
 
             UpdateSupportSlotUI();
 
@@ -249,11 +249,26 @@ namespace QFramework.ViewController.UI
         {
             var playerWeapon = _playerSystem.PlayerWeapon;
 
+            // 保留旧武器的 Mod，继承到新武器上
+            var oldMods = CollectWeaponMods(GetCurrentWeapon());
+
             var config = _currentSlot is WeaponSlot.LeftHanger or WeaponSlot.RightHanger
                 ? _weaponConfigModel.GetHangerWeaponConfigModel(weaponType)
                 : _weaponConfigModel.GetWeaponConfigModel(weaponType);
 
             var weaponData = new WeaponDataModel(config);
+
+            // 将旧 Mod 装到新武器空槽中
+            int mi = 0;
+            for (int m = 0; m < weaponData.EquippedMods.Count && mi < oldMods.Count; m++)
+            {
+                if (weaponData.EquippedMods[m].ItemType == ItemTypeEnum.None)
+                {
+                    weaponData.EquippedMods[m] = oldMods[mi];
+                    mi++;
+                }
+            }
+            weaponData.RecalculateStats();
 
             switch (_currentSlot)
             {
@@ -272,6 +287,34 @@ namespace QFramework.ViewController.UI
             }
 
             // 选择后保持 list 开启，不关闭
+
+            // 立即存盘
+            this.GetSystem<ILevelSystem>().SavePlayerLoadoutToDisk();
+        }
+
+        private WeaponDataModel GetCurrentWeapon()
+        {
+            var pw = _playerSystem.PlayerWeapon;
+            return _currentSlot switch
+            {
+                WeaponSlot.LeftSide => pw.Left.Value,
+                WeaponSlot.RightSide => pw.Right.Value,
+                WeaponSlot.LeftHanger => pw.HangerLeft.Value,
+                WeaponSlot.RightHanger => pw.HangerRight.Value,
+                _ => null,
+            };
+        }
+
+        private List<ItemDataModel> CollectWeaponMods(WeaponDataModel weapon)
+        {
+            var mods = new List<ItemDataModel>();
+            if (weapon == null) return mods;
+            foreach (var mod in weapon.EquippedMods)
+            {
+                if (mod == null || mod.ItemType == ItemTypeEnum.None) continue;
+                mods.Add(mod);
+            }
+            return mods;
         }
 
         #region ----- 热键物品 -------------------------
@@ -334,6 +377,13 @@ namespace QFramework.ViewController.UI
         {
             _selectedSupportItems[_currentSupportSlot] = supportType;
             UpdateSupportSlotUI();
+
+            // 立即同步到 PlayerSystem，面板重建后可恢复
+            var selectedItems = GetSelectedSupportItems();
+            _playerSystem.InitSupportItems(selectedItems);
+
+            // 立即存盘
+            this.GetSystem<ILevelSystem>().SavePlayerLoadoutToDisk();
             // 保持列表打开，不关闭
         }
 

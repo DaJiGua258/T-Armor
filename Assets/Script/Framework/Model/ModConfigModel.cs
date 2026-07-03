@@ -23,12 +23,16 @@ namespace QFramework.Model
     {
         public ItemTypeEnum ItemType;
         public ModCategory Category;
+        public string Name;
+        public string Description;
         public List<ModEntry> Entries;
 
-        public ModConfig(ItemTypeEnum itemType, ModCategory category, List<ModEntry> entries)
+        public ModConfig(ItemTypeEnum itemType, ModCategory category, string name, string description, List<ModEntry> entries)
         {
             ItemType = itemType;
             Category = category;
+            Name = name;
+            Description = description;
             Entries = entries;
         }
     }
@@ -48,6 +52,8 @@ namespace QFramework.Model
     public interface IModConfigModel : IModel
     {
         ModConfig GetModConfig(ItemTypeEnum itemType);
+        string GetModName(ItemTypeEnum itemType);
+        string GetModDescription(ItemTypeEnum itemType);
     }
 
     public class ModConfigModel : AbstractModel, IModConfigModel
@@ -63,7 +69,7 @@ namespace QFramework.Model
             {
                 var first = group.First();
                 var entries = group.Select(r => new ModEntry(r.EntryTarget, r.EntryValue, r.EntryOp)).ToList();
-                _modConfigs[group.Key] = new ModConfig(group.Key, first.Category, entries);
+                _modConfigs[group.Key] = new ModConfig(group.Key, first.Category, first.Name, first.Description, entries);
                 Debug.Log($"[ModConfig]   → {group.Key} ({first.Category}), {entries.Count} 个词条");
             }
         }
@@ -71,6 +77,16 @@ namespace QFramework.Model
         public ModConfig GetModConfig(ItemTypeEnum itemType)
         {
             return _modConfigs.TryGetValue(itemType, out var config) ? config : null;
+        }
+
+        public string GetModName(ItemTypeEnum itemType)
+        {
+            return _modConfigs.TryGetValue(itemType, out var config) ? config.Name : null;
+        }
+
+        public string GetModDescription(ItemTypeEnum itemType)
+        {
+            return _modConfigs.TryGetValue(itemType, out var config) ? config.Description : null;
         }
     }
 }

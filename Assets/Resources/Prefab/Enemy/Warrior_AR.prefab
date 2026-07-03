@@ -5070,7 +5070,7 @@ MonoBehaviour:
   AttackCooldown: 1.5
   FirstAttackCooldown: -1
   BulletSpeed: 20
-  FlankProbability: 0.75
+  FlankProbability: 0.8
   _moveSpeed: 3
   Rb: {fileID: 0}
   TargetLayerMask:
@@ -5265,9 +5265,9 @@ Transform:
   m_GameObject: {fileID: 4267629209915775233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.05, z: -2.2159998}
+  m_LocalPosition: {x: 0, y: -0.169, z: -2.2279}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 615136173610949797}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5283,7 +5283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321e28cd55e6cea4884e1f75ea303a96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StackingMaterial: {fileID: 2100000, guid: cdbb6f374d5b46b419d928fc574b4818, type: 2}
+  StackingMaterial: {fileID: 2100000, guid: d93fac7814b5b1d4eb42c0a9442b6864, type: 2}
   UseLocalZSort: 0
   OrderParent: {fileID: 615136173610949797}
   ZSortOffset: 3
@@ -5319,7 +5319,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: cdbb6f374d5b46b419d928fc574b4818, type: 2}
+  - {fileID: 2100000, guid: d93fac7814b5b1d4eb42c0a9442b6864, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

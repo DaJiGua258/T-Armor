@@ -18,6 +18,7 @@ namespace QFramework.System
         public ItemDataModel GetInventoryItemByIndex(int slotIndex);
         public bool HasFreeSlot();
         public void AddItemToInventory(ItemTypeEnum itemType, int count);
+        public void ResetInventoryToDefaults();
     }
 
     public class InvenotrySystem : AbstractSystem, IInvenotrySystem
@@ -37,8 +38,11 @@ namespace QFramework.System
             // 开局 Mod 芯片
             AddItemToInventory(ItemTypeEnum.Mod_Damage, 1);
             AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
-            AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
             AddItemToInventory(ItemTypeEnum.Mod_Homing, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Spread, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Penetration, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Ammo, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Reload, 1);
         }
 
         /// <summary>
@@ -92,6 +96,23 @@ namespace QFramework.System
                 if (slot.ItemType == ItemTypeEnum.None)
                     return true;
             return false;
+        }
+
+        public void ResetInventoryToDefaults()
+        {
+            // 清空所有槽位
+            var emptyConfig = _itemDataModel.GetItemConfig(ItemTypeEnum.None);
+            for (int i = 0; i < ItemDataCache.Count; i++)
+                ItemDataCache[i].CopyFrom(new ItemDataModel(emptyConfig));
+
+            // 重新添加默认 Mod（每种一个）
+            AddItemToInventory(ItemTypeEnum.Mod_Damage, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Rpm, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Homing, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Spread, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Penetration, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Ammo, 1);
+            AddItemToInventory(ItemTypeEnum.Mod_Reload, 1);
         }
     }
 

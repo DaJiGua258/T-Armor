@@ -25,6 +25,7 @@ namespace QFramework.ViewController.Player
         [Header("躯干引用")]
         [SerializeField] private Transform _body;
         [SerializeField] private Transform _legs;
+        [SerializeField] private Transform _shadow;
         [SerializeField] private Transform _hitbox;
         [SerializeField] private Rigidbody2D _rigid;
         [SerializeField] private float _rotateSpeed = 10f;
@@ -131,6 +132,13 @@ namespace QFramework.ViewController.Player
         private void ParamsInit()
         {
             MoveSpeed = PlayerModel.Speed.Value;
+
+            if (_shadow == null)
+            {
+                var mesh = transform.Find("Mesh");
+                if (mesh != null)
+                    _shadow = mesh.Find("Shadow");
+            }
         }
 
         #region ----- 状态动作 -------------------------
@@ -301,6 +309,9 @@ namespace QFramework.ViewController.Player
             float smoothZ = Mathf.LerpAngle(currentZ, targetZ, 10f * Time.deltaTime);
 
             _body.rotation = Quaternion.Euler(0f, 0f, smoothZ);
+
+            if (_shadow != null)
+                _shadow.rotation = _body.rotation;
 
             if (_hitbox != null)
             {

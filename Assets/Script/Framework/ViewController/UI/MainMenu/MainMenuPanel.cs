@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using QFramework.Enum;
 using QFramework.Manager;
 using QFramework.Model;
 using QFramework.System;
@@ -83,6 +85,16 @@ namespace QFramework.ViewController.UI
             var levelSystem = this.GetSystem<ILevelSystem>();
             levelSystem.LevelDataCache.Clear();
 
+            // 重置玩家配装
+            var playerSystem = this.GetSystem<IPlayerSystem>();
+            playerSystem.InitPlayerWeapon();
+            playerSystem.InitHangerWeapon();
+            playerSystem.InitSupportItems(new List<SupportTypeEnum>());
+
+            // 重置背包（清空并重新添加默认 Mod）
+            var inventory = this.GetSystem<IInvenotrySystem>();
+            inventory.ResetInventoryToDefaults();
+
             MainUIManager.Instance.EnterLevelSelect();
         }
 
@@ -110,7 +122,11 @@ namespace QFramework.ViewController.UI
         public void OnQuitClick()
         {
             Debug.Log("OnQuitClick");
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
             Application.Quit();
+#endif
         }
     }
 }

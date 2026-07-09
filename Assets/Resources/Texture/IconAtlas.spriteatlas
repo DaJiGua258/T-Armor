@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: IconAtlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: b427b0fb583a1bb4d9238f301be4b39d, type: 3}
+    - {fileID: 102900000, guid: 49f4923314f597f4caf0754a57a0e302, type: 3}
+    - {fileID: 21300000, guid: ce31cc92e95bbca4c94288c26d6811e9, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - dcaa0ac05d1616e4ab7ffa67c893cde0: 21300000
+    - ce31cc92e95bbca4c94288c26d6811e9: 21300000
+    - 7e2fad05faa4ac04fba99f4fbcdd7f91: 21300000
+    - 53cf03253c0cf1345bae6f501217ac43: 21300000
+    - e9cc1f955a1a53547a21939c971f0dbe: 21300000
+    - 2faf26d6063225843aee6a8d085989cd: 21300000
+    - 6a58d3e7d6eb00641b1b7e88613ba51e: 21300000
+    - 2f24876c26ec2a14d8fb4b37a048cb64: 21300000
+    - 68d135ac8eb1e6a4da31f6dfb3b78dec: 21300000
+    - 7f55647df6f9034468e20c4fd4f96f94: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: dcaa0ac05d1616e4ab7ffa67c893cde0, type: 3}
+  - {fileID: 21300000, guid: ce31cc92e95bbca4c94288c26d6811e9, type: 3}
+  - {fileID: 21300000, guid: 7e2fad05faa4ac04fba99f4fbcdd7f91, type: 3}
+  - {fileID: 21300000, guid: 53cf03253c0cf1345bae6f501217ac43, type: 3}
+  - {fileID: 21300000, guid: e9cc1f955a1a53547a21939c971f0dbe, type: 3}
+  - {fileID: 21300000, guid: 2faf26d6063225843aee6a8d085989cd, type: 3}
+  - {fileID: 21300000, guid: 6a58d3e7d6eb00641b1b7e88613ba51e, type: 3}
+  - {fileID: 21300000, guid: 2f24876c26ec2a14d8fb4b37a048cb64, type: 3}
+  - {fileID: 21300000, guid: 68d135ac8eb1e6a4da31f6dfb3b78dec, type: 3}
+  - {fileID: 21300000, guid: 7f55647df6f9034468e20c4fd4f96f94, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - icon_Homing
+  - DefaultSpriteSquare
+  - icon_Damage
+  - icon_Rpm
+  - icon_Ammo
+  - icon_artillery
+  - icon_missile
+  - icon_Reload
+  - icon_Penetration
+  - icon_Spread
+  m_RenderDataMap: {}
+  m_Tag: IconAtlas
+  m_IsVariant: 0

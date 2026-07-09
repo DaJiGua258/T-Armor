@@ -99,16 +99,16 @@ namespace QFramework.ViewController.UI
             if (_rtRoot == null)
             {
                 _rtRoot = new GameObject("__GameWeaponRT__").transform;
-                _rtRoot.position = new Vector3(0, -5000, 0);
+                _rtRoot.position = new Vector3(-5000, 0, 0);
             }
 
             var inst = Instantiate(_rtPrefab, _rtRoot);
-            inst.transform.localPosition = new Vector3((int)_slotType * 10f, 0, 0);
+            inst.transform.localPosition = new Vector3((int)_slotType * 1000, 0, 0);
 
             _rtCamera = inst.GetComponentInChildren<Camera>();
             _rtCamera.gameObject.SetActive(false);
 
-            _rt = new RenderTexture(256, 256, 16);
+            _rt = new RenderTexture(128, 128, 16);
             _rt.Create();
             _rtCamera.targetTexture = _rt;
         }

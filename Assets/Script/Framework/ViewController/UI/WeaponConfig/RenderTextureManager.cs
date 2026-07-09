@@ -15,8 +15,8 @@ namespace QFramework.ViewController.UI.WeaponConfig
         [SerializeField] private GameObject _rtPrefab;
 
         [Header("RT 分辨率")]
-        [SerializeField] private int _rtWidth = 256;
-        [SerializeField] private int _rtHeight = 256;
+        [SerializeField] private int _rtWidth = 128;
+        [SerializeField] private int _rtHeight = 128;
 
         [Header("模型自转")]
         [SerializeField] private float _rotationSpeed = 30f;
@@ -27,8 +27,8 @@ namespace QFramework.ViewController.UI.WeaponConfig
         [Header("Player 预览")]
         [SerializeField] private GameObject _playerPrefab;
         [Header("Player RT 分辨率")]
-        [SerializeField] private int _playerRTWidth = 512;
-        [SerializeField] private int _playerRTHeight = 512;
+        [SerializeField] private int _playerRTWidth = 128;
+        [SerializeField] private int _playerRTHeight = 128;
 
         private const string WEAPONS_ROOT_NAME = "Weapons";
         private const string PLAYER_ROOT_NAME = "Player";
@@ -80,8 +80,7 @@ namespace QFramework.ViewController.UI.WeaponConfig
             for (int i = 0; i < types.Count; i++)
             {
                 var type = types[i];
-                var isHanger = model.HangerWeaponConfigs.Keys.Contains(type);
-                var path = isHanger ? $"Prefab/Weapon/Hanger/{type}" : $"Prefab/Weapon/Slot/{type}";
+                var path = $"Prefab/Weapon/RT/{type}";
                 var weaponPrefab = this.GetUtility<IResourceLoad>().Load<GameObject>(path);
                 if (weaponPrefab == null) continue;
 

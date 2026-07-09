@@ -16,7 +16,6 @@ Shader "Custom/SimpleInstanced_URP"
             "RenderType" = "Transparent" 
         }
 
-        // 基础透明设置
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
         Cull Off
@@ -27,17 +26,19 @@ Shader "Custom/SimpleInstanced_URP"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            
-            // 开启 GPU Instancing 变体编译
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            // 必须包裹在 CBUFFER 中以适配 SRP Batcher
+            // 注意:_MainTex_ST 仍然可以放 CBUFFER(UV 缩放偏移一般不需要逐实例)
             CBUFFER_START(UnityPerMaterial)
-                float4 _Color;
                 float4 _MainTex_ST;
             CBUFFER_END
+
+            // _Color 改为逐实例属性,不再放进 UnityPerMaterial
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
@@ -46,24 +47,22 @@ Shader "Custom/SimpleInstanced_URP"
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID // 输入 ID
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
                 float4 vertex : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID // 传递 ID
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             v2f vert(appdata v)
             {
                 v2f o;
-                // 初始化 Instancing 数据
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-                // 标准 URP 坐标转换
                 o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
@@ -71,13 +70,11 @@ Shader "Custom/SimpleInstanced_URP"
 
             half4 frag(v2f i) : SV_Target
             {
-                // 设置 Instancing 环境
                 UNITY_SETUP_INSTANCE_ID(i);
 
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                col *= _Color;
+                col *= UNITY_ACCESS_INSTANCED_PROP(Props, _Color);
 
-                // 简单的透明剔除（可选）
                 if (col.a < 0.01) discard;
 
                 return col;

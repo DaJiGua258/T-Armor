@@ -64,6 +64,7 @@ public struct CellData
             tileIndex = TILE_FULL,
             occupied = false,
             flags = CellFlags.None
+            
         };
     }
 }
